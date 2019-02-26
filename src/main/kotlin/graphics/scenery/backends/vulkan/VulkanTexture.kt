@@ -89,7 +89,7 @@ open class VulkanTexture(val device: VulkanDevice,
                 }
 
                 vkCmdCopyBufferToImage(this,
-                    buffer.vulkanBuffer,
+                    buffer.vulkanBuffer.L,
                     this@VulkanImage.image, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
                     bufferImageCopy)
 
@@ -123,7 +123,7 @@ open class VulkanTexture(val device: VulkanDevice,
                     bufferImageCopy.imageOffset().set(update.extents.x, update.extents.y, update.extents.z)
 
                     vkCmdCopyBufferToImage(this,
-                        buffer.vulkanBuffer,
+                        buffer.vulkanBuffer.L,
                         this@VulkanImage.image, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
                         bufferImageCopy)
 

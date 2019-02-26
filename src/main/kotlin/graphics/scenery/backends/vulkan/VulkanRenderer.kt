@@ -1740,7 +1740,7 @@ open class VulkanRenderer(hub: Hub,
 
                     vkCmdCopyImageToBuffer(this, image,
                         VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL,
-                        sb.vulkanBuffer,
+                        sb.vulkanBuffer.L,
                         regions)
 
                     VulkanTexture.transitionLayout(image,
@@ -2223,7 +2223,7 @@ open class VulkanRenderer(hub: Hub,
             geometryPool.createBuffer(fullAllocationBytes.i)
         }
 
-        logger.debug("Using VulkanBuffer {} for vertex+index storage, offset={}", vertexBuffer.vulkanBuffer.toHexString(), vertexBuffer.bufferOffset)
+        logger.debug("Using VulkanBuffer {} for vertex+index storage, offset={}", vertexBuffer.vulkanBuffer.asHexString, vertexBuffer.bufferOffset)
 
         logger.debug("Initiating copy with 0->${vertexBuffer.bufferOffset}, size=$fullAllocationBytes")
         val copyRegion = VkBufferCopy.calloc(1)
@@ -2233,8 +2233,8 @@ open class VulkanRenderer(hub: Hub,
             }
         with(VU.newCommandBuffer(device, commandPools.Standard, autostart = true)) {
             vkCmdCopyBuffer(this,
-                stagingBuffer.vulkanBuffer,
-                vertexBuffer.vulkanBuffer,
+                stagingBuffer.vulkanBuffer.L,
+                vertexBuffer.vulkanBuffer.L,
                 copyRegion)
             this.endCommandBuffer(device, commandPools.Standard, queue, flush = true, dealloc = true)
         }
@@ -2322,8 +2322,8 @@ open class VulkanRenderer(hub: Hub,
             val copyRegion = vk.BufferCopy { size = instanceBufferSize }
 
             nvkCmdCopyBuffer(this,
-                stagingBuffer.vulkanBuffer,
-                instanceBuffer.vulkanBuffer,
+                stagingBuffer.vulkanBuffer.L,
+                instanceBuffer.vulkanBuffer.L,
                 1, copyRegion.adr)
 
             this.endCommandBuffer(device, commandPools.Standard, queue, flush = true, dealloc = true)
@@ -2638,7 +2638,7 @@ open class VulkanRenderer(hub: Hub,
                     return@drawLoop
                 }
 
-                logger.trace("{} - Rendering {}, vertex+index buffer={}...", pass.name, node.name, vertexIndexBuffer.vulkanBuffer.toHexString())
+                logger.trace("{} - Rendering {}, vertex+index buffer={}...", pass.name, node.name, vertexIndexBuffer.vulkanBuffer.asHexString)
 //                if(rerecordingCauses.contains(node.name)) {
 //                    logger.debug("Using pipeline ${pass.getActivePipeline(node)} for re-recording")
 //                }
@@ -2652,7 +2652,7 @@ open class VulkanRenderer(hub: Hub,
                 pass.vulkanMetadata.uboOffsets.rewind()
 
                 pass.vulkanMetadata.vertexBufferOffsets.put(0, vertexIndexBuffer.bufferOffset)
-                pass.vulkanMetadata.vertexBuffers.put(0, vertexIndexBuffer.vulkanBuffer)
+                pass.vulkanMetadata.vertexBuffers.put(0, vertexIndexBuffer.vulkanBuffer.L)
 
                 pass.vulkanMetadata.vertexBufferOffsets.limit(1)
                 pass.vulkanMetadata.vertexBuffers.limit(1)
@@ -2662,7 +2662,7 @@ open class VulkanRenderer(hub: Hub,
                     pass.vulkanMetadata.vertexBufferOffsets.limit(2)
 
                     pass.vulkanMetadata.vertexBufferOffsets.put(1, 0)
-                    pass.vulkanMetadata.vertexBuffers.put(1, instanceBuffer.vulkanBuffer)
+                    pass.vulkanMetadata.vertexBuffers.put(1, instanceBuffer.vulkanBuffer.L)
                 }
 
                 val sets = specs.mapNotNull { (name, _) ->

@@ -5,6 +5,8 @@ import graphics.scenery.backends.UBO
 import org.lwjgl.system.MemoryUtil.*
 import org.lwjgl.vulkan.VK10.*
 import vkk.VkBufferUsage
+import vkk.entities.VkBuffer
+import vkk.entities.VkDeviceMemory
 import java.nio.ByteBuffer
 import java.nio.IntBuffer
 
@@ -28,9 +30,9 @@ open class VulkanUBO(val device: VulkanDevice, var backingBuffer: VulkanBuffer? 
      * allocation sizes, offsets and ranges for the backing buffer.
      */
     class UBODescriptor {
-        internal var memory: Long = 0
+        internal var memory = VkDeviceMemory.NULL
         internal var allocationSize: Long = 0
-        internal var buffer: Long = 0
+        internal var buffer = VkBuffer.NULL
         internal var offset: Long = 0
         internal var range: Long = 0
     }
@@ -38,10 +40,10 @@ open class VulkanUBO(val device: VulkanDevice, var backingBuffer: VulkanBuffer? 
     protected fun copy(data: ByteBuffer, offset: Long = 0) {
         val dest = memAllocPointer(1)
 
-        VU.run("Mapping buffer memory/vkMapMemory", { vkMapMemory(device.vulkanDevice, descriptor.memory, offset, descriptor.allocationSize * 1L, 0, dest) })
+        VU.run("Mapping buffer memory/vkMapMemory", { vkMapMemory(device.vulkanDevice, descriptor.memory.L, offset, descriptor.allocationSize * 1L, 0, dest) })
         memCopy(memAddress(data), dest.get(0), data.remaining().toLong())
 
-        vkUnmapMemory(device.vulkanDevice, descriptor.memory)
+        vkUnmapMemory(device.vulkanDevice, descriptor.memory.L)
         memFree(dest)
     }
 
@@ -172,7 +174,7 @@ open class VulkanUBO(val device: VulkanDevice, var backingBuffer: VulkanBuffer? 
         logger.trace("Closing UBO $this ...")
         if (backingBuffer == null) {
             ownedBackingBuffer?.let {
-                logger.trace("Destroying self-owned buffer of $this/$it  ${it.memory.toHexString()})...")
+                logger.trace("Destroying self-owned buffer of $this/$it  ${it.memory.asHexString})...")
                 it.close()
             }
         }

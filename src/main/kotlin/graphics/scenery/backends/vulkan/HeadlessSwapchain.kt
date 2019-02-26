@@ -233,7 +233,7 @@ open class HeadlessSwapchain(device: VulkanDevice,
 
             VK10.vkCmdCopyImageToBuffer(this, transferImage,
                 VK10.VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL,
-                sharingBuffer.vulkanBuffer,
+                sharingBuffer.vulkanBuffer.L,
                 regions)
 
             VulkanTexture.transitionLayout(transferImage,

@@ -1,6 +1,8 @@
 package graphics.scenery.backends.vulkan
 
 import glm_.L
+import org.lwjgl.system.MemoryUtil.NULL
+import vkk.entities.VkDeviceMemory
 import vkk.entities.VkDeviceSize
 
 fun VkDeviceSize(size: Int): VkDeviceSize = VkDeviceSize(size.L)

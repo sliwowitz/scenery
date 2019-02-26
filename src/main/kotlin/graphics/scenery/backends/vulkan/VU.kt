@@ -636,7 +636,7 @@ class VU {
                     { vkAllocateDescriptorSets(device.vulkanDevice, allocInfo, this) }, {})
 
                 val d = VkDescriptorBufferInfo.callocStack(1, stack)
-                    .buffer(buffer.vulkanBuffer)
+                    .buffer(buffer.vulkanBuffer.L)
                     .range(2048)
                     .offset(0L)
 
@@ -668,7 +668,7 @@ class VU {
 
             return stackPush().use { stack ->
                 val d = VkDescriptorBufferInfo.callocStack(1, stack)
-                    .buffer(buffer.vulkanBuffer)
+                    .buffer(buffer.vulkanBuffer.L)
                     .range(2048)
                     .offset(0L)
 
@@ -713,7 +713,7 @@ class VU {
 
                 val d =
                     VkDescriptorBufferInfo.callocStack(1, stack)
-                        .buffer(ubo.buffer)
+                        .buffer(ubo.buffer.L)
                         .range(ubo.range)
                         .offset(ubo.offset)
 
