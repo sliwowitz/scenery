@@ -13,7 +13,7 @@ import java.nio.IntBuffer
  *
  * @author Ulrik Günther <hello@ulrik.is>
  */
-open class VulkanUBO(val device: VulkanDevice, var backingBuffer: VulkanBuffer? = null): AutoCloseable, UBO() {
+open class VulkanUBO(val device: VulkanDevice, var backingBuffer: VulkanBuffer? = null) : AutoCloseable, UBO() {
     /** [UBODescriptor] for this UBO, containing size, memory pointer, etc. */
     var descriptor = UBODescriptor()
         private set
@@ -38,7 +38,7 @@ open class VulkanUBO(val device: VulkanDevice, var backingBuffer: VulkanBuffer? 
     protected fun copy(data: ByteBuffer, offset: Long = 0) {
         val dest = memAllocPointer(1)
 
-        VU.run("Mapping buffer memory/vkMapMemory", { vkMapMemory(device.vulkanDevice, descriptor.memory, offset, descriptor.allocationSize* 1L, 0, dest) })
+        VU.run("Mapping buffer memory/vkMapMemory", { vkMapMemory(device.vulkanDevice, descriptor.memory, offset, descriptor.allocationSize * 1L, 0, dest) })
         memCopy(memAddress(data), dest.get(0), data.remaining().toLong())
 
         vkUnmapMemory(device.vulkanDevice, descriptor.memory)
@@ -57,7 +57,7 @@ open class VulkanUBO(val device: VulkanDevice, var backingBuffer: VulkanBuffer? 
         val updated: Boolean
         val buffer = backingBuffer
 
-        if(buffer == null) {
+        if (buffer == null) {
             val data = stagingMemory ?: memAlloc(getSize())
             stagingMemory = data
 
@@ -66,14 +66,14 @@ open class VulkanUBO(val device: VulkanDevice, var backingBuffer: VulkanBuffer? 
             data.flip()
             copy(data, offset = offset)
         } else {
-            val sizeRequired = if(sizeCached <= 0) {
+            val sizeRequired = if (sizeCached <= 0) {
                 buffer.alignment
             } else {
                 sizeCached + buffer.alignment
             }
 
-            if(buffer.stagingBuffer.remaining() < sizeRequired) {
-                logger.debug("Resizing $buffer from ${buffer.size} to ${buffer.size*1.5}")
+            if (buffer.stagingBuffer.remaining() < sizeRequired) {
+                logger.debug("Resizing $buffer from ${buffer.size} to ${buffer.size.L * 1.5}")
                 buffer.resize()
             }
 
@@ -111,7 +111,7 @@ open class VulkanUBO(val device: VulkanDevice, var backingBuffer: VulkanBuffer? 
     fun createUniformBuffer(): UBODescriptor {
         backingBuffer?.let { buffer ->
             descriptor.memory = buffer.memory
-            descriptor.allocationSize = buffer.size
+            descriptor.allocationSize = buffer.size.L
             descriptor.buffer = buffer.vulkanBuffer
             descriptor.offset = 0L
             descriptor.range = this.getSize() * 1L
@@ -120,7 +120,7 @@ open class VulkanUBO(val device: VulkanDevice, var backingBuffer: VulkanBuffer? 
         }
 
         ownedBackingBuffer = VulkanBuffer(device,
-            this.getSize() * 1L,
+            VkDeviceSize(getSize()),
             VkBufferUsage.UNIFORM_BUFFER_BIT.i,
             VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT,
             wantAligned = true)
@@ -128,7 +128,7 @@ open class VulkanUBO(val device: VulkanDevice, var backingBuffer: VulkanBuffer? 
         ownedBackingBuffer?.let { buffer ->
             descriptor = UBODescriptor()
             descriptor.memory = buffer.memory
-            descriptor.allocationSize = buffer.size
+            descriptor.allocationSize = buffer.size.L
             descriptor.buffer = buffer.vulkanBuffer
             descriptor.offset = 0L
             descriptor.range = this.getSize() * 1L
@@ -144,7 +144,7 @@ open class VulkanUBO(val device: VulkanDevice, var backingBuffer: VulkanBuffer? 
     @Suppress("unused")
     fun updateBackingBuffer(newBackingBuffer: VulkanBuffer) {
         descriptor.memory = newBackingBuffer.memory
-        descriptor.allocationSize = newBackingBuffer.size
+        descriptor.allocationSize = newBackingBuffer.size.L
         descriptor.buffer = newBackingBuffer.vulkanBuffer
         descriptor.offset = 0L
         descriptor.range = this.getSize() * 1L
@@ -165,12 +165,12 @@ open class VulkanUBO(val device: VulkanDevice, var backingBuffer: VulkanBuffer? 
      * Closes this UBO, freeing staging memory and closing any self-owned backing buffers.
      */
     override fun close() {
-        if(closed) {
+        if (closed) {
             return
         }
 
         logger.trace("Closing UBO $this ...")
-        if(backingBuffer == null) {
+        if (backingBuffer == null) {
             ownedBackingBuffer?.let {
                 logger.trace("Destroying self-owned buffer of $this/$it  ${it.memory.toHexString()})...")
                 it.close()

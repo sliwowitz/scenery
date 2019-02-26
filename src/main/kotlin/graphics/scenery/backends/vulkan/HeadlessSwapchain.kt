@@ -1,5 +1,6 @@
 package graphics.scenery.backends.vulkan
 
+import glm_.i
 import graphics.scenery.backends.RenderConfigReader
 import graphics.scenery.backends.SceneryWindow
 import org.lwjgl.system.MemoryUtil
@@ -137,8 +138,8 @@ open class HeadlessSwapchain(device: VulkanDevice,
 
         logger.info("Created ${images.size} swapchain images")
 
-        val imageByteSize = window.width * window.height * 4L
-        imageBuffer = MemoryUtil.memAlloc(imageByteSize.toInt())
+        val imageByteSize = VkDeviceSize(window.width * window.height * 4)
+        imageBuffer = MemoryUtil.memAlloc(imageByteSize.i)
         sharingBuffer = VulkanBuffer(device,
             imageByteSize,
             VkBufferUsage.TRANSFER_DST_BIT.i,

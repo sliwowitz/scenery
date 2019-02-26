@@ -6,10 +6,12 @@ import graphics.scenery.GenericTexture
 import graphics.scenery.TextureExtents
 import graphics.scenery.TextureUpdate
 import graphics.scenery.utils.LazyLogger
+import kool.cap
+import kool.lim
+import kool.rem
 import org.lwjgl.system.MemoryUtil.*
 import org.lwjgl.vulkan.*
 import org.lwjgl.vulkan.VK10.*
-import org.lwjgl.vulkan.VkImageCreateInfo
 import vkk.VkBufferUsage
 import java.awt.Color
 import java.awt.color.ColorSpace
@@ -36,10 +38,10 @@ import kotlin.streams.toList
  * @author Ulrik Günther <hello@ulrik.is>
  */
 open class VulkanTexture(val device: VulkanDevice,
-                    val commandPools: VulkanRenderer.CommandPools, val queue: VkQueue, val transferQueue: VkQueue,
-                    val width: Int, val height: Int, val depth: Int = 1,
-                    val format: Int = VK_FORMAT_R8G8B8_SRGB, var mipLevels: Int = 1,
-                    val minFilterLinear: Boolean = true, val maxFilterLinear: Boolean = true) : AutoCloseable {
+                         val commandPools: VulkanRenderer.CommandPools, val queue: VkQueue, val transferQueue: VkQueue,
+                         val width: Int, val height: Int, val depth: Int = 1,
+                         val format: Int = VK_FORMAT_R8G8B8_SRGB, var mipLevels: Int = 1,
+                         val minFilterLinear: Boolean = true, val maxFilterLinear: Boolean = true) : AutoCloseable {
     //protected val logger by LazyLogger()
 
     /** The Vulkan image associated with this texture. */
@@ -76,7 +78,7 @@ open class VulkanTexture(val device: VulkanDevice,
                     .layerCount(1)
                 bufferImageCopy.bufferOffset(bufferOffset)
 
-                if(update != null) {
+                if (update != null) {
                     bufferImageCopy.imageExtent().set(update.extents.w, update.extents.h, update.extents.d)
                     bufferImageCopy.imageOffset().set(update.extents.x, update.extents.y, update.extents.z)
                 } else {
@@ -147,7 +149,7 @@ open class VulkanTexture(val device: VulkanDevice,
                     .srcSubresource(subresource)
                     .dstSubresource(subresource)
 
-                if(extents != null) {
+                if (extents != null) {
                     region.srcOffset().set(extents.x, extents.y, extents.z)
                     region.dstOffset().set(extents.x, extents.y, extents.z)
                     region.extent().set(extents.w, extents.h, extents.d)
@@ -169,7 +171,7 @@ open class VulkanTexture(val device: VulkanDevice,
     }
 
     init {
-        stagingImage = if(depth == 1) {
+        stagingImage = if (depth == 1) {
             createImage(width, height, depth,
                 format, VK_IMAGE_USAGE_TRANSFER_SRC_BIT,
                 VK_IMAGE_TILING_LINEAR,
@@ -223,7 +225,7 @@ open class VulkanTexture(val device: VulkanDevice,
     fun createImage(width: Int, height: Int, depth: Int, format: Int,
                     usage: Int, tiling: Int, memoryFlags: Int, mipLevels: Int,
                     customAllocator: ((VkMemoryRequirements, Long) -> Long)? = null, imageCreateInfo: VkImageCreateInfo? = null): VulkanImage {
-        val imageInfo = if(imageCreateInfo != null) {
+        val imageInfo = if (imageCreateInfo != null) {
             imageCreateInfo
         } else {
             val i = VkImageCreateInfo.calloc()
@@ -237,7 +239,11 @@ open class VulkanTexture(val device: VulkanDevice,
                 .arrayLayers(1)
                 .format(format)
                 .tiling(tiling)
-                .initialLayout(if(depth == 1) {VK_IMAGE_LAYOUT_PREINITIALIZED} else { VK_IMAGE_LAYOUT_UNDEFINED })
+                .initialLayout(if (depth == 1) {
+                    VK_IMAGE_LAYOUT_PREINITIALIZED
+                } else {
+                    VK_IMAGE_LAYOUT_UNDEFINED
+                })
                 .usage(usage)
                 .sharingMode(VK_SHARING_MODE_EXCLUSIVE)
                 .samples(VK_SAMPLE_COUNT_1_BIT)
@@ -254,7 +260,7 @@ open class VulkanTexture(val device: VulkanDevice,
         vkGetImageMemoryRequirements(device.vulkanDevice, image, reqs)
         val memorySize = reqs.size()
 
-        val memory = if(customAllocator == null) {
+        val memory = if (customAllocator == null) {
             val allocInfo = VkMemoryAllocateInfo.calloc()
                 .sType(VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO)
                 .pNext(NULL)
@@ -356,11 +362,10 @@ open class VulkanTexture(val device: VulkanDevice,
                         commandBuffer = this)
                 } else {
                     val genericTexture = gt
-                    val requiredCapacity = if(genericTexture != null && genericTexture.hasConsumableUpdates()) {
-                        genericTexture.updates.map { if(!it.consumed) { it.contents.remaining() } else { 0 } }.sum().toLong()
-                    } else {
-                        sourceBuffer.capacity().toLong()
-                    }
+                    val requiredCapacity = VkDeviceSize(when (genericTexture?.hasConsumableUpdates()) {
+                        true -> genericTexture.updates.sumBy { if (!it.consumed) it.contents.rem else 0 }
+                        else -> sourceBuffer.cap
+                    })
 
                     buffer = VulkanBuffer(this@VulkanTexture.device,
                         requiredCapacity,
@@ -376,8 +381,8 @@ open class VulkanTexture(val device: VulkanDevice,
                             dstStage = VK_PIPELINE_STAGE_TRANSFER_BIT,
                             commandBuffer = this)
 
-                        if(genericTexture != null) {
-                            if(genericTexture.hasConsumableUpdates()) {
+                        if (genericTexture != null) {
+                            if (genericTexture.hasConsumableUpdates()) {
                                 val updates = genericTexture.updates.filter { !it.consumed }
                                 val contents = updates.map { it.contents }
 
@@ -408,7 +413,7 @@ open class VulkanTexture(val device: VulkanDevice,
             }
         } else {
             val buffer = VulkanBuffer(device,
-                sourceBuffer.limit().toLong(),
+                VkDeviceSize(sourceBuffer.lim),
                 VkBufferUsage.TRANSFER_SRC_BIT.i,
                 VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT,
                 wantAligned = false)
@@ -537,7 +542,7 @@ open class VulkanTexture(val device: VulkanDevice,
             .format(format)
             .subresourceRange(subresourceRange)
 
-        if(gt?.channels == 1 && depth > 1) {
+        if (gt?.channels == 1 && depth > 1) {
             vi.components().set(VK_COMPONENT_SWIZZLE_R, VK_COMPONENT_SWIZZLE_R, VK_COMPONENT_SWIZZLE_R, VK_COMPONENT_SWIZZLE_R)
         }
 
@@ -553,17 +558,49 @@ open class VulkanTexture(val device: VulkanDevice,
         val samplerInfo = VkSamplerCreateInfo.calloc()
             .sType(VK_STRUCTURE_TYPE_SAMPLER_CREATE_INFO)
             .pNext(NULL)
-            .magFilter(if(minFilterLinear) { VK_FILTER_LINEAR } else { VK_FILTER_NEAREST })
-            .minFilter(if(maxFilterLinear) { VK_FILTER_LINEAR } else { VK_FILTER_NEAREST })
-            .mipmapMode(if(depth == 1) { VK_SAMPLER_MIPMAP_MODE_LINEAR } else { VK_SAMPLER_MIPMAP_MODE_NEAREST })
-            .addressModeU(if(depth == 1) { VK_SAMPLER_ADDRESS_MODE_REPEAT } else { VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE })
-            .addressModeV(if(depth == 1) { VK_SAMPLER_ADDRESS_MODE_REPEAT } else { VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE })
-            .addressModeW(if(depth == 1) { VK_SAMPLER_ADDRESS_MODE_REPEAT } else { VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE })
+            .magFilter(if (minFilterLinear) {
+                VK_FILTER_LINEAR
+            } else {
+                VK_FILTER_NEAREST
+            })
+            .minFilter(if (maxFilterLinear) {
+                VK_FILTER_LINEAR
+            } else {
+                VK_FILTER_NEAREST
+            })
+            .mipmapMode(if (depth == 1) {
+                VK_SAMPLER_MIPMAP_MODE_LINEAR
+            } else {
+                VK_SAMPLER_MIPMAP_MODE_NEAREST
+            })
+            .addressModeU(if (depth == 1) {
+                VK_SAMPLER_ADDRESS_MODE_REPEAT
+            } else {
+                VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE
+            })
+            .addressModeV(if (depth == 1) {
+                VK_SAMPLER_ADDRESS_MODE_REPEAT
+            } else {
+                VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE
+            })
+            .addressModeW(if (depth == 1) {
+                VK_SAMPLER_ADDRESS_MODE_REPEAT
+            } else {
+                VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE
+            })
             .mipLodBias(0.0f)
             .anisotropyEnable(depth == 1)
-            .maxAnisotropy(if(depth == 1) { 8.0f } else { 1.0f })
+            .maxAnisotropy(if (depth == 1) {
+                8.0f
+            } else {
+                1.0f
+            })
             .minLod(0.0f)
-            .maxLod(if(depth == 1) {mipLevels * 1.0f} else { 0.0f })
+            .maxLod(if (depth == 1) {
+                mipLevels * 1.0f
+            } else {
+                0.0f
+            })
             .borderColor(VK_BORDER_COLOR_FLOAT_OPAQUE_WHITE)
             .compareOp(VK_COMPARE_OP_NEVER)
 
@@ -577,7 +614,8 @@ open class VulkanTexture(val device: VulkanDevice,
      * Utility methods for [VulkanTexture].
      */
     companion object {
-        @JvmStatic private val logger by LazyLogger()
+        @JvmStatic
+        private val logger by LazyLogger()
 
         private val StandardAlphaColorModel = ComponentColorModel(
             ColorSpace.getInstance(ColorSpace.CS_sRGB),
@@ -599,7 +637,7 @@ open class VulkanTexture(val device: VulkanDevice,
          * Loads a texture from a file given by [filename], and allocates the [VulkanTexture] on [device].
          */
         fun loadFromFile(device: VulkanDevice,
-                         commandPools: VulkanRenderer.CommandPools , queue: VkQueue, transferQueue: VkQueue,
+                         commandPools: VulkanRenderer.CommandPools, queue: VkQueue, transferQueue: VkQueue,
                          filename: String,
                          linearMin: Boolean, linearMax: Boolean,
                          generateMipmaps: Boolean = true): VulkanTexture {
@@ -607,20 +645,24 @@ open class VulkanTexture(val device: VulkanDevice,
             val type = filename.substringAfterLast('.')
 
 
-            logger.debug("Loading${if(generateMipmaps) { " mipmapped" } else { "" }} texture from $filename")
+            logger.debug("Loading${if (generateMipmaps) {
+                " mipmapped"
+            } else {
+                ""
+            }} texture from $filename")
 
-            return if(type == "raw") {
+            return if (type == "raw") {
                 val path = Paths.get(filename)
                 val infoFile = path.resolveSibling(path.fileName.toString().substringBeforeLast(".") + ".info")
                 val dimensions = Files.lines(infoFile).toList().first().split(",").map { it.toLong() }.toLongArray()
 
                 loadFromFileRaw(device,
-                        commandPools, queue, transferQueue,
-                        stream, type, dimensions)
+                    commandPools, queue, transferQueue,
+                    stream, type, dimensions)
             } else {
                 loadFromFile(device,
-                        commandPools, queue, transferQueue,
-                        stream, type, linearMin, linearMax, generateMipmaps)
+                    commandPools, queue, transferQueue,
+                    stream, type, linearMin, linearMax, generateMipmaps)
             }
         }
 
@@ -690,7 +732,7 @@ open class VulkanTexture(val device: VulkanDevice,
                 levelsH++
             }
 
-            val mipmapLevels = if(generateMipmaps) {
+            val mipmapLevels = if (generateMipmaps) {
                 Math.min(levelsW, levelsH)
             } else {
                 1
@@ -720,10 +762,10 @@ open class VulkanTexture(val device: VulkanDevice,
                             commandPools: VulkanRenderer.CommandPools, queue: VkQueue, transferQueue: VkQueue,
                             stream: InputStream, type: String, dimensions: LongArray): VulkanTexture {
             val imageData: ByteBuffer = ByteBuffer.allocateDirect((2 * dimensions[0] * dimensions[1] * dimensions[2]).toInt())
-            val buffer = ByteArray(1024*1024)
+            val buffer = ByteArray(1024 * 1024)
 
             var bytesRead = stream.read(buffer)
-            while(bytesRead > -1) {
+            while (bytesRead > -1) {
                 imageData.put(buffer)
                 bytesRead = stream.read(buffer)
             }
@@ -857,52 +899,52 @@ open class VulkanTexture(val device: VulkanDevice,
                     barrier
                         .srcAccessMask(VK_ACCESS_TRANSFER_READ_BIT)
                         .dstAccessMask(VK_ACCESS_SHADER_READ_BIT)
-                } else if(oldLayout == KHRSwapchain.VK_IMAGE_LAYOUT_PRESENT_SRC_KHR && newLayout == VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL) {
+                } else if (oldLayout == KHRSwapchain.VK_IMAGE_LAYOUT_PRESENT_SRC_KHR && newLayout == VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL) {
                     barrier
                         .srcAccessMask(VK_ACCESS_MEMORY_READ_BIT)
                         .dstAccessMask(VK_ACCESS_TRANSFER_READ_BIT)
-                } else if(oldLayout == VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL && newLayout == KHRSwapchain.VK_IMAGE_LAYOUT_PRESENT_SRC_KHR) {
+                } else if (oldLayout == VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL && newLayout == KHRSwapchain.VK_IMAGE_LAYOUT_PRESENT_SRC_KHR) {
                     barrier
                         .srcAccessMask(VK_ACCESS_TRANSFER_READ_BIT)
                         .dstAccessMask(VK_ACCESS_MEMORY_READ_BIT)
-                } else if(oldLayout == VK_IMAGE_LAYOUT_UNDEFINED && newLayout == VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL) {
+                } else if (oldLayout == VK_IMAGE_LAYOUT_UNDEFINED && newLayout == VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL) {
                     barrier
                         .srcAccessMask(0)
                         .dstAccessMask(VK_ACCESS_SHADER_READ_BIT)
-                } else if(oldLayout == VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL && newLayout == VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL) {
+                } else if (oldLayout == VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL && newLayout == VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL) {
                     barrier.srcAccessMask(VK_ACCESS_SHADER_READ_BIT)
                         .dstAccessMask(VK_ACCESS_TRANSFER_READ_BIT)
-                } else if(oldLayout == VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL && newLayout == VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL) {
+                } else if (oldLayout == VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL && newLayout == VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL) {
                     barrier.srcAccessMask(VK_ACCESS_TRANSFER_READ_BIT)
                         .dstAccessMask(VK_ACCESS_SHADER_READ_BIT)
-                } else if(oldLayout == VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL && newLayout == VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL) {
+                } else if (oldLayout == VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL && newLayout == VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL) {
                     barrier.srcAccessMask(VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT)
                         .dstAccessMask(VK_ACCESS_TRANSFER_WRITE_BIT)
-                } else if(oldLayout == VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL && newLayout == VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL) {
+                } else if (oldLayout == VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL && newLayout == VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL) {
                     barrier.srcAccessMask(VK_ACCESS_TRANSFER_WRITE_BIT)
                         .dstAccessMask(VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT)
-                } else if(oldLayout == VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL && newLayout == VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL) {
+                } else if (oldLayout == VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL && newLayout == VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL) {
                     barrier.srcAccessMask(VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT)
                         .dstAccessMask(VK_ACCESS_TRANSFER_READ_BIT)
-                } else if(oldLayout == VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL && newLayout == VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL) {
+                } else if (oldLayout == VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL && newLayout == VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL) {
                     barrier.srcAccessMask(VK_ACCESS_TRANSFER_READ_BIT)
                         .dstAccessMask(VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT)
-                } else if(oldLayout == VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL && newLayout == VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL) {
+                } else if (oldLayout == VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL && newLayout == VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL) {
                     barrier.srcAccessMask(VK_ACCESS_INPUT_ATTACHMENT_READ_BIT)
                         .dstAccessMask(VK_ACCESS_TRANSFER_WRITE_BIT)
-                } else if(oldLayout == VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL && newLayout == VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL) {
+                } else if (oldLayout == VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL && newLayout == VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL) {
                     barrier.srcAccessMask(VK_ACCESS_TRANSFER_WRITE_BIT)
                         .dstAccessMask(VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT)
-                } else if(oldLayout == VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL && newLayout == VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL) {
+                } else if (oldLayout == VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL && newLayout == VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL) {
                     barrier.srcAccessMask(VK_ACCESS_TRANSFER_READ_BIT)
                         .dstAccessMask(VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT)
-                } else if(oldLayout == KHRSwapchain.VK_IMAGE_LAYOUT_PRESENT_SRC_KHR && newLayout == VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL) {
+                } else if (oldLayout == KHRSwapchain.VK_IMAGE_LAYOUT_PRESENT_SRC_KHR && newLayout == VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL) {
                     barrier.srcAccessMask(VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT)
                         .dstAccessMask(VK_ACCESS_TRANSFER_READ_BIT)
-                } else if(oldLayout == VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL && newLayout == KHRSwapchain.VK_IMAGE_LAYOUT_PRESENT_SRC_KHR) {
+                } else if (oldLayout == VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL && newLayout == KHRSwapchain.VK_IMAGE_LAYOUT_PRESENT_SRC_KHR) {
                     barrier.srcAccessMask(VK_ACCESS_TRANSFER_READ_BIT)
                         .dstAccessMask(VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT)
-                } else if(oldLayout == VK_IMAGE_LAYOUT_UNDEFINED && newLayout == VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL) {
+                } else if (oldLayout == VK_IMAGE_LAYOUT_UNDEFINED && newLayout == VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL) {
                     barrier.srcAccessMask(VK_ACCESS_TRANSFER_WRITE_BIT)
                         .dstAccessMask(VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT)
                 } else {
@@ -921,74 +963,88 @@ open class VulkanTexture(val device: VulkanDevice,
         }
 
         private fun GenericTexture.toVulkanFormat(): Int {
-            var format = when(this.type) {
-                GLTypeEnum.Byte -> when(this.channels) {
+            var format = when (this.type) {
+                GLTypeEnum.Byte -> when (this.channels) {
                     1 -> VK_FORMAT_R8_SNORM
                     2 -> VK_FORMAT_R8G8_SNORM
                     3 -> VK_FORMAT_R8G8B8A8_SNORM
                     4 -> VK_FORMAT_R8G8B8A8_SNORM
 
-                    else -> { logger.warn("Unknown texture type: $type, with $channels channels, falling back to default"); VK_FORMAT_R8G8B8A8_UNORM }
+                    else -> {
+                        logger.warn("Unknown texture type: $type, with $channels channels, falling back to default"); VK_FORMAT_R8G8B8A8_UNORM
+                    }
                 }
 
-                GLTypeEnum.UnsignedByte -> when(this.channels) {
+                GLTypeEnum.UnsignedByte -> when (this.channels) {
                     1 -> VK_FORMAT_R8_UNORM
                     2 -> VK_FORMAT_R8G8_UNORM
                     3 -> VK_FORMAT_R8G8B8A8_UNORM
                     4 -> VK_FORMAT_R8G8B8A8_UNORM
 
-                    else -> { logger.warn("Unknown texture type: $type, with $channels channels, falling back to default"); VK_FORMAT_R8G8B8A8_UNORM }
+                    else -> {
+                        logger.warn("Unknown texture type: $type, with $channels channels, falling back to default"); VK_FORMAT_R8G8B8A8_UNORM
+                    }
                 }
 
-                GLTypeEnum.Short ->  when(this.channels) {
+                GLTypeEnum.Short -> when (this.channels) {
                     1 -> VK_FORMAT_R16_SNORM
                     2 -> VK_FORMAT_R16G16_SNORM
                     3 -> VK_FORMAT_R16G16B16A16_SNORM
                     4 -> VK_FORMAT_R16G16B16A16_SNORM
 
-                    else -> { logger.warn("Unknown texture type: $type, with $channels channels, falling back to default"); VK_FORMAT_R8G8B8A8_UNORM }
+                    else -> {
+                        logger.warn("Unknown texture type: $type, with $channels channels, falling back to default"); VK_FORMAT_R8G8B8A8_UNORM
+                    }
                 }
 
-                GLTypeEnum.UnsignedShort -> when(this.channels) {
+                GLTypeEnum.UnsignedShort -> when (this.channels) {
                     1 -> VK_FORMAT_R16_UNORM
                     2 -> VK_FORMAT_R16G16_UNORM
                     3 -> VK_FORMAT_R16G16B16A16_UNORM
                     4 -> VK_FORMAT_R16G16B16A16_UNORM
 
-                    else -> { logger.warn("Unknown texture type: $type, with $channels channels, falling back to default"); VK_FORMAT_R8G8B8A8_UNORM }
+                    else -> {
+                        logger.warn("Unknown texture type: $type, with $channels channels, falling back to default"); VK_FORMAT_R8G8B8A8_UNORM
+                    }
                 }
 
-                GLTypeEnum.Int ->  when(this.channels) {
+                GLTypeEnum.Int -> when (this.channels) {
                     1 -> VK_FORMAT_R32_SINT
                     2 -> VK_FORMAT_R32G32_SINT
                     3 -> VK_FORMAT_R32G32B32A32_SINT
                     4 -> VK_FORMAT_R32G32B32A32_SINT
 
-                    else -> { logger.warn("Unknown texture type: $type, with $channels channels, falling back to default"); VK_FORMAT_R8G8B8A8_UNORM }
+                    else -> {
+                        logger.warn("Unknown texture type: $type, with $channels channels, falling back to default"); VK_FORMAT_R8G8B8A8_UNORM
+                    }
                 }
 
-                GLTypeEnum.UnsignedInt ->  when(this.channels) {
+                GLTypeEnum.UnsignedInt -> when (this.channels) {
                     1 -> VK_FORMAT_R32_UINT
                     2 -> VK_FORMAT_R32G32_UINT
                     3 -> VK_FORMAT_R32G32B32A32_UINT
                     4 -> VK_FORMAT_R32G32B32A32_UINT
 
-                    else -> { logger.warn("Unknown texture type: $type, with $channels channels, falling back to default"); VK_FORMAT_R8G8B8A8_UNORM }
+                    else -> {
+                        logger.warn("Unknown texture type: $type, with $channels channels, falling back to default"); VK_FORMAT_R8G8B8A8_UNORM
+                    }
                 }
 
-                GLTypeEnum.Float ->  when(this.channels) {
+                GLTypeEnum.Float -> when (this.channels) {
                     1 -> VK_FORMAT_R32_SFLOAT
                     2 -> VK_FORMAT_R32G32_SFLOAT
                     3 -> VK_FORMAT_R32G32B32A32_SFLOAT
                     4 -> VK_FORMAT_R32G32B32A32_SFLOAT
 
-                    else -> { logger.warn("Unknown texture type: $type, with $channels channels, falling back to default"); VK_FORMAT_R8G8B8A8_UNORM }
+                    else -> {
+                        logger.warn("Unknown texture type: $type, with $channels channels, falling back to default"); VK_FORMAT_R8G8B8A8_UNORM
+                    }
                 }
 
                 GLTypeEnum.Double -> TODO("Double format textures are not supported")
             }
 
-            if(!this.normalized && this.type != GLTypeEnum.Float && this.type != GLTypeEnum.Byte && this.type != GLTypeEnum.Int) {
+            if (!this.normalized && this.type != GLTypeEnum.Float && this.type != GLTypeEnum.Byte && this.type != GLTypeEnum.Int) {
                 format += 4
             }
 

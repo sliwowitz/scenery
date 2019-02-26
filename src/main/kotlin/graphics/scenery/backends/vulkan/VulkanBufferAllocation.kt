@@ -49,7 +49,7 @@ class VulkanBufferAllocation(val usage: VkBufferUsageFlags,
     private fun FreeSpace.getFreeSpace(): Int {
         return when {
             left == null && right != null -> right.offset
-            left != null && right != null -> right.offset - (left.offset + left.size)
+            left != null && right != null -> right.offset - (left.offset + left.size.i)
             left != null && right == null -> Int.MAX_VALUE
             left == null && right == null -> Int.MAX_VALUE
             else -> throw IllegalStateException("Can't calculate free space for $left/$right")
@@ -89,9 +89,9 @@ class VulkanBufferAllocation(val usage: VkBufferUsageFlags,
         }
 
         var offset = when {
-            spot.left == null && spot.right != null -> spot.right.offset + spot.right.size
-            spot.left != null && spot.right != null -> spot.left.offset + spot.left.size
-            spot.left != null && spot.right == null -> spot.left.offset + spot.left.size
+            spot.left == null && spot.right != null -> spot.right.offset + spot.right.size.i
+            spot.left != null && spot.right != null -> spot.left.offset + spot.left.size.i
+            spot.left != null && spot.right == null -> spot.left.offset + spot.left.size.i
             spot.left == null && spot.right == null -> 0
             else -> throw IllegalStateException("Can't calculate offset space for ${spot.left}/${spot.right}")
         }
@@ -108,7 +108,7 @@ class VulkanBufferAllocation(val usage: VkBufferUsageFlags,
         }
 
         logger.trace("New suballocation at {} between {} and {} with {} bytes", offset, spot.left, spot.right, size)
-        return VulkanSuballocation(offset, sizeWithSlack, buffer)
+        return VulkanSuballocation(offset, VkDeviceSize(sizeWithSlack), buffer)
     }
 
     /** Returns a string representation of this allocation, along with its [suballocations]. */

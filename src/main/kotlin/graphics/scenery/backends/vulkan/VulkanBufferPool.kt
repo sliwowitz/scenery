@@ -4,12 +4,13 @@ import graphics.scenery.utils.LazyLogger
 import org.lwjgl.vulkan.VK10
 import vkk.VkBufferUsage
 import vkk.VkBufferUsageFlags
+import vkk.entities.VkDeviceSize
 import vkk.or
 import java.util.concurrent.CopyOnWriteArrayList
 
 
 /** Default [VulkanBufferPool] backing store size. */
-const val basicBufferSize: Long = 1024*1024*32
+val basicBufferSize = VkDeviceSize(1024*1024*32)
 
 /**
  * Represents a pool of [VulkanBuffer]s, from which [VulkanSuballocation]s can be made.
@@ -18,7 +19,7 @@ const val basicBufferSize: Long = 1024*1024*32
  */
 class VulkanBufferPool(val device: VulkanDevice,
                        val usage: VkBufferUsageFlags = VkBufferUsage.VERTEX_BUFFER_BIT or VkBufferUsage.INDEX_BUFFER_BIT or VkBufferUsage.TRANSFER_DST_BIT,
-                       val bufferSize: Long = basicBufferSize) {
+                       val bufferSize: VkDeviceSize = basicBufferSize) {
 
     private val logger by LazyLogger()
     protected val backingStore = CopyOnWriteArrayList<VulkanBufferAllocation>()
