@@ -11,7 +11,7 @@ import kotlin.concurrent.thread
  *
  * @author Ulrik Günther <hello@ulrik.is>
  */
-class IntersectionExample: SceneryBase("IntersectionExample") {
+class IntersectionExample : SceneryBase("IntersectionExample") {
     override fun init() {
         renderer = Renderer.createRenderer(hub, applicationName, scene, 512, 512)
         hub.add(SceneryElement.Renderer, renderer!!)

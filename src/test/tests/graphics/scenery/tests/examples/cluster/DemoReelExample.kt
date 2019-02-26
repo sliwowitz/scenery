@@ -19,7 +19,7 @@ import kotlin.concurrent.thread
  *
  * @author Ulrik Günther <hello@ulrik.is>
  */
-class DemoReelExample: SceneryBase("Demo Reel") {
+class DemoReelExample : SceneryBase("Demo Reel") {
     var hmd: TrackedStereoGlasses? = null
     var publishedNodes = ArrayList<Node>()
 
@@ -41,9 +41,9 @@ class DemoReelExample: SceneryBase("Demo Reel") {
 
         cam = DetachedHeadCamera(hmd)
         with(cam) {
-//            position = GLVector(0.0f, -1.3190879f, 0.8841703f)
+            //            position = GLVector(0.0f, -1.3190879f, 0.8841703f)
             position = GLVector(0.0f, 0.0f, 55.0f)
-            perspectiveCamera(50.0f, 1.0f*windowWidth, 1.0f*windowHeight)
+            perspectiveCamera(50.0f, 1.0f * windowWidth, 1.0f * windowHeight)
             active = true
 
             scene.addChild(this)
@@ -65,14 +65,14 @@ class DemoReelExample: SceneryBase("Demo Reel") {
         }
 
         val tetrahedron = listOf(
-            GLVector(1.0f, 0f, -1.0f/Math.sqrt(2.0).toFloat()),
-            GLVector(-1.0f,0f,-1.0f/Math.sqrt(2.0).toFloat()),
-            GLVector(0.0f,1.0f,1.0f/Math.sqrt(2.0).toFloat()),
-            GLVector(0.0f,-1.0f,1.0f/Math.sqrt(2.0).toFloat()))
+            GLVector(1.0f, 0f, -1.0f / Math.sqrt(2.0).toFloat()),
+            GLVector(-1.0f, 0f, -1.0f / Math.sqrt(2.0).toFloat()),
+            GLVector(0.0f, 1.0f, 1.0f / Math.sqrt(2.0).toFloat()),
+            GLVector(0.0f, -1.0f, 1.0f / Math.sqrt(2.0).toFloat()))
 
         tetrahedron.mapIndexed { i, position ->
             lights[i].position = position * 50.0f
-            lights[i].emissionColor = GLVector(1.0f, 0.5f,0.3f) //Random.randomVectorFromRange(3, 0.2f, 0.8f)
+            lights[i].emissionColor = GLVector(1.0f, 0.5f, 0.3f) //Random.randomVectorFromRange(3, 0.2f, 0.8f)
             lights[i].intensity = 200.2f
             scene.addChild(lights[i])
         }
@@ -145,7 +145,7 @@ class DemoReelExample: SceneryBase("Demo Reel") {
 
         val min_delay = 200
 
-        if(publisher != null) {
+        if (publisher != null) {
             thread {
                 while (!scene.initialized) {
                     Thread.sleep(1000)
@@ -156,18 +156,18 @@ class DemoReelExample: SceneryBase("Demo Reel") {
 
 
                     arrayOf(drosophilaScene, histoneScene).forEach {
-                        if(it.visible) {
+                        if (it.visible) {
                             logger.info("Reading next volume for ${it.name} ...")
                             val start = System.currentTimeMillis()
 
                             val v = it.children[0]
-                            if(v is Volume && volumes.containsKey(it.name)) {
+                            if (v is Volume && volumes.containsKey(it.name)) {
                                 v.nextVolume(volumes[it.name]!!)
 
-                                val time_to_read  = System.currentTimeMillis()-start
+                                val time_to_read = System.currentTimeMillis() - start
 
-                                if(it.name == "drosophila") {
-                                    sleepDuration = Math.max(40,min_delay-time_to_read)
+                                if (it.name == "drosophila") {
+                                    sleepDuration = Math.max(40, min_delay - time_to_read)
 
                                     with(v) {
                                         trangemin = 0.00f
@@ -181,8 +181,8 @@ class DemoReelExample: SceneryBase("Demo Reel") {
                                     }
                                 }
 
-                                if(it.name == "histone") {
-                                    sleepDuration = Math.max(300,min_delay-time_to_read)
+                                if (it.name == "histone") {
+                                    sleepDuration = Math.max(300, min_delay - time_to_read)
 
                                     with(v) {
                                         trangemin = 0.005f
@@ -195,7 +195,6 @@ class DemoReelExample: SceneryBase("Demo Reel") {
                                     }
                                 }
                             }
-
 
 
                         }
@@ -224,7 +223,7 @@ class DemoReelExample: SceneryBase("Demo Reel") {
         val files = folder.listFiles()
         val volumes = files.filter { it.isFile && it.name.endsWith("raw") }.map { it.absolutePath }.sorted()
 
-        volumes.forEach { logger.info("Volume: $it")}
+        volumes.forEach { logger.info("Volume: $it") }
 
         return volumes
     }
@@ -239,11 +238,11 @@ class DemoReelExample: SceneryBase("Demo Reel") {
             volumes.indexOf(this.currentVolume)
         }
 
-        if(curr+1 == volumes.size) {
+        if (curr + 1 == volumes.size) {
             curr = 0
         }
 
-        val v = volumes[curr+1 % volumes.size]
+        val v = volumes[curr + 1 % volumes.size]
 
         this.currentVolume = v
 
@@ -330,7 +329,8 @@ class DemoReelExample: SceneryBase("Demo Reel") {
         inputHandler.addKeyBinding("goto_scene_drosophila", "shift 3")
     }
 
-    @Test override fun main() {
+    @Test
+    override fun main() {
         super.main()
     }
 }

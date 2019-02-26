@@ -47,7 +47,7 @@ open class SceneryContext(val node: Volume) : GpuContext {
     /**
      * Uniform setter class
      */
-    inner class SceneryUniformSetter: SetUniforms {
+    inner class SceneryUniformSetter : SetUniforms {
         private var modified: Boolean = false
         override fun shouldSet(modified: Boolean): Boolean = modified
 
@@ -55,9 +55,9 @@ open class SceneryContext(val node: Volume) : GpuContext {
          * Sets the uniform with [name] to the Integer [v0].
          */
         override fun setUniform1i(name: String, v0: Int) {
-            if(name.startsWith("volumeCache") || name.startsWith("lutSampler")) {
+            if (name.startsWith("volumeCache") || name.startsWith("lutSampler")) {
                 val binding = bindings.entries.find { it.value.binding == v0 }
-                if(binding != null) {
+                if (binding != null) {
                     bindings[binding.key] = BindingState(v0, name)
                 } else {
                     logger.warn("Binding for $name slot $v0 not found.")
@@ -147,7 +147,7 @@ open class SceneryContext(val node: Volume) : GpuContext {
         override fun setUniform3fv(name: String, count: Int, value: FloatArray) {
             // in UBOs, arrays of vectors need to be padded, such that they start on
             // word boundaries, e.g. a 3-vector needs to start on byte 16.
-            val padded = ArrayList<Float>(4*count)
+            val padded = ArrayList<Float>(4 * count)
             value.asSequence().windowed(3, 3).forEach {
                 padded.addAll(it)
                 padded.add(0.0f)
@@ -164,7 +164,7 @@ open class SceneryContext(val node: Volume) : GpuContext {
          */
         override fun setUniformMatrix3f(name: String, transpose: Boolean, value: FloatBuffer) {
             val matrix = value.duplicate()
-            if(matrix.position() == matrix.capacity()) {
+            if (matrix.position() == matrix.capacity()) {
                 matrix.flip()
             }
 
@@ -172,7 +172,7 @@ open class SceneryContext(val node: Volume) : GpuContext {
             matrix.get(array)
 
             val m = GLMatrix(array)
-            if(transpose) {
+            if (transpose) {
                 m.transpose()
             }
 
@@ -186,7 +186,7 @@ open class SceneryContext(val node: Volume) : GpuContext {
          */
         override fun setUniformMatrix4f(name: String, transpose: Boolean, value: FloatBuffer) {
             val matrix = value.duplicate()
-            if(matrix.position() == matrix.capacity()) {
+            if (matrix.position() == matrix.capacity()) {
                 matrix.flip()
             }
 
@@ -194,7 +194,7 @@ open class SceneryContext(val node: Volume) : GpuContext {
             matrix.get(array)
 
             val m = GLMatrix(array)
-            if(transpose) {
+            if (transpose) {
                 m.transpose()
             }
 
@@ -244,21 +244,21 @@ open class SceneryContext(val node: Volume) : GpuContext {
      */
     override fun bindTexture(texture: Texture): Int {
         logger.debug("Binding $texture and updating GT")
-        val (channels, type, normalized) = when(texture.texInternalFormat()) {
+        val (channels, type, normalized) = when (texture.texInternalFormat()) {
             Texture.InternalFormat.R16 -> Triple(1, GLTypeEnum.UnsignedShort, true)
             Texture.InternalFormat.RGBA8UI -> Triple(4, GLTypeEnum.UnsignedByte, false)
             Texture.InternalFormat.UNKNOWN -> TODO()
             else -> throw UnsupportedOperationException("Unknown internal format ${texture.texInternalFormat()}")
         }
 
-        val repeat = when(texture.texWrap()) {
+        val repeat = when (texture.texWrap()) {
             Texture.Wrap.CLAMP_TO_EDGE -> false
             Texture.Wrap.REPEAT -> true
             else -> throw UnsupportedOperationException("Unknown wrapping mode: ${texture.texWrap()}")
         }
 
         if (texture is TextureCache) {
-            if(currentlyBound != null && node.material.transferTextures.get("volumeCache") == currentlyBound) {
+            if (currentlyBound != null && node.material.transferTextures.get("volumeCache") == currentlyBound) {
                 return 0
             }
 
@@ -308,7 +308,7 @@ open class SceneryContext(val node: Volume) : GpuContext {
                 }
             }
 
-            if(lutName == null) {
+            if (lutName == null) {
                 deferredBindings.put(texture, db)
                 return -1
             } else {
@@ -329,7 +329,7 @@ open class SceneryContext(val node: Volume) : GpuContext {
         deferredBindings.forEach { texture, func ->
             val binding = bindings[texture]
             val samplerName = binding?.uniformName
-            if(binding != null && samplerName != null) {
+            if (binding != null && samplerName != null) {
                 func.invoke(samplerName)
                 removals.add(texture)
             } else {
@@ -351,9 +351,9 @@ open class SceneryContext(val node: Volume) : GpuContext {
      * @param unit texture unit to bind to
      */
     override fun bindTexture(texture: Texture?, unit: Int) {
-        if(texture != null) {
+        if (texture != null) {
             val binding = bindings[texture]
-            if(binding != null) {
+            if (binding != null) {
                 bindings[texture] = BindingState(unit, binding.uniformName)
             } else {
                 bindings[texture] = BindingState(unit, null)
@@ -405,13 +405,13 @@ open class SceneryContext(val node: Volume) : GpuContext {
     override fun texSubImage3D(pbo: StagingBuffer, texture: Texture3D, xoffset: Int, yoffset: Int, zoffset: Int, width: Int, height: Int, depth: Int, pixels_buffer_offset: Long) {
         logger.debug("Updating 3D texture via PBO from $texture: dx=$xoffset dy=$yoffset dz=$zoffset w=$width h=$height d=$depth offset=$pixels_buffer_offset")
         val tex = bindings.entries.find { it.key == texture }
-        if(tex == null) {
+        if (tex == null) {
             logger.warn("No binding found for $texture")
             return
         }
         val texname = tex.value.uniformName
 
-        if(texname == null) {
+        if (texname == null) {
             logger.warn("Binding not initialiased for $texture")
             return
         }
@@ -419,14 +419,14 @@ open class SceneryContext(val node: Volume) : GpuContext {
         val tmpStorage = (map(pbo) as ByteBuffer).duplicate().order(ByteOrder.LITTLE_ENDIAN)
         tmpStorage.position(pixels_buffer_offset.toInt())
 
-        val tmp = MemoryUtil.memCalloc(width*height*depth*2)
-        tmpStorage.limit(tmpStorage.position() + width*height*depth*2)
+        val tmp = MemoryUtil.memCalloc(width * height * depth * 2)
+        tmpStorage.limit(tmpStorage.position() + width * height * depth * 2)
         tmp.put(tmpStorage)
         tmp.flip()
 
         val gt = node.material.transferTextures[texname]
 
-        if(tex.value.reallocate) {
+        if (tex.value.reallocate) {
             if (gt == null) {
                 logger.warn("$texname does not have an associated GenericTexture, cannot reallocate.")
                 return
@@ -466,28 +466,28 @@ open class SceneryContext(val node: Volume) : GpuContext {
     override fun texSubImage3D(texture: Texture3D, xoffset: Int, yoffset: Int, zoffset: Int, width: Int, height: Int, depth: Int, pixels: Buffer) {
         logger.debug("Updating 3D texture via Texture3D from $texture: dx=$xoffset dy=$yoffset dz=$zoffset w=$width h=$height d=$depth")
         val tex = bindings.entries.find { it.key == texture }
-        if(tex == null) {
+        if (tex == null) {
             logger.warn("No binding found for $texture")
             return
         }
         val texname = tex.value.uniformName
 
-        if(texname == null) {
+        if (texname == null) {
             logger.warn("Binding not initialiased for $texture")
             return
         }
 
-        if(pixels is ByteBuffer) {
+        if (pixels is ByteBuffer) {
             val p = pixels.duplicate().order(ByteOrder.LITTLE_ENDIAN)
-            val tmp = MemoryUtil.memCalloc(width*height*depth*4)
-            p.limit(p.position() + width*height*depth*4)
+            val tmp = MemoryUtil.memCalloc(width * height * depth * 4)
+            p.limit(p.position() + width * height * depth * 4)
             tmp.put(p)
             tmp.flip()
 
             // TODO: add support for different data types
             val gt = node.material.transferTextures[texname]
 
-            if(tex.value.reallocate) {
+            if (tex.value.reallocate) {
                 if (gt == null) {
                     logger.warn("$texname does not have an associated GenericTexture, cannot reallocate.")
                     return

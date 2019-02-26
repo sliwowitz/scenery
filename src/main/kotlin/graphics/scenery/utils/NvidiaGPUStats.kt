@@ -1,10 +1,10 @@
 package graphics.scenery.utils
 
 import com.sun.jna.Function
-import com.sun.jna.win32.StdCallLibrary
 import com.sun.jna.Native
 import com.sun.jna.Pointer
 import com.sun.jna.ptr.IntByReference
+import com.sun.jna.win32.StdCallLibrary
 import java.util.*
 
 /**
@@ -19,7 +19,7 @@ interface NVAPI : StdCallLibrary {
     }
 }
 
-class NvidiaGPUStats: GPUStats {
+class NvidiaGPUStats : GPUStats {
     private val logger by LazyLogger()
 
     override val utilisations: HashMap<String, Float> = HashMap()
@@ -51,7 +51,7 @@ class NvidiaGPUStats: GPUStats {
         NVAPI_GetMemoryInfo = Function.getFunction(Pointer(NVAPI.instance.nvapi_QueryInterface(nvapi_get_memory_info_pointer)))
         NVAPI_GetDisplayHandle = Function.getFunction(Pointer(NVAPI.instance.nvapi_QueryInterface(nvapi_get_display_handle)))
 
-        if(NVAPI_Initialize.invokeInt(null) != 0) {
+        if (NVAPI_Initialize.invokeInt(null) != 0) {
             logger.error("Failed to initialize NVAPI")
         }
 
@@ -80,23 +80,23 @@ class NvidiaGPUStats: GPUStats {
     override fun update(gpuIndex: Int) {
         var result = NVAPI_GPUGetUsages.invokeInt(arrayOf(gpuHandles[gpuIndex], gpuUsages))
 
-        if(result == 0) {
-            utilisations.put("GPU", gpuUsages[3].toFloat()/100.0f)
-            utilisations.put("Framebuffer", gpuUsages[4].toFloat()/100.0f)
-            utilisations.put("Video Engine", gpuUsages[5].toFloat()/100.0f)
-            utilisations.put("Bus", gpuUsages[6].toFloat()/100.0f)
+        if (result == 0) {
+            utilisations.put("GPU", gpuUsages[3].toFloat() / 100.0f)
+            utilisations.put("Framebuffer", gpuUsages[4].toFloat() / 100.0f)
+            utilisations.put("Video Engine", gpuUsages[5].toFloat() / 100.0f)
+            utilisations.put("Bus", gpuUsages[6].toFloat() / 100.0f)
         } else {
             logger.error("Failed to get GPU usage for $gpuIndex ($result)")
         }
 
         result = NVAPI_GetMemoryInfo.invokeInt(arrayOf(gpuHandles[gpuIndex], memoryInfo))
 
-        if(result == 0) {
-            utilisations.put("TotalVideoMemory", memoryInfo[1].toFloat()/1024.0f)
-            utilisations.put("AvailableVideoMemory", memoryInfo[2].toFloat()/1024.0f)
-            utilisations.put("SystemVideoMemory", memoryInfo[3].toFloat()/1024.0f)
-            utilisations.put("SharedSystemMemory", memoryInfo[4].toFloat()/1024.0f)
-            utilisations.put("AvailableDedicatedVideoMemory", memoryInfo[5].toFloat()/1024.0f)
+        if (result == 0) {
+            utilisations.put("TotalVideoMemory", memoryInfo[1].toFloat() / 1024.0f)
+            utilisations.put("AvailableVideoMemory", memoryInfo[2].toFloat() / 1024.0f)
+            utilisations.put("SystemVideoMemory", memoryInfo[3].toFloat() / 1024.0f)
+            utilisations.put("SharedSystemMemory", memoryInfo[4].toFloat() / 1024.0f)
+            utilisations.put("AvailableDedicatedVideoMemory", memoryInfo[5].toFloat() / 1024.0f)
         } else {
             logger.error("Failed to get GPU memory usage for $gpuIndex ($result)")
         }

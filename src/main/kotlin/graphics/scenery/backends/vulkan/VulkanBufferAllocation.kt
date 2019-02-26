@@ -37,7 +37,7 @@ class VulkanBufferAllocation(val usage: VkBufferUsageFlags,
     fun allocate(suballocation: VulkanSuballocation): VulkanSuballocation {
         suballocations.add(suballocation)
         logger.trace("Added suballocation at {} with size {} ({} total allocations)", suballocation.offset, suballocation.size, suballocations.size)
-        if(logger.isTraceEnabled) {
+        if (logger.isTraceEnabled) {
             logger.trace(this.toString())
         }
         return suballocation
@@ -77,7 +77,7 @@ class VulkanBufferAllocation(val usage: VkBufferUsageFlags,
      * a new possible suballocation if feasible, and null otherwise.
      */
     fun fit(size: Int): VulkanSuballocation? {
-        suballocations.removeAll { s -> s.free  }
+        suballocations.removeAll { s -> s.free }
         logger.trace("Trying to fit {} with {} pre-existing suballocs", size, suballocations.size)
 
         val sizeWithSlack = size + 512

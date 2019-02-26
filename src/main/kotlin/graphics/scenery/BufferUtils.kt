@@ -19,7 +19,8 @@ class BufferUtils {
         /**
          * Allocates a new direct [FloatBuffer] with a capacity of [num] floats.
          */
-        @JvmStatic fun allocateFloat(num: Int): FloatBuffer {
+        @JvmStatic
+        fun allocateFloat(num: Int): FloatBuffer {
             return ByteBuffer.allocateDirect(SIZE_FLOAT * num).order(ByteOrder.nativeOrder()).asFloatBuffer()
         }
 
@@ -27,7 +28,8 @@ class BufferUtils {
          * Allocates a new direct [FloatBuffer] with a capacity to fit [array], and fills it with the members
          * of [array] and returns the flipped buffer.
          */
-        @JvmStatic fun allocateFloatAndPut(array: FloatArray): FloatBuffer {
+        @JvmStatic
+        fun allocateFloatAndPut(array: FloatArray): FloatBuffer {
             val b = ByteBuffer.allocateDirect(SIZE_FLOAT * array.size).order(ByteOrder.nativeOrder()).asFloatBuffer()
             (b.put(array) as Buffer).flip()
 
@@ -37,7 +39,8 @@ class BufferUtils {
         /**
          * Allocates a new direct [IntBuffer] with a capacity of [num] ints.
          */
-        @JvmStatic fun allocateInt(num: Int): IntBuffer {
+        @JvmStatic
+        fun allocateInt(num: Int): IntBuffer {
             return ByteBuffer.allocateDirect(SIZE_INT * num).order(ByteOrder.nativeOrder()).asIntBuffer()
         }
 
@@ -45,7 +48,8 @@ class BufferUtils {
          * Allocates a new direct [IntBuffer] with a capacity to fit [array], and fills it with the members
          * of [array] and returns the flipped buffer.
          */
-        @JvmStatic fun allocateIntAndPut(array: IntArray): IntBuffer {
+        @JvmStatic
+        fun allocateIntAndPut(array: IntArray): IntBuffer {
             val b = ByteBuffer.allocateDirect(SIZE_INT * array.size).order(ByteOrder.nativeOrder()).asIntBuffer()
             (b.put(array) as Buffer).flip()
 

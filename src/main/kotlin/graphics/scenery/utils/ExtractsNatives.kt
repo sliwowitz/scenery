@@ -1,12 +1,11 @@
 package graphics.scenery.utils;
 
 import org.slf4j.LoggerFactory
+import java.io.ByteArrayOutputStream
 import java.io.File
 import java.io.FileOutputStream
 import java.nio.file.Files
 import java.util.jar.JarFile
-import java.io.ByteArrayOutputStream
-
 
 
 /**
@@ -20,20 +19,20 @@ interface ExtractsNatives {
     }
 
     companion object {
-    /**
-     * Returns the platform based on the os.name system property.
-     */
-    fun getPlatform(): Platform {
-        val os = System.getProperty("os.name").toLowerCase()
+        /**
+         * Returns the platform based on the os.name system property.
+         */
+        fun getPlatform(): Platform {
+            val os = System.getProperty("os.name").toLowerCase()
 
-        when {
-            os.contains("win") -> return Platform.WINDOWS
-            os.contains("linux") -> return Platform.LINUX
-            os.contains("mac") -> return Platform.MACOS
-            else -> return Platform.UNKNOWN
+            when {
+                os.contains("win") -> return Platform.WINDOWS
+                os.contains("linux") -> return Platform.LINUX
+                os.contains("mac") -> return Platform.MACOS
+                else -> return Platform.UNKNOWN
+            }
+
         }
-
-    }
     }
 
     /**

@@ -7,4 +7,4 @@ import java.io.FileNotFoundException
  *
  * @author Ulrik Guenther <hello@ulrik.is>
  */
-class ShaderNotFoundException(description: String): FileNotFoundException(description)
+class ShaderNotFoundException(description: String) : FileNotFoundException(description)

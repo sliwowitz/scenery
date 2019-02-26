@@ -43,7 +43,7 @@ open class MovementCommand(private val name: String, private val direction: Stri
      * @param[n] The [Node] this behaviour affects.
      * @param[speed] The speed multiplier for movement.
      */
-    constructor(name: String, direction: String, n: () -> Node?, speed: Float): this(name, direction, n) {
+    constructor(name: String, direction: String, n: () -> Node?, speed: Float) : this(name, direction, n) {
         this.speed = speed
     }
 
@@ -52,7 +52,8 @@ open class MovementCommand(private val name: String, private val direction: Stri
      * this behaviour. The camera is then moved in the corresponding direction.
      * this behaviour. The camera is then moved in the corresponding direction.
      */
-    @Synchronized override fun click(x: Int, y: Int) {
+    @Synchronized
+    override fun click(x: Int, y: Int) {
         // see if the node is a camera, if not, try to find the active observer, and return
         // if that could not be found as well
         val axisProvider = node as? Camera ?: node?.getScene()?.findObserver() ?: return

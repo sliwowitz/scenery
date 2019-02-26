@@ -125,7 +125,8 @@ class ScreenConfig {
          *
          * Returns a [SingleScreenConfig] if the screen could be matched, and null otherwise.
          */
-        @JvmStatic fun getScreen(config: Config): SingleScreenConfig? {
+        @JvmStatic
+        fun getScreen(config: Config): SingleScreenConfig? {
             for ((_, screen) in config.screens) {
                 if (screen.match.type == ScreenMatcherType.Hostname) {
                     if (getHostname().toLowerCase() == screen.match.value) {
@@ -154,7 +155,8 @@ class ScreenConfig {
          *
          * If [path] cannot be found, a default configuration included with scenery will be loaded.
          */
-        @JvmStatic fun loadFromFile(path: String): ScreenConfig.Config {
+        @JvmStatic
+        fun loadFromFile(path: String): ScreenConfig.Config {
             val mapper = ObjectMapper(YAMLFactory())
             mapper.registerModule(KotlinModule())
 

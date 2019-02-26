@@ -21,7 +21,7 @@ class VRControllerExample : SceneryBase(VRControllerExample::class.java.simpleNa
     override fun init() {
         hmd = OpenVRHMD(useCompositor = true)
 
-        if(hmd == null || hmd?.initializedAndWorking() == false) {
+        if (hmd == null || hmd?.initializedAndWorking() == false) {
             logger.error("This demo is intended to show the use of OpenVR controllers, but no OpenVR-compatible HMD could be initialized.")
             System.exit(1)
         }
@@ -66,7 +66,7 @@ class VRControllerExample : SceneryBase(VRControllerExample::class.java.simpleNa
         scene.addChild(hullbox)
 
         thread {
-            while(!running) {
+            while (!running) {
                 Thread.sleep(200)
             }
 
@@ -79,7 +79,8 @@ class VRControllerExample : SceneryBase(VRControllerExample::class.java.simpleNa
         }
     }
 
-    @Test override fun main() {
+    @Test
+    override fun main() {
         super.main()
     }
 

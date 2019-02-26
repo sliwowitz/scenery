@@ -15,7 +15,7 @@ import kotlin.concurrent.thread
  *
  * @author Ulrik Günther <hello@ulrik.is>
  */
-class EyeTrackingExample: SceneryBase("Eye Tracking Example", windowWidth = 1280, windowHeight = 720) {
+class EyeTrackingExample : SceneryBase("Eye Tracking Example", windowWidth = 1280, windowHeight = 720) {
     val pupilTracker = PupilEyeTracker(calibrationType = PupilEyeTracker.CalibrationType.ScreenSpace)
     val hmd = OpenVRHMD(seated = false, useCompositor = true)
     val referenceTarget = Box(GLVector(0.01f, 0.01f, 0.01f))
@@ -57,7 +57,7 @@ class EyeTrackingExample: SceneryBase("Eye Tracking Example", windowWidth = 1280
         scene.addChild(stageLight)
 
         thread {
-            while(!running) {
+            while (!running) {
                 Thread.sleep(200)
             }
 
@@ -88,7 +88,8 @@ class EyeTrackingExample: SceneryBase("Eye Tracking Example", windowWidth = 1280
         setupCalibration()
     }
 
-    @Test override fun main() {
+    @Test
+    override fun main() {
         super.main()
     }
 
@@ -98,7 +99,7 @@ class EyeTrackingExample: SceneryBase("Eye Tracking Example", windowWidth = 1280
                 val cam = scene.findObserver()
                 if (!pupilTracker.isCalibrated && cam != null) {
                     pupilTracker.onCalibrationFailed = {
-                        for(i in 0 until 2) {
+                        for (i in 0 until 2) {
                             referenceTarget.material.diffuse = GLVector(1.0f, 0.0f, 0.0f)
                             Thread.sleep(300)
                             referenceTarget.material.diffuse = GLVector(0.8f, 0.8f, 0.8f)
@@ -107,7 +108,7 @@ class EyeTrackingExample: SceneryBase("Eye Tracking Example", windowWidth = 1280
                     }
 
                     pupilTracker.onCalibrationSuccess = {
-                        for(i in 0 until 20) {
+                        for (i in 0 until 20) {
                             referenceTarget.material.diffuse = GLVector(0.0f, 1.0f, 0.0f)
                             Thread.sleep(100)
                             referenceTarget.material.diffuse = GLVector(0.8f, 0.8f, 0.8f)

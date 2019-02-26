@@ -15,7 +15,7 @@ import kotlin.concurrent.thread
  *
  * @author Ulrik Günther <hello@ulrik.is>
  */
-class VolumeExample: SceneryBase("Volume Rendering example", 1280, 720) {
+class VolumeExample : SceneryBase("Volume Rendering example", 1280, 720) {
     var hmd: TrackedStereoGlasses? = null
 
     override fun init() {
@@ -25,7 +25,7 @@ class VolumeExample: SceneryBase("Volume Rendering example", 1280, 720) {
         val cam: Camera = DetachedHeadCamera(hmd)
         with(cam) {
             position = GLVector(0.0f, 0.5f, 5.0f)
-            perspectiveCamera(50.0f, 1.0f*windowWidth, 1.0f*windowHeight)
+            perspectiveCamera(50.0f, 1.0f * windowWidth, 1.0f * windowHeight)
             active = true
 
             scene.addChild(this)
@@ -56,7 +56,7 @@ class VolumeExample: SceneryBase("Volume Rendering example", 1280, 720) {
         }
 
         lights.mapIndexed { i, light ->
-            light.position = GLVector(2.0f * i - 4.0f,  i - 1.0f, 0.0f)
+            light.position = GLVector(2.0f * i - 4.0f, i - 1.0f, 0.0f)
             light.emissionColor = GLVector(1.0f, 1.0f, 1.0f)
             light.intensity = 150.0f
             scene.addChild(light)
@@ -76,14 +76,16 @@ class VolumeExample: SceneryBase("Volume Rendering example", 1280, 720) {
         }
 
         thread {
-            while(!scene.initialized || volumes.isEmpty()) { Thread.sleep(200) }
+            while (!scene.initialized || volumes.isEmpty()) {
+                Thread.sleep(200)
+            }
 
             val v = nextVolume()
             volume.readFrom(Paths.get(v), replace = true)
 
             logger.info("Got volume!")
 
-            while(true) {
+            while (true) {
                 volume.rotation = volume.rotation.rotateByAngleY(0.003f)
                 Thread.sleep(5)
             }
@@ -95,7 +97,8 @@ class VolumeExample: SceneryBase("Volume Rendering example", 1280, 720) {
         setupCameraModeSwitching()
     }
 
-    @Test override fun main() {
+    @Test
+    override fun main() {
         super.main()
     }
 }

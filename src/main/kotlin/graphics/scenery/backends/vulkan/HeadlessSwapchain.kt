@@ -1,17 +1,16 @@
 package graphics.scenery.backends.vulkan
 
-import glm_.i
+import graphics.scenery.Hub
 import graphics.scenery.backends.RenderConfigReader
 import graphics.scenery.backends.SceneryWindow
-import org.lwjgl.system.MemoryUtil
-import org.lwjgl.vulkan.*
-import java.nio.ByteBuffer
-import java.nio.LongBuffer
-import graphics.scenery.Hub
-import graphics.scenery.utils.SceneryFXPanel
 import graphics.scenery.utils.SceneryPanel
 import org.lwjgl.system.MemoryStack
+import org.lwjgl.system.MemoryUtil
+import org.lwjgl.vulkan.*
 import vkk.VkBufferUsage
+import vkk.VkMemoryProperty
+import java.nio.ByteBuffer
+import java.nio.LongBuffer
 
 
 /**
@@ -20,12 +19,12 @@ import vkk.VkBufferUsage
  * @author Ulrik Günther <hello@ulrik.is>
  */
 open class HeadlessSwapchain(device: VulkanDevice,
-                        queue: VkQueue,
-                        commandPools: VulkanRenderer.CommandPools,
-                        renderConfig: RenderConfigReader.RenderConfig,
-                        useSRGB: Boolean = true,
-                        @Suppress("unused") val useFramelock: Boolean = false,
-                        @Suppress("unused") val bufferCount: Int = 2) : VulkanSwapchain(device, queue, commandPools, renderConfig, useSRGB) {
+                             queue: VkQueue,
+                             commandPools: VulkanRenderer.CommandPools,
+                             renderConfig: RenderConfigReader.RenderConfig,
+                             useSRGB: Boolean = true,
+                             @Suppress("unused") val useFramelock: Boolean = false,
+                             @Suppress("unused") val bufferCount: Int = 2) : VulkanSwapchain(device, queue, commandPools, renderConfig, useSRGB) {
     protected var initialized = false
     protected lateinit var sharingBuffer: VulkanBuffer
     protected lateinit var imageBuffer: ByteBuffer
@@ -112,7 +111,7 @@ open class HeadlessSwapchain(device: VulkanDevice,
             sharingBuffer.close()
         }
 
-        val format = if(useSRGB) {
+        val format = if (useSRGB) {
             VK10.VK_FORMAT_B8G8R8A8_SRGB
         } else {
             VK10.VK_FORMAT_B8G8R8A8_UNORM
@@ -124,7 +123,7 @@ open class HeadlessSwapchain(device: VulkanDevice,
                 format, 1)
             val image = t.createImage(window.width, window.height, 1, format,
                 VK10.VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT or VK10.VK_IMAGE_USAGE_TRANSFER_SRC_BIT,
-                VK10.VK_IMAGE_TILING_OPTIMAL, VK10.VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, 1)
+                VK10.VK_IMAGE_TILING_OPTIMAL, VkMemoryProperty.DEVICE_LOCAL_BIT.i, 1)
             t to image
         }
 

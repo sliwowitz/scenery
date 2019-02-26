@@ -14,12 +14,12 @@ import kotlin.concurrent.thread
  *
  * @author Ulrik Günther <hello@ulrik.is>
  */
-class PickerExample: SceneryBase("PickerExample", wantREPL = true) {
+class PickerExample : SceneryBase("PickerExample", wantREPL = true) {
     override fun init() {
         renderer = hub.add(SceneryElement.Renderer,
             Renderer.createRenderer(hub, applicationName, scene, 512, 512))
 
-        for(i in 0 until 200) {
+        for (i in 0 until 200) {
             val s = Sphere(Random.randomFromRange(0.04f, 0.2f), 10)
             s.position = Random.randomVectorFromRange(3, -5.0f, 5.0f)
             scene.addChild(s)
@@ -53,7 +53,7 @@ class PickerExample: SceneryBase("PickerExample", wantREPL = true) {
             result.firstOrNull()?.let { nearest ->
                 val originalPosition = nearest.node.position.clone()
                 thread {
-                    for(i in 0 until 200) {
+                    for (i in 0 until 200) {
                         nearest.node.position = originalPosition + Random.randomVectorFromRange(3, -0.05f, 0.05f)
                         Thread.sleep(2)
                     }
@@ -68,7 +68,8 @@ class PickerExample: SceneryBase("PickerExample", wantREPL = true) {
         }
     }
 
-    @Test override fun main() {
+    @Test
+    override fun main() {
         super.main()
     }
 }

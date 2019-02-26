@@ -123,7 +123,8 @@ open class OpenGLRenderer(hub: Hub,
     private var updateLatch: CountDownLatch? = null
 
     private var lastResizeTimer = Timer()
-    @Volatile private var mustRecreateFramebuffers = false
+    @Volatile
+    private var mustRecreateFramebuffers = false
     private var framebufferRecreateHook: () -> Unit = {}
     private var gpuStats: GPUStats? = null
     private var maxTextureUnits = 8
@@ -142,7 +143,8 @@ open class OpenGLRenderer(hub: Hub,
         protected set
     protected var framesPerSec = 0
     val pboCount = 2
-    @Volatile private var pbos: IntArray = IntArray(pboCount) { 0 }
+    @Volatile
+    private var pbos: IntArray = IntArray(pboCount) { 0 }
     private var pboBuffers: Array<ByteBuffer?> = Array(pboCount) { null }
     private var readIndex = 0
     private var updateIndex = 1
@@ -175,11 +177,13 @@ open class OpenGLRenderer(hub: Hub,
     var applicationName = ""
 
     inner class ResizeHandler {
-        @Volatile var lastResize = -1L
+        @Volatile
+        var lastResize = -1L
         var lastWidth = 0
         var lastHeight = 0
 
-        @Synchronized fun queryResize() {
+        @Synchronized
+        fun queryResize() {
             if (lastWidth <= 0 || lastHeight <= 0) {
                 lastWidth = Math.max(1, lastWidth)
                 lastHeight = Math.max(1, lastHeight)
@@ -202,7 +206,7 @@ open class OpenGLRenderer(hub: Hub,
             lastWidth = window.width
             lastHeight = window.height
 
-            if(drawable is GLOffscreenAutoDrawable) {
+            if (drawable is GLOffscreenAutoDrawable) {
                 (drawable as? GLOffscreenAutoDrawable)?.setSurfaceSize(window.width, window.height)
             }
 
@@ -312,7 +316,7 @@ open class OpenGLRenderer(hub: Hub,
             Loader.loadNatives()
             libspirvcrossj.initializeProcess()
 
-            Runtime.getRuntime().addShutdownHook(object: Thread() {
+            Runtime.getRuntime().addShutdownHook(object : Thread() {
                 override fun run() {
                     logger.debug("Finalizing libspirvcrossj")
                     libspirvcrossj.finalizeProcess()
@@ -435,7 +439,7 @@ open class OpenGLRenderer(hub: Hub,
                 embedIn?.let { panel ->
                     panel.imageScaleY = -1.0f
 
-                    when(panel) {
+                    when (panel) {
                         is SceneryFXPanel -> {
                             panel.widthProperty()?.addListener { _, _, newWidth ->
                                 resizeHandler.lastWidth = newWidth.toInt()
@@ -456,7 +460,7 @@ open class OpenGLRenderer(hub: Hub,
                             window.width = panel.panelWidth
                             window.height = panel.panelHeight
 
-                            panel.addComponentListener(object: ComponentAdapter() {
+                            panel.addComponentListener(object : ComponentAdapter() {
                                 override fun componentResized(e: ComponentEvent) {
                                     super.componentResized(e)
                                     logger.debug("SceneryJPanel component resized to ${e.component.width} ${e.component.height}")
@@ -481,12 +485,12 @@ open class OpenGLRenderer(hub: Hub,
                 w,
                 h, this).apply {
 
-                if(embedIn == null) {
+                if (embedIn == null) {
                     window = SceneryWindow.ClearGLWindow(this)
                     window.width = w
                     window.height = h
 
-                    val windowAdapter = object: WindowAdapter() {
+                    val windowAdapter = object : WindowAdapter() {
                         override fun windowDestroyNotify(e: WindowEvent?) {
                             shouldClose = true
                             cglWindow?.close()
@@ -553,7 +557,7 @@ open class OpenGLRenderer(hub: Hub,
                 fps = framesPerSec
                 framesPerSec = 0
 
-                if(!pushMode) {
+                if (!pushMode) {
                     (hub?.get(SceneryElement.Statistics) as? Statistics)?.add("Renderer.fps", fps, false)
                 }
 
@@ -584,7 +588,7 @@ open class OpenGLRenderer(hub: Hub,
     }
 
     fun prepareRenderpasses(config: RenderConfigReader.RenderConfig, windowWidth: Int, windowHeight: Int): LinkedHashMap<String, OpenGLRenderpass> {
-        if(config.sRGB) {
+        if (config.sRGB) {
             gl.glEnable(GL4.GL_FRAMEBUFFER_SRGB)
         } else {
             gl.glDisable(GL4.GL_FRAMEBUFFER_SRGB)
@@ -597,8 +601,8 @@ open class OpenGLRenderer(hub: Hub,
 
         val flow = renderConfig.createRenderpassFlow()
 
-        val supersamplingFactor = if(settings.get<Float>("Renderer.SupersamplingFactor").toInt() == 1) {
-            if(cglWindow != null && ClearGLWindow.isRetina(cglWindow!!.gl)) {
+        val supersamplingFactor = if (settings.get<Float>("Renderer.SupersamplingFactor").toInt() == 1) {
+            if (cglWindow != null && ClearGLWindow.isRetina(cglWindow!!.gl)) {
                 logger.debug("Setting Renderer.SupersamplingFactor to 0.5, as we are rendering on a retina display.")
                 settings.set("Renderer.SupersamplingFactor", 0.5f)
                 0.5f
@@ -666,7 +670,7 @@ open class OpenGLRenderer(hub: Hub,
                 }
             }
 
-            if(passConfig.output == "Viewport") {
+            if (passConfig.output == "Viewport") {
                 width = (supersamplingFactor * windowWidth).toInt()
                 height = (supersamplingFactor * windowHeight).toInt()
                 logger.info("Creating render framebuffer Viewport for pass $passName (${width}x$height)")
@@ -715,7 +719,7 @@ open class OpenGLRenderer(hub: Hub,
             val passConfig = config.renderpasses[pass.key]!!
 
             passConfig.inputs?.forEach { inputTarget ->
-                val targetName = if(inputTarget.contains(".")) {
+                val targetName = if (inputTarget.contains(".")) {
                     inputTarget.substringBefore(".")
                 } else {
                     inputTarget
@@ -724,7 +728,8 @@ open class OpenGLRenderer(hub: Hub,
                 passes.filter {
                     it.value.output.keys.contains(targetName)
                 }.forEach {
-                    val output = it.value.output[targetName] ?: throw IllegalStateException("Output for $targetName not found in configuration")
+                    val output = it.value.output[targetName]
+                        ?: throw IllegalStateException("Output for $targetName not found in configuration")
                     pass.value.inputs[inputTarget] = output
                 }
             }
@@ -746,7 +751,7 @@ open class OpenGLRenderer(hub: Hub,
                 val m = OpenGLShaderModule.getFromCacheOrCreate(gl, "main", shaders.get(Shaders.ShaderTarget.OpenGL, type))
                 modules[m.shaderType] = m
             } catch (e: ShaderNotFoundException) {
-                if(shaders is Shaders.ShadersFromFiles) {
+                if (shaders is Shaders.ShadersFromFiles) {
                     logger.debug("Could not locate shader for $shaders, type=$type, ${shaders.shaders.joinToString(",")} - this is normal if there are no errors reported")
                 } else {
                     logger.debug("Could not locate shader for $shaders, type=$type - this is normal if there are no errors reported")
@@ -755,7 +760,7 @@ open class OpenGLRenderer(hub: Hub,
         }
 
         val program = OpenGLShaderProgram(gl, modules)
-        return if(program.isValid()) {
+        return if (program.isValid()) {
             program
         } else {
             null
@@ -894,7 +899,7 @@ open class OpenGLRenderer(hub: Hub,
                     val property = settings.get<Int>(it).toggle()
                     settings.set(it, property)
 
-                } catch(e: Exception) {
+                } catch (e: Exception) {
                     logger.warn("$it is a property that is not togglable.")
                 }
             }
@@ -995,7 +1000,8 @@ open class OpenGLRenderer(hub: Hub,
      * Initializes the [Scene] with the [OpenGLRenderer], to be called
      * before [render].
      */
-    @Synchronized override fun initializeScene() {
+    @Synchronized
+    override fun initializeScene() {
         scene.discover(scene, { it is HasGeometry })
             .forEach { it ->
                 it.metadata["OpenGLRenderer"] = OpenGLObjectState()
@@ -1018,7 +1024,8 @@ open class OpenGLRenderer(hub: Hub,
         return buffers[name] ?: throw IllegalStateException("Required buffer $name not found")
     }
 
-    @Synchronized protected fun updateDefaultUBOs(): Boolean {
+    @Synchronized
+    protected fun updateDefaultUBOs(): Boolean {
         // sticky boolean
         var updated: Boolean by StickyBoolean(initial = false)
 
@@ -1071,7 +1078,7 @@ open class OpenGLRenderer(hub: Hub,
                 val s = node.metadata[this.javaClass.simpleName] as OpenGLObjectState
 
                 val ubo = s.UBOs["Matrices"]
-                if(ubo?.backingBuffer == null) {
+                if (ubo?.backingBuffer == null) {
                     logger.warn("Matrices UBO for ${node.name} does not exist or does not have a backing buffer")
                     return@forEach
                 }
@@ -1104,7 +1111,7 @@ open class OpenGLRenderer(hub: Hub,
                     false
                 }
 
-                if(nodeUpdated) {
+                if (nodeUpdated) {
                     GlobalScope.launch { node.getScene()?.onNodePropertiesChanged?.forEach { it.value.invoke(node) } }
                 }
 
@@ -1250,7 +1257,7 @@ open class OpenGLRenderer(hub: Hub,
         }
 
         if (source != null) {
-            if(sourceName != null) {
+            if (sourceName != null) {
                 source.setReadBuffers(gl, sourceName)
             } else {
                 source.setReadBuffers(gl)
@@ -1265,7 +1272,7 @@ open class OpenGLRenderer(hub: Hub,
             else -> true to true
         }
 
-        if(blitColor) {
+        if (blitColor) {
             if (source?.hasColorAttachment() != false) {
                 gl.glBlitFramebuffer(
                     sourceOffset.offsetX, sourceOffset.offsetY,
@@ -1276,7 +1283,7 @@ open class OpenGLRenderer(hub: Hub,
             }
         }
 
-        if(blitDepth) {
+        if (blitDepth) {
             if ((source?.hasDepthAttachment() != false && target?.hasDepthAttachment() != false) || (depthOnly && !colorOnly)) {
                 gl.glBlitFramebuffer(
                     sourceOffset.offsetX, sourceOffset.offsetY,
@@ -1292,13 +1299,13 @@ open class OpenGLRenderer(hub: Hub,
         gl.glBindFramebuffer(GL4.GL_FRAMEBUFFER, 0)
     }
 
-    private fun updateInstanceBuffers(sceneObjects:List<Node>) {
+    private fun updateInstanceBuffers(sceneObjects: List<Node>) {
         val instanceMasters = sceneObjects.filter { it.instanceMaster }
 
         instanceMasters.forEach { parent ->
             var metadata = parent.rendererMetadata()
 
-            if(metadata == null) {
+            if (metadata == null) {
                 initializeNode(parent)
                 metadata = parent.rendererMetadata()
             }
@@ -1308,7 +1315,7 @@ open class OpenGLRenderer(hub: Hub,
     }
 
     private fun updateInstanceBuffer(parentNode: Node, state: OpenGLObjectState?): OpenGLObjectState {
-        if(state == null) {
+        if (state == null) {
             throw IllegalStateException("Metadata for ${parentNode.name} is null at updateInstanceBuffer(${parentNode.name}). This is a bug.")
         }
 
@@ -1326,7 +1333,7 @@ open class OpenGLRenderer(hub: Hub,
         val instanceBufferSize = ubo.getSize() * parentNode.instances.size
 
         val existingStagingBuffer = state.vertexBuffers["instanceStaging"]
-        val stagingBuffer = if(existingStagingBuffer != null && existingStagingBuffer.capacity() >= instanceBufferSize) {
+        val stagingBuffer = if (existingStagingBuffer != null && existingStagingBuffer.capacity() >= instanceBufferSize) {
             existingStagingBuffer
         } else {
             logger.debug("${parentNode.name}: Creating new staging buffer with capacity=$instanceBufferSize (${ubo.getSize()} x ${parentNode.instances.size})")
@@ -1347,9 +1354,9 @@ open class OpenGLRenderer(hub: Hub,
             node.metadata.getOrPut("instanceBufferView") {
                 stagingBuffer.duplicate().order(ByteOrder.LITTLE_ENDIAN)
             }.run {
-                val buffer = this as? ByteBuffer?: return@run
+                val buffer = this as? ByteBuffer ?: return@run
 
-                ubo.populateParallel(buffer, offset = index.getAndIncrement() * ubo.getSize()*1L, elements = node.instancedProperties)
+                ubo.populateParallel(buffer, offset = index.getAndIncrement() * ubo.getSize() * 1L, elements = node.instancedProperties)
             }
         }
 
@@ -1357,7 +1364,8 @@ open class OpenGLRenderer(hub: Hub,
         stagingBuffer.flip()
 
         val instanceBuffer = state.additionalBufferIds.getOrPut("instance") {
-            logger.debug("Instance buffer for ${parentNode.name} needs to be reallocated due to insufficient size ($instanceBufferSize vs ${state.vertexBuffers["instance"]?.capacity() ?: "<not allocated yet>"})")
+            logger.debug("Instance buffer for ${parentNode.name} needs to be reallocated due to insufficient size ($instanceBufferSize vs ${state.vertexBuffers["instance"]?.capacity()
+                ?: "<not allocated yet>"})")
 
             val bufferArray = intArrayOf(0)
             gl.glGenBuffers(1, bufferArray, 0)
@@ -1373,7 +1381,7 @@ open class OpenGLRenderer(hub: Hub,
                 val sizeAlignment = ubo.getSizeAndAlignment(result)
                 location += locationOffset
 
-                val glType = when(result.javaClass) {
+                val glType = when (result.javaClass) {
                     java.lang.Integer::class.java,
                     Int::class.java -> GL4.GL_INT
 
@@ -1386,16 +1394,20 @@ open class OpenGLRenderer(hub: Hub,
                     GLMatrix::class.java -> GL4.GL_FLOAT
                     GLVector::class.java -> GL4.GL_FLOAT
 
-                    else -> { logger.error("Don't know how to serialise ${result.javaClass} for instancing."); GL4.GL_FLOAT }
+                    else -> {
+                        logger.error("Don't know how to serialise ${result.javaClass} for instancing."); GL4.GL_FLOAT
+                    }
                 }
 
                 val count = when (result) {
                     is GLMatrix -> 4
                     is GLVector -> result.toFloatArray().size
-                    else -> { logger.error("Don't know element size of ${result.javaClass} for instancing."); 1 }
+                    else -> {
+                        logger.error("Don't know element size of ${result.javaClass} for instancing."); 1
+                    }
                 }
 
-                val necessaryAttributes = if(result is GLMatrix) {
+                val necessaryAttributes = if (result is GLMatrix) {
                     result.floatArray.size / count
                 } else {
                     1
@@ -1404,7 +1416,7 @@ open class OpenGLRenderer(hub: Hub,
                 logger.trace("{} needs {} locations with {} elements:", result.javaClass, necessaryAttributes, count)
                 (0 until necessaryAttributes).forEach { attributeLocation ->
                     val stride = sizeAlignment.first
-                    val offset = 1L * attributeLocation * (sizeAlignment.first/necessaryAttributes)
+                    val offset = 1L * attributeLocation * (sizeAlignment.first / necessaryAttributes)
 
                     logger.trace("{}, stride={}, offset={}",
                         location + attributeLocation,
@@ -1474,13 +1486,14 @@ open class OpenGLRenderer(hub: Hub,
      * 7) The resulting image is drawn to the screen, or -- if a HMD is present -- submitted to the OpenVR
      *    compositor.
      */
-    @Synchronized override fun render() = runBlocking {
-        if(!initialized) {
+    @Synchronized
+    override fun render() = runBlocking {
+        if (!initialized) {
             return@runBlocking
         }
 
         val newTime = System.nanoTime()
-        lastFrameTime = (System.nanoTime() - currentTime)/1e6f
+        lastFrameTime = (System.nanoTime() - currentTime) / 1e6f
         currentTime = newTime
 
         val stats = hub?.get(SceneryElement.Statistics) as? Statistics
@@ -1498,7 +1511,7 @@ open class OpenGLRenderer(hub: Hub,
 
                 joglDrawable?.animator?.stop()
                 cglWindow?.close()
-            } catch(e: ThreadDeath) {
+            } catch (e: ThreadDeath) {
                 logger.debug("Caught JOGL ThreadDeath, ignoring.")
             }
             return@runBlocking
@@ -1536,14 +1549,14 @@ open class OpenGLRenderer(hub: Hub,
         updateInstanceBuffers(sceneObjects.await())
         stats?.add("OpenGLRenderer.updateInstanceBuffers", System.nanoTime() - startInstanceUpdate)
 
-        if(pushMode && !updated && !sceneUpdated && !screenshotRequested) {
-            if(updateLatch == null) {
+        if (pushMode && !updated && !sceneUpdated && !screenshotRequested) {
+            if (updateLatch == null) {
                 updateLatch = CountDownLatch(2)
             }
 
             logger.trace("UBOs have not been updated, returning ({})", updateLatch?.count)
 
-            if(updateLatch?.count == 0L) {
+            if (updateLatch?.count == 0L) {
 //                val animator = when {
 //                    cglWindow != null -> cglWindow?.glAutoDrawable?.animator
 //                    drawable != null -> drawable?.animator
@@ -1561,12 +1574,12 @@ open class OpenGLRenderer(hub: Hub,
             }
         }
 
-        if(updated || sceneUpdated || screenshotRequested) {
+        if (updated || sceneUpdated || screenshotRequested) {
             updateLatch = null
         }
 
         flow.forEach { t ->
-            if(logger.isDebugEnabled || logger.isTraceEnabled) {
+            if (logger.isDebugEnabled || logger.isTraceEnabled) {
                 val error = gl.glGetError()
 
                 if (error != 0) {
@@ -1581,11 +1594,11 @@ open class OpenGLRenderer(hub: Hub,
             if (pass.passConfig.blitInputs) {
                 pass.inputs.forEach { name, input ->
                     val targetName = name.substringAfter(".")
-                    if(name.contains(".") && input.getTextureType(targetName) == 0) {
+                    if (name.contains(".") && input.getTextureType(targetName) == 0) {
                         logger.trace("Blitting {} into {} (color only)", targetName, pass.output.values.first().id)
                         blitFramebuffers(input, pass.output.values.firstOrNull(),
                             pass.openglMetadata.viewport.area, pass.openglMetadata.viewport.area, colorOnly = true, sourceName = name.substringAfter("."))
-                    } else if(name.contains(".") && input.getTextureType(targetName) == 1) {
+                    } else if (name.contains(".") && input.getTextureType(targetName) == 1) {
                         logger.trace("Blitting {} into {} (depth only)", targetName, pass.output.values.first().id)
                         blitFramebuffers(input, pass.output.values.firstOrNull(),
                             pass.openglMetadata.viewport.area, pass.openglMetadata.viewport.area, depthOnly = true)
@@ -1664,7 +1677,7 @@ open class OpenGLRenderer(hub: Hub,
                     gl.glDisable(GL4.GL_BLEND)
                 }
 
-                val actualObjects = if(pass.passConfig.type == RenderConfigReader.RenderpassType.geometry) {
+                val actualObjects = if (pass.passConfig.type == RenderConfigReader.RenderpassType.geometry) {
                     actualSceneObjects.filter { it !is Light }
                 } else {
                     actualSceneObjects.filter { it is Light }
@@ -1672,7 +1685,7 @@ open class OpenGLRenderer(hub: Hub,
 
                 var currentShader: OpenGLShaderProgram? = null
 
-                actualObjects.forEach renderLoop@ { n ->
+                actualObjects.forEach renderLoop@{ n ->
                     if (n.instanceOf != null) {
                         return@renderLoop
                     }
@@ -1686,7 +1699,7 @@ open class OpenGLRenderer(hub: Hub,
                     }
 
                     gl.glEnable(GL4.GL_CULL_FACE)
-                    when(n.material.cullingMode) {
+                    when (n.material.cullingMode) {
                         Material.CullingMode.None -> gl.glDisable(GL4.GL_CULL_FACE)
                         Material.CullingMode.Front -> gl.glCullFace(GL4.GL_FRONT)
                         Material.CullingMode.Back -> gl.glCullFace(GL4.GL_BACK)
@@ -1730,7 +1743,7 @@ open class OpenGLRenderer(hub: Hub,
                         pass.defaultShader!!
                     }
 
-                    if(currentShader != shader) {
+                    if (currentShader != shader) {
                         shader.use(gl)
                     }
 
@@ -1777,7 +1790,7 @@ open class OpenGLRenderer(hub: Hub,
                     var samplerIndex = maxSamplerIndex
                     others?.forEach { texture ->
                         @Suppress("SENSELESS_COMPARISON")
-                        if(texture.value != null) {
+                        if (texture.value != null) {
                             val minIndex = unboundSamplers.min() ?: maxSamplerIndex
                             gl.glActiveTexture(GL4.GL_TEXTURE0 + minIndex)
 
@@ -1803,7 +1816,7 @@ open class OpenGLRenderer(hub: Hub,
                             name
                         }
 
-                        if(shader.uboSpecs.containsKey(actualName) && shader.isValid()) {
+                        if (shader.uboSpecs.containsKey(actualName) && shader.isValid()) {
                             val index = shader.getUniformBlockIndex(actualName)
                             logger.trace("Binding {} for {}, index={}, binding={}, size={}", actualName, n.name, index, binding, ubo.getSize())
 
@@ -1818,10 +1831,10 @@ open class OpenGLRenderer(hub: Hub,
                         }
                     }
 
-                    arrayOf("VRParameters", "LightParameters").forEach uboBinding@ { name ->
+                    arrayOf("VRParameters", "LightParameters").forEach uboBinding@{ name ->
                         if (shader.uboSpecs.containsKey(name) && shader.isValid()) {
                             val buffer = buffers[name]
-                            if(buffer == null) {
+                            if (buffer == null) {
                                 logger.warn("Buffer for $name not found")
                                 return@uboBinding
                             }
@@ -1842,7 +1855,7 @@ open class OpenGLRenderer(hub: Hub,
                         }
                     }
 
-                    if(n.instanceMaster) {
+                    if (n.instanceMaster) {
                         drawNodeInstanced(n)
                     } else {
                         drawNode(n)
@@ -1929,7 +1942,7 @@ open class OpenGLRenderer(hub: Hub,
             stats?.add("Renderer.$t.renderTiming", System.nanoTime() - startPass)
         }
 
-        if(logger.isDebugEnabled || logger.isTraceEnabled) {
+        if (logger.isDebugEnabled || logger.isTraceEnabled) {
             val error = gl.glGetError()
 
             if (error != 0) {
@@ -1948,12 +1961,12 @@ open class OpenGLRenderer(hub: Hub,
             OpenGLRenderpass.Rect2D(window.width, window.height, 0, 0))
 
         // submit to OpenVR if attached
-        if(hub?.getWorkingHMDDisplay()?.hasCompositor() == true && !mustRecreateFramebuffers) {
+        if (hub?.getWorkingHMDDisplay()?.hasCompositor() == true && !mustRecreateFramebuffers) {
             hub?.getWorkingHMDDisplay()?.wantsVR()?.submitToCompositor(
                 viewportPass.output.values.first().getTextureId("Viewport"))
         }
 
-        if((embedIn != null && embedIn !is SceneryJPanel) || recordMovie) {
+        if ((embedIn != null && embedIn !is SceneryJPanel) || recordMovie) {
             if (shouldClose || mustRecreateFramebuffers) {
                 encoder?.finish()
 
@@ -1975,7 +1988,7 @@ open class OpenGLRenderer(hub: Hub,
                     gl.glBindBuffer(GL4.GL_PIXEL_PACK_BUFFER, pbos[index])
                     gl.glBufferData(GL4.GL_PIXEL_PACK_BUFFER, window.width * window.height * 4L, null, GL4.GL_STREAM_READ)
 
-                    if(pboBuffers[index] != null) {
+                    if (pboBuffers[index] != null) {
                         MemoryUtil.memFree(pboBuffers[index])
                         pboBuffers[index] = null
                     }
@@ -1985,13 +1998,13 @@ open class OpenGLRenderer(hub: Hub,
             }
 
             pboBuffers.forEachIndexed { i, _ ->
-                if(pboBuffers[i] == null) {
+                if (pboBuffers[i] == null) {
                     pboBuffers[i] = MemoryUtil.memAlloc(4 * window.width * window.height)
                 }
             }
 
             val startUpdate = System.nanoTime()
-            if(frames < pboCount) {
+            if (frames < pboCount) {
                 gl.glBindBuffer(GL4.GL_PIXEL_PACK_BUFFER, pbos[updateIndex])
                 gl.glReadPixels(0, 0, window.width, window.height, GL4.GL_BGRA, GL4.GL_UNSIGNED_BYTE, 0)
             } else {
@@ -2018,7 +2031,7 @@ open class OpenGLRenderer(hub: Hub,
                     }
                 }
             }
-            val updateDuration = (System.nanoTime() - startUpdate)*1.0f
+            val updateDuration = (System.nanoTime() - startUpdate) * 1.0f
             stats?.add("Renderer.updateEmbed", updateDuration, true)
 
             gl.glBindBuffer(GL4.GL_PIXEL_PACK_BUFFER, 0)
@@ -2029,7 +2042,7 @@ open class OpenGLRenderer(hub: Hub,
             try {
                 val readBufferUtil = AWTGLReadBufferUtil(joglDrawable!!.glProfile, false)
                 val image = readBufferUtil.readPixelsToBufferedImage(gl, true)
-                val file = SystemHelpers.addFileCounter(if(screenshotFilename == "") {
+                val file = SystemHelpers.addFileCounter(if (screenshotFilename == "") {
                     File(System.getProperty("user.home"), "Desktop" + File.separator + "$applicationName - ${SimpleDateFormat("yyyy-MM-dd HH.mm.ss").format(Date())}.png")
                 } else {
                     File(screenshotFilename)
@@ -2091,8 +2104,9 @@ open class OpenGLRenderer(hub: Hub,
      * @param[node]: The [Node] to initialise.
      * @return True if the initialisation went alright, False if it failed.
      */
-    @Synchronized fun initializeNode(node: Node): Boolean {
-        if(!node.lock.tryLock(2, TimeUnit.MILLISECONDS)) {
+    @Synchronized
+    fun initializeNode(node: Node): Boolean {
+        if (!node.lock.tryLock(2, TimeUnit.MILLISECONDS)) {
             return false
         }
 
@@ -2258,7 +2272,7 @@ open class OpenGLRenderer(hub: Hub,
      */
     private fun prepareDefaultTextures() {
         val t = GLTexture.loadFromFile(gl, Renderer::class.java.getResourceAsStream("DefaultTexture.png"), "png", false, true, 8)
-        if(t == null) {
+        if (t == null) {
             logger.error("Could not load default texture! This indicates a serious issue.")
         } else {
             textureCache["DefaultTexture"] = t
@@ -2278,7 +2292,7 @@ open class OpenGLRenderer(hub: Hub,
 
     private fun dumpTextureToFile(gl: GL4, name: String, texture: GLTexture) {
         val filename = "${name}_${Date().toInstant().epochSecond}.raw"
-        val bytes = texture.width*texture.height*texture.depth*texture.channels*texture.bitsPerChannel/8
+        val bytes = texture.width * texture.height * texture.depth * texture.channels * texture.bitsPerChannel / 8
         logger.info("Dumping $name to $filename ($bytes bytes)")
         val buffer = MemoryUtil.memAlloc(bytes)
         gl.glPixelStorei(GL4.GL_PACK_ALIGNMENT, 1)
@@ -2305,8 +2319,7 @@ open class OpenGLRenderer(hub: Hub,
     @Suppress("USELESS_ELVIS")
     private fun loadTexturesForNode(node: Node, s: OpenGLObjectState): OpenGLObjectState {
         if (node.lock.tryLock()) {
-            node.material.textures.forEach {
-                type, texture ->
+            node.material.textures.forEach { type, texture ->
                 if (!textureCache.containsKey(texture) || node.material.needsTextureReload) {
                     logger.debug("Loading texture $texture for ${node.name}")
 
@@ -2325,7 +2338,7 @@ open class OpenGLRenderer(hub: Hub,
                             }
 
                             val existingTexture = s.textures[type]
-                            val t = if(existingTexture != null && existingTexture.canBeReused(gt, miplevels)) {
+                            val t = if (existingTexture != null && existingTexture.canBeReused(gt, miplevels)) {
                                 existingTexture
                             } else {
                                 GLTexture(gl, type1, channels,
@@ -2377,11 +2390,11 @@ open class OpenGLRenderer(hub: Hub,
                             textureCache.put(texture, t)
                         }
                     } else {
-                        val glTexture = if(texture.contains("jar!")) {
+                        val glTexture = if (texture.contains("jar!")) {
                             val f = texture.substringAfterLast("!")
                             val stream = node.javaClass.getResourceAsStream(f)
 
-                            if(stream == null) {
+                            if (stream == null) {
                                 logger.error("Texture not found for $node: $f (from JAR)")
                                 textureCache["DefaultTexture"]!!
                             } else {
@@ -2390,7 +2403,7 @@ open class OpenGLRenderer(hub: Hub,
                         } else {
                             try {
                                 GLTexture.loadFromFile(gl, texture, true, generateMipmaps, 8)
-                            } catch(e: FileNotFoundException) {
+                            } catch (e: FileNotFoundException) {
                                 logger.error("Texture not found for $node: $texture")
                                 textureCache["DefaultTexture"]!!
                             }
@@ -2761,7 +2774,7 @@ open class OpenGLRenderer(hub: Hub,
 
     @Suppress("unused")
     fun recordMovie() {
-        if(recordMovie) {
+        if (recordMovie) {
             encoder?.finish()
             encoder = null
 
@@ -2823,10 +2836,10 @@ open class OpenGLRenderer(hub: Hub,
             settings.set(setting, value)
         }
 
-        if(renderConfig.qualitySettings.isNotEmpty()) {
+        if (renderConfig.qualitySettings.isNotEmpty()) {
             logger.info("Setting rendering quality to $quality")
             renderConfig.qualitySettings[quality]?.forEach { setting ->
-                if(setting.key.endsWith(".shaders") && setting.value is List<*>) {
+                if (setting.key.endsWith(".shaders") && setting.value is List<*>) {
                     val pass = setting.key.substringBeforeLast(".shaders")
                     val shaders = setting.value as? List<String> ?: return@forEach
 

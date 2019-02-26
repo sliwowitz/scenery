@@ -1,12 +1,13 @@
 package graphics.scenery.backends.vulkan
 
 import graphics.scenery.utils.LazyLogger
-import org.lwjgl.vulkan.*
-import java.util.*
-import org.lwjgl.vulkan.VK10.*
-import java.nio.LongBuffer
 import org.lwjgl.system.MemoryUtil.*
 import org.lwjgl.system.Struct
+import org.lwjgl.vulkan.*
+import org.lwjgl.vulkan.VK10.*
+import vkk.VkMemoryProperty
+import java.nio.LongBuffer
+import java.util.*
 
 /**
  * Vulkan Framebuffer class. Creates a framebuffer on [device], associated with
@@ -19,11 +20,11 @@ import org.lwjgl.system.Struct
  * @author Ulrik Günther <hello@ulrik.is>
  */
 open class VulkanFramebuffer(protected val device: VulkanDevice,
-                        protected var commandPool: Long,
-                        var width: Int,
-                        var height: Int,
-                        val commandBuffer: VkCommandBuffer,
-                        var shouldClear: Boolean = true, val sRGB: Boolean = false): AutoCloseable {
+                             protected var commandPool: Long,
+                             var width: Int,
+                             var height: Int,
+                             val commandBuffer: VkCommandBuffer,
+                             var shouldClear: Boolean = true, val sRGB: Boolean = false) : AutoCloseable {
     protected val logger by LazyLogger()
 
     /** Raw Vulkan framebuffer reference. */
@@ -49,7 +50,7 @@ open class VulkanFramebuffer(protected val device: VulkanDevice,
     enum class VulkanFramebufferType { COLOR_ATTACHMENT, DEPTH_ATTACHMENT }
 
     /** Class to describe framebuffer attachments */
-    inner class VulkanFramebufferAttachment: AutoCloseable {
+    inner class VulkanFramebufferAttachment : AutoCloseable {
         /** Image reference for the attachment */
         var image: Long = -1L
         /** Memory reference for the attachment */
@@ -82,11 +83,11 @@ open class VulkanFramebuffer(protected val device: VulkanDevice,
             vkDestroyImageView(device.vulkanDevice, imageView.get(0), null)
             memFree(imageView)
 
-            if(image != -1L && fromSwapchain == false) {
+            if (image != -1L && fromSwapchain == false) {
                 vkDestroyImage(device.vulkanDevice, image, null)
             }
 
-            if(memory.get(0) != -1L) {
+            if (memory.get(0) != -1L) {
                 vkFreeMemory(device.vulkanDevice, memory.get(0), null)
             }
 
@@ -149,7 +150,7 @@ open class VulkanFramebuffer(protected val device: VulkanDevice,
 
         val allocation = VkMemoryAllocateInfo.calloc()
             .allocationSize(requirements.size())
-            .memoryTypeIndex(device.getMemoryType(requirements.memoryTypeBits(), VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT).first())
+            .memoryTypeIndex(device.getMemoryType(requirements.memoryTypeBits(), VkMemoryProperty.DEVICE_LOCAL_BIT.i).first())
             .sType(VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO)
             .pNext(NULL)
 
@@ -197,7 +198,7 @@ open class VulkanFramebuffer(protected val device: VulkanDevice,
     private fun createAndAddDepthStencilAttachmentInternal(name: String, format: Int, attachmentWidth: Int, attachmentHeight: Int) {
         val att = createAttachment(format, VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT, attachmentWidth, attachmentHeight)
 
-        val (loadOp, stencilLoadOp) = if(!shouldClear) {
+        val (loadOp, stencilLoadOp) = if (!shouldClear) {
             VK_ATTACHMENT_LOAD_OP_DONT_CARE to VK_ATTACHMENT_LOAD_OP_LOAD
         } else {
             VK_ATTACHMENT_LOAD_OP_CLEAR to VK_ATTACHMENT_LOAD_OP_CLEAR
@@ -226,13 +227,13 @@ open class VulkanFramebuffer(protected val device: VulkanDevice,
     private fun createAndAddColorAttachmentInternal(name: String, format: Int, attachmentWidth: Int, attachmentHeight: Int) {
         val att = createAttachment(format, VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT, attachmentWidth, attachmentHeight)
 
-        val (loadOp, stencilLoadOp) = if(!shouldClear) {
+        val (loadOp, stencilLoadOp) = if (!shouldClear) {
             VK_ATTACHMENT_LOAD_OP_LOAD to VK_ATTACHMENT_LOAD_OP_LOAD
         } else {
             VK_ATTACHMENT_LOAD_OP_CLEAR to VK_ATTACHMENT_LOAD_OP_DONT_CARE
         }
 
-        val initialImageLayout = if(!shouldClear) {
+        val initialImageLayout = if (!shouldClear) {
             VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL
         } else {
             VK_IMAGE_LAYOUT_UNDEFINED
@@ -254,10 +255,12 @@ open class VulkanFramebuffer(protected val device: VulkanDevice,
      * Adds a float attachment with a bit depth of [channelDepth], and a size of [attachmentWidth] x [attachmentHeight].
      */
     fun addFloatBuffer(name: String, channelDepth: Int, attachmentWidth: Int = width, attachmentHeight: Int = height): VulkanFramebuffer {
-        val format: Int = when(channelDepth) {
+        val format: Int = when (channelDepth) {
             16 -> VK_FORMAT_R16_SFLOAT
             32 -> VK_FORMAT_R32_SFLOAT
-            else -> { logger.warn("Unsupported channel depth $channelDepth, using 16 bit."); VK_FORMAT_R16_SFLOAT }
+            else -> {
+                logger.warn("Unsupported channel depth $channelDepth, using 16 bit."); VK_FORMAT_R16_SFLOAT
+            }
         }
 
         createAndAddColorAttachmentInternal(name, format, attachmentWidth, attachmentHeight)
@@ -269,10 +272,12 @@ open class VulkanFramebuffer(protected val device: VulkanDevice,
      * Adds a float RG attachment with a bit depth of [channelDepth], and a size of [attachmentWidth] x [attachmentHeight].
      */
     fun addFloatRGBuffer(name: String, channelDepth: Int, attachmentWidth: Int = width, attachmentHeight: Int = height): VulkanFramebuffer {
-        val format: Int = when(channelDepth) {
+        val format: Int = when (channelDepth) {
             16 -> VK_FORMAT_R16G16_SFLOAT
             32 -> VK_FORMAT_R32G32_SFLOAT
-            else -> { logger.warn("Unsupported channel depth $channelDepth, using 16 bit."); VK_FORMAT_R16G16_SFLOAT }
+            else -> {
+                logger.warn("Unsupported channel depth $channelDepth, using 16 bit."); VK_FORMAT_R16G16_SFLOAT
+            }
         }
 
         createAndAddColorAttachmentInternal(name, format, attachmentWidth, attachmentHeight)
@@ -284,10 +289,12 @@ open class VulkanFramebuffer(protected val device: VulkanDevice,
      * Adds a float RGB attachment with a bit depth of [channelDepth], and a size of [attachmentWidth] x [attachmentHeight].
      */
     fun addFloatRGBBuffer(name: String, channelDepth: Int, attachmentWidth: Int = width, attachmentHeight: Int = height): VulkanFramebuffer {
-        val format: Int = when(channelDepth) {
+        val format: Int = when (channelDepth) {
             16 -> VK_FORMAT_R16G16B16_SFLOAT
             32 -> VK_FORMAT_R32G32B32_SFLOAT
-            else -> { logger.warn("Unsupported channel depth $channelDepth, using 16 bit."); VK_FORMAT_R16G16B16A16_SFLOAT }
+            else -> {
+                logger.warn("Unsupported channel depth $channelDepth, using 16 bit."); VK_FORMAT_R16G16B16A16_SFLOAT
+            }
         }
 
         createAndAddColorAttachmentInternal(name, format, attachmentWidth, attachmentHeight)
@@ -299,10 +306,12 @@ open class VulkanFramebuffer(protected val device: VulkanDevice,
      * Adds a float RGBA attachment with a bit depth of [channelDepth], and a size of [attachmentWidth] x [attachmentHeight].
      */
     fun addFloatRGBABuffer(name: String, channelDepth: Int, attachmentWidth: Int = width, attachmentHeight: Int = height): VulkanFramebuffer {
-        val format: Int = when(channelDepth) {
+        val format: Int = when (channelDepth) {
             16 -> VK_FORMAT_R16G16B16A16_SFLOAT
             32 -> VK_FORMAT_R32G32B32A32_SFLOAT
-            else -> { logger.warn("Unsupported channel depth $channelDepth, using 16 bit."); VK_FORMAT_R16G16B16A16_SFLOAT }
+            else -> {
+                logger.warn("Unsupported channel depth $channelDepth, using 16 bit."); VK_FORMAT_R16G16B16A16_SFLOAT
+            }
         }
 
         createAndAddColorAttachmentInternal(name, format, attachmentWidth, attachmentHeight)
@@ -314,10 +323,16 @@ open class VulkanFramebuffer(protected val device: VulkanDevice,
      * Adds an unsigned byte RGBA attachment with a bit depth of [channelDepth], and a size of [attachmentWidth] x [attachmentHeight].
      */
     fun addUnsignedByteRGBABuffer(name: String, channelDepth: Int, attachmentWidth: Int = width, attachmentHeight: Int = height): VulkanFramebuffer {
-        val format: Int = when(channelDepth) {
-            8 -> if(sRGB) { VK_FORMAT_R8G8B8A8_SRGB } else { VK_FORMAT_R8G8B8A8_UNORM }
+        val format: Int = when (channelDepth) {
+            8 -> if (sRGB) {
+                VK_FORMAT_R8G8B8A8_SRGB
+            } else {
+                VK_FORMAT_R8G8B8A8_UNORM
+            }
             16 -> VK_FORMAT_R16G16B16A16_UNORM
-            else -> { logger.warn("Unsupported channel depth $channelDepth, using 16 bit."); VK_FORMAT_R16G16B16A16_UINT }
+            else -> {
+                logger.warn("Unsupported channel depth $channelDepth, using 16 bit."); VK_FORMAT_R16G16B16A16_UINT
+            }
         }
 
         createAndAddColorAttachmentInternal(name, format, attachmentWidth, attachmentHeight)
@@ -329,10 +344,12 @@ open class VulkanFramebuffer(protected val device: VulkanDevice,
      * Adds an unsigned byte R attachment with a bit depth of [channelDepth], and a size of [attachmentWidth] x [attachmentHeight].
      */
     fun addUnsignedByteRBuffer(name: String, channelDepth: Int, attachmentWidth: Int = width, attachmentHeight: Int = height): VulkanFramebuffer {
-        val format: Int = when(channelDepth) {
+        val format: Int = when (channelDepth) {
             8 -> VK_FORMAT_R8_UNORM
             16 -> VK_FORMAT_R16_UNORM
-            else -> { logger.warn("Unsupported channel depth $channelDepth, using 16 bit."); VK_FORMAT_R16_UNORM }
+            else -> {
+                logger.warn("Unsupported channel depth $channelDepth, using 16 bit."); VK_FORMAT_R16_UNORM
+            }
         }
 
         createAndAddColorAttachmentInternal(name, format, attachmentWidth, attachmentHeight)
@@ -344,11 +361,13 @@ open class VulkanFramebuffer(protected val device: VulkanDevice,
      * Adds a depth buffer attachment with a bit depth of [depth], and a size of [attachmentWidth] x [attachmentHeight].
      */
     fun addDepthBuffer(name: String, depth: Int, attachmentWidth: Int = width, attachmentHeight: Int = height): VulkanFramebuffer {
-        val format: Int = when(depth) {
+        val format: Int = when (depth) {
             16 -> VK_FORMAT_D16_UNORM
             24 -> VK_FORMAT_D24_UNORM_S8_UINT
             32 -> VK_FORMAT_D32_SFLOAT
-            else -> { logger.warn("Unsupported channel depth $depth, using 32 bit."); VK_FORMAT_D32_SFLOAT }
+            else -> {
+                logger.warn("Unsupported channel depth $depth, using 32 bit."); VK_FORMAT_D32_SFLOAT
+            }
         }
 
         val bestSupportedFormat = getBestDepthFormat(format).first()
@@ -370,7 +389,7 @@ open class VulkanFramebuffer(protected val device: VulkanDevice,
         att.type = VulkanFramebufferType.COLOR_ATTACHMENT
         att.fromSwapchain = true
 
-        val (loadOp, stencilLoadOp) = if(!shouldClear) {
+        val (loadOp, stencilLoadOp) = if (!shouldClear) {
             VK_ATTACHMENT_LOAD_OP_LOAD to VK_ATTACHMENT_LOAD_OP_LOAD
         } else {
             VK_ATTACHMENT_LOAD_OP_CLEAR to VK_ATTACHMENT_LOAD_OP_DONT_CARE
@@ -386,7 +405,11 @@ open class VulkanFramebuffer(protected val device: VulkanDevice,
             .stencilStoreOp(VK_ATTACHMENT_STORE_OP_DONT_CARE)
             .initialLayout(initialImageLayout)
             .finalLayout(KHRSwapchain.VK_IMAGE_LAYOUT_PRESENT_SRC_KHR)
-            .format(if(sRGB) { VK_FORMAT_B8G8R8A8_SRGB } else { VK_FORMAT_B8G8R8A8_UNORM })
+            .format(if (sRGB) {
+                VK_FORMAT_B8G8R8A8_SRGB
+            } else {
+                VK_FORMAT_B8G8R8A8_UNORM
+            })
 
         attachments.put(name, att)
 
@@ -398,7 +421,7 @@ open class VulkanFramebuffer(protected val device: VulkanDevice,
      */
     protected fun getAttachmentDescBuffer(): VkAttachmentDescription.Buffer {
         val descriptionBuffer = VkAttachmentDescription.calloc(attachments.size)
-        attachments.values.forEach{ descriptionBuffer.put(it.desc) }
+        attachments.values.forEach { descriptionBuffer.put(it.desc) }
 
         return descriptionBuffer.flip()
     }
@@ -408,7 +431,7 @@ open class VulkanFramebuffer(protected val device: VulkanDevice,
      */
     protected fun getAttachmentImageViews(): LongBuffer {
         val ivBuffer = memAllocLong(attachments.size)
-        attachments.values.forEach{ ivBuffer.put(it.imageView.get(0)) }
+        attachments.values.forEach { ivBuffer.put(it.imageView.get(0)) }
 
         ivBuffer.flip()
 
@@ -428,7 +451,7 @@ open class VulkanFramebuffer(protected val device: VulkanDevice,
                 .layout(VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL)
         }
 
-        val depthDescs: VkAttachmentReference? = if(attachments.any { it.value.type == VulkanFramebufferType.DEPTH_ATTACHMENT }) {
+        val depthDescs: VkAttachmentReference? = if (attachments.any { it.value.type == VulkanFramebufferType.DEPTH_ATTACHMENT }) {
             VkAttachmentReference.calloc()
                 .attachment(colorDescs.limit())
                 .layout(VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL)
@@ -525,10 +548,10 @@ open class VulkanFramebuffer(protected val device: VulkanDevice,
     /**
      * Helper function to set up Vulkan structs.
      */
-    fun <T: Struct> T.default(): T {
-        if(this is VkSamplerCreateInfo) {
+    fun <T : Struct> T.default(): T {
+        if (this is VkSamplerCreateInfo) {
             this.sType(VK_STRUCTURE_TYPE_SAMPLER_CREATE_INFO).pNext(NULL)
-        } else if(this is VkFramebufferCreateInfo) {
+        } else if (this is VkFramebufferCreateInfo) {
             this.sType(VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO).pNext(NULL)
         }
 
@@ -575,7 +598,7 @@ open class VulkanFramebuffer(protected val device: VulkanDevice,
 
     /** Closes this framebuffer instance, releasing all of its resources. */
     override fun close() {
-        if(initialized) {
+        if (initialized) {
             attachments.values.forEach { it.close() }
 
             vkDestroyRenderPass(device.vulkanDevice, renderPass.get(0), null)

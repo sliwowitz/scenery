@@ -100,7 +100,7 @@ class NodeSubscriber(override var hub: Hub?, val address: String = "udp://localh
                         bin.close()
                     }
                 }
-            } catch(e: StreamCorruptedException) {
+            } catch (e: StreamCorruptedException) {
                 logger.warn("Corrupted stream")
             }
 

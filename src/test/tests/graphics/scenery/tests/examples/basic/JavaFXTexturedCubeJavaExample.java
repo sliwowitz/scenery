@@ -143,7 +143,7 @@ public class JavaFXTexturedCubeJavaExample {
 
 
             new Thread(() -> {
-                while(!getRenderer().getShouldClose()) {
+                while (!getRenderer().getShouldClose()) {
                     try {
                         Thread.sleep(200);
                     } catch (InterruptedException e) {

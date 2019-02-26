@@ -30,8 +30,10 @@ class OpenGLRenderpass(var passName: String = "", var passConfig: RenderConfigRe
 
     /** Class to store 2D rectangles with [width], [height] and offsets [offsetX] and [offsetY] */
     data class Rect2D(var width: Int = 0, var height: Int = 0, var offsetX: Int = 0, var offsetY: Int = 0)
+
     /** Class to store viewport information, [area], and minimal/maximal depth coordinates ([minDepth] and [maxDepth]). */
     data class Viewport(var area: Rect2D = Rect2D(), var minDepth: Float = 0.0f, var maxDepth: Float = 1.0f)
+
     /** Class to store clear values for color targets ([clearColor]) and depth targets ([clearDepth]) */
     data class ClearValue(var clearColor: GLVector = GLVector(0.0f, 0.0f, 0.0f, 1.0f), var clearDepth: Float = 0.0f)
 
@@ -98,7 +100,7 @@ class OpenGLRenderpass(var passName: String = "", var passConfig: RenderConfigRe
 
         logger.trace("Updating shader parameters for ${this.passName}")
         UBOs.forEach { uboName, ubo ->
-            if(uboName.startsWith("ShaderParameters-")) {
+            if (uboName.startsWith("ShaderParameters-")) {
                 ubo.setOffsetFromBackingBuffer()
                 updated = ubo.populate()
             }

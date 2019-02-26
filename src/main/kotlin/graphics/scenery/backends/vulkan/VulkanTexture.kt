@@ -13,6 +13,8 @@ import org.lwjgl.system.MemoryUtil.*
 import org.lwjgl.vulkan.*
 import org.lwjgl.vulkan.VK10.*
 import vkk.VkBufferUsage
+import vkk.VkMemoryProperty
+import vkk.VkMemoryPropertyFlags
 import java.awt.Color
 import java.awt.color.ColorSpace
 import java.awt.geom.AffineTransform
@@ -175,19 +177,19 @@ open class VulkanTexture(val device: VulkanDevice,
             createImage(width, height, depth,
                 format, VK_IMAGE_USAGE_TRANSFER_SRC_BIT,
                 VK_IMAGE_TILING_LINEAR,
-                VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT or VK_MEMORY_PROPERTY_HOST_CACHED_BIT,
+                VkMemoryProperty.HOST_VISIBLE_BIT or VkMemoryProperty.HOST_CACHED_BIT,
                 mipLevels = 1)
         } else {
             createImage(16, 16, 1,
                 format, VK_IMAGE_USAGE_TRANSFER_SRC_BIT,
                 VK_IMAGE_TILING_LINEAR,
-                VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT or VK_MEMORY_PROPERTY_HOST_CACHED_BIT,
+                VkMemoryProperty.HOST_VISIBLE_BIT or VkMemoryProperty.HOST_CACHED_BIT,
                 mipLevels = 1)
         }
 
         image = createImage(width, height, depth,
             format, VK_IMAGE_USAGE_TRANSFER_DST_BIT or VK_IMAGE_USAGE_SAMPLED_BIT or VK_IMAGE_USAGE_TRANSFER_SRC_BIT,
-            VK_IMAGE_TILING_OPTIMAL, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT,
+            VK_IMAGE_TILING_OPTIMAL, VkMemoryProperty.DEVICE_LOCAL_BIT.i,
             mipLevels)
 
         if (image.sampler == -1L) {
@@ -223,7 +225,7 @@ open class VulkanTexture(val device: VulkanDevice,
      * A custom memory allocator may be used and given as [customAllocator].
      */
     fun createImage(width: Int, height: Int, depth: Int, format: Int,
-                    usage: Int, tiling: Int, memoryFlags: Int, mipLevels: Int,
+                    usage: Int, tiling: Int, memoryFlags: VkMemoryPropertyFlags, mipLevels: Int,
                     customAllocator: ((VkMemoryRequirements, Long) -> Long)? = null, imageCreateInfo: VkImageCreateInfo? = null): VulkanImage {
         val imageInfo = if (imageCreateInfo != null) {
             imageCreateInfo

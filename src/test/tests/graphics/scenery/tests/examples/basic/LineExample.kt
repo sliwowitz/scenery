@@ -60,7 +60,7 @@ class LineExample : SceneryBase("LineExample") {
 
         thread {
             while (true) {
-                val t = runtime/100
+                val t = runtime / 100
                 if (lineAnimating) {
                     line.addPoint(GLVector(10.0f * Math.random().toFloat() - 5.0f, 10.0f * Math.random().toFloat() - 5.0f, 10.0f * Math.random().toFloat() - 5.0f))
                     line.edgeWidth = 0.03f * Math.sin(t * Math.PI / 50).toFloat() + 0.03f
@@ -71,10 +71,10 @@ class LineExample : SceneryBase("LineExample") {
         }
 
         thread {
-            while(true) {
-                val t = runtime/100
+            while (true) {
+                val t = runtime / 100
                 lights.forEachIndexed { i, pointLight ->
-                    pointLight.position = GLVector(0.0f, 5.0f*Math.sin(2*i*Math.PI/3.0f+t*Math.PI/50).toFloat(), -5.0f*Math.cos(2*i*Math.PI/3.0f+t*Math.PI/50).toFloat())
+                    pointLight.position = GLVector(0.0f, 5.0f * Math.sin(2 * i * Math.PI / 3.0f + t * Math.PI / 50).toFloat(), -5.0f * Math.cos(2 * i * Math.PI / 3.0f + t * Math.PI / 50).toFloat())
                 }
 
                 Thread.sleep(20)
@@ -86,7 +86,8 @@ class LineExample : SceneryBase("LineExample") {
         setupCameraModeSwitching(keybinding = "C")
     }
 
-    @Test override fun main() {
+    @Test
+    override fun main() {
         super.main()
     }
 }

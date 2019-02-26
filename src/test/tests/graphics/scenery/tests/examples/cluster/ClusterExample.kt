@@ -18,7 +18,7 @@ import kotlin.concurrent.thread
  *
  * @author Ulrik Günther <hello@ulrik.is>
  */
-class ClusterExample: SceneryBase("Clustered Volume Rendering example") {
+class ClusterExample : SceneryBase("Clustered Volume Rendering example") {
     var hmd: TrackedStereoGlasses? = null
     var publishedNodes = ArrayList<Node>()
 
@@ -37,7 +37,7 @@ class ClusterExample: SceneryBase("Clustered Volume Rendering example") {
         with(cam) {
             //position = GLVector(.4f, .4f, 1.4f)
             position = GLVector(.0f, -0.4f, 2.0f)
-            perspectiveCamera(50.0f, 1.0f*windowWidth, 1.0f*windowHeight)
+            perspectiveCamera(50.0f, 1.0f * windowWidth, 1.0f * windowHeight)
             active = true
 
             scene.addChild(this)
@@ -92,7 +92,7 @@ class ClusterExample: SceneryBase("Clustered Volume Rendering example") {
         val files = folder.listFiles()
         val volumes = files.filter { it.isFile && it.name.endsWith("raw") }.map { it.absolutePath }.sorted()
 //
-        volumes.forEach { logger.info("Volume: $it")}
+        volumes.forEach { logger.info("Volume: $it") }
 //
         var currentVolume = 0
         fun nextVolume(): String {
@@ -120,7 +120,7 @@ class ClusterExample: SceneryBase("Clustered Volume Rendering example") {
         val min_delay = 600
         //val min_delay = 0
 
-        if(publisher != null) {
+        if (publisher != null) {
             thread {
                 while (!scene.initialized) {
                     Thread.sleep(1000)
@@ -141,10 +141,10 @@ class ClusterExample: SceneryBase("Clustered Volume Rendering example") {
                     logger.info("Reading next volume...")
                     volume.currentVolume = nextVolume()
 
-                    val time_to_read  = System.currentTimeMillis()-start
+                    val time_to_read = System.currentTimeMillis() - start
 
                     logger.info("took ${time_to_read} ms")
-                    Thread.sleep(Math.max(0,min_delay-time_to_read))
+                    Thread.sleep(Math.max(0, min_delay - time_to_read))
 
                 }
             }
@@ -172,7 +172,7 @@ class ClusterExample: SceneryBase("Clustered Volume Rendering example") {
             val currentIndex = publishedNodes.indexOf(currentObject)
 
             publishedNodes.forEach { it.visible = false }
-            publishedNodes[(currentIndex + 1) % (publishedNodes.size-1)].run {
+            publishedNodes[(currentIndex + 1) % (publishedNodes.size - 1)].run {
                 this.visible = true
                 logger.info("Now visible: $this")
             }
@@ -182,7 +182,8 @@ class ClusterExample: SceneryBase("Clustered Volume Rendering example") {
         inputHandler.addKeyBinding("cycle_objects", "N")
     }
 
-    @Test override fun main() {
+    @Test
+    override fun main() {
         super.main()
     }
 }

@@ -29,12 +29,16 @@ class SceneryFXPanel(var imageWidth: Int, var imageHeight: Int) : Pane(), Scener
     /** Width of the panel. */
     override var panelWidth
         get() = super.getWidth().toInt()
-        set(w: Int) { super.setWidth(w.toDouble()) }
+        set(w: Int) {
+            super.setWidth(w.toDouble())
+        }
 
     /** Height of the panel. */
     override var panelHeight
         get() = super.getHeight().toInt()
-        set(w: Int) { super.setHeight(w.toDouble()) }
+        set(w: Int) {
+            super.setHeight(w.toDouble())
+        }
 
     /** Timer task to keep track of resize events. */
     inner class ResizeTimerTask(val width: Double, val height: Double) : TimerTask() {
@@ -89,7 +93,7 @@ class SceneryFXPanel(var imageWidth: Int, var imageHeight: Int) : Pane(), Scener
         cacheHint = CacheHint.SPEED
         imageView.cacheHint = CacheHint.SPEED
 
-        if(resizeTimer != null) {
+        if (resizeTimer != null) {
             return
         }
 
@@ -110,7 +114,7 @@ class SceneryFXPanel(var imageWidth: Int, var imageHeight: Int) : Pane(), Scener
             return
         }
 
-        if( !(width > 0 && height > 0 ) ) {
+        if (!(width > 0 && height > 0)) {
             return
         }
 

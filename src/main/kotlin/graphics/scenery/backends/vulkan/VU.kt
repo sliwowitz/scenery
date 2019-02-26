@@ -12,9 +12,7 @@ import org.lwjgl.vulkan.EXTDebugReport.VK_ERROR_VALIDATION_FAILED_EXT
 import org.lwjgl.vulkan.KHRDisplaySwapchain.VK_ERROR_INCOMPATIBLE_DISPLAY_KHR
 import org.lwjgl.vulkan.KHRSurface.VK_ERROR_NATIVE_WINDOW_IN_USE_KHR
 import org.lwjgl.vulkan.KHRSurface.VK_ERROR_SURFACE_LOST_KHR
-import org.lwjgl.vulkan.KHRSwapchain.VK_ERROR_OUT_OF_DATE_KHR
-import org.lwjgl.vulkan.KHRSwapchain.VK_IMAGE_LAYOUT_PRESENT_SRC_KHR
-import org.lwjgl.vulkan.KHRSwapchain.VK_SUBOPTIMAL_KHR
+import org.lwjgl.vulkan.KHRSwapchain.*
 import org.lwjgl.vulkan.VK10.*
 import org.slf4j.LoggerFactory
 import java.math.BigInteger
@@ -43,7 +41,7 @@ fun BigInteger.toHexString(): String {
  * Ends the recording of a command buffer.
  */
 fun VkCommandBuffer.endCommandBuffer() {
-    if(vkEndCommandBuffer(this) != VK_SUCCESS) {
+    if (vkEndCommandBuffer(this) != VK_SUCCESS) {
         throw AssertionError("Failed to end command buffer $this")
     }
 }
@@ -101,14 +99,14 @@ fun VkCommandBuffer.submit(queue: VkQueue, submitInfoPNext: Pointer? = null,
                 .pSignalSemaphores(signalSemaphores)
                 .pNext(submitInfoPNext?.address() ?: NULL)
 
-            if(waitSemaphores?.remaining() ?: 0 > 0 && waitSemaphores != null && waitDstStageMask != null) {
+            if (waitSemaphores?.remaining() ?: 0 > 0 && waitSemaphores != null && waitDstStageMask != null) {
                 submitInfo
                     .waitSemaphoreCount(waitSemaphores.remaining())
                     .pWaitSemaphores(waitSemaphores)
                     .pWaitDstStageMask(waitDstStageMask)
             }
 
-            if(block) {
+            if (block) {
                 vkQueueSubmit(queue, submitInfo, VK_NULL_HANDLE)
                 vkQueueWaitIdle(queue)
             } else {
@@ -188,12 +186,12 @@ class VU {
             if (result != VK_SUCCESS && result !in allowedResults) {
                 LoggerFactory.getLogger("VulkanRenderer").error("Call to $name failed: ${translate(result)}")
 
-                if(result < 0) {
-                   throw RuntimeException("Call to $name failed: ${translate(result)}")
+                if (result < 0) {
+                    throw RuntimeException("Call to $name failed: ${translate(result)}")
                 }
             }
 
-            if(result in allowedResults) {
+            if (result in allowedResults) {
                 LoggerFactory.getLogger("VulkanRenderer").debug("Call to $name did not result in error because return code(s) ${allowedResults.joinToString(", ")} were explicitly tolerated.")
             }
         }
@@ -208,7 +206,7 @@ class VU {
             if (result != VK_SUCCESS) {
                 LoggerFactory.getLogger("VulkanRenderer").error("Call to $name failed: ${translate(result)}")
 
-                if(result < 0) {
+                if (result < 0) {
                     throw RuntimeException("Call to $name failed: ${translate(result)}")
                 }
             }
@@ -229,7 +227,7 @@ class VU {
                 if (result != VK_SUCCESS) {
                     LoggerFactory.getLogger("VulkanRenderer").error("Call to $name failed: ${translate(result)}")
 
-                    if(result < 0) {
+                    if (result < 0) {
                         throw RuntimeException("Call to $name failed: ${translate(result)}")
                     }
                 }
@@ -252,7 +250,7 @@ class VU {
             if (result != VK_SUCCESS) {
                 LoggerFactory.getLogger("VulkanRenderer").error("Call to $name failed: ${translate(result)}")
 
-                if(result < 0) {
+                if (result < 0) {
                     throw RuntimeException("Call to $name failed: ${translate(result)}")
                 }
             }
@@ -274,7 +272,7 @@ class VU {
                     LoggerFactory.getLogger("VulkanRenderer").error("Call to $name failed: ${translate(result)}")
                     cleanup.invoke(receiver)
 
-                    if(result < 0) {
+                    if (result < 0) {
                         throw RuntimeException("Call to $name failed: ${translate(result)}")
                     }
                 }
@@ -293,19 +291,19 @@ class VU {
          * For debugging, the call may be given a [name].
          */
         inline fun getLongs(name: String, count: Int, function: LongBuffer.() -> Int, cleanup: LongBuffer.() -> Any): LongBuffer {
-                val receiver = memAllocLong(count)
-                val result = function.invoke(receiver)
+            val receiver = memAllocLong(count)
+            val result = function.invoke(receiver)
 
-                if (result != VK_SUCCESS) {
-                    LoggerFactory.getLogger("VulkanRenderer").error("Call to $name failed: ${translate(result)}")
-                    cleanup.invoke(receiver)
-
-                    if(result < 0) {
-                        throw RuntimeException("Call to $name failed: ${translate(result)}")
-                    }
-                }
-
+            if (result != VK_SUCCESS) {
+                LoggerFactory.getLogger("VulkanRenderer").error("Call to $name failed: ${translate(result)}")
                 cleanup.invoke(receiver)
+
+                if (result < 0) {
+                    throw RuntimeException("Call to $name failed: ${translate(result)}")
+                }
+            }
+
+            cleanup.invoke(receiver)
             return receiver
         }
 
@@ -322,7 +320,7 @@ class VU {
                 if (result != VK_SUCCESS) {
                     LoggerFactory.getLogger("VulkanRenderer").error("Call to $name failed: ${translate(result)}")
 
-                    if(result < 0) {
+                    if (result < 0) {
                         throw RuntimeException("Call to $name failed: ${translate(result)}")
                     }
                 }
@@ -342,10 +340,10 @@ class VU {
             val receiver = memAllocPointer(count)
             val result = function.invoke(receiver)
 
-            if(result != VK_SUCCESS) {
+            if (result != VK_SUCCESS) {
                 LoggerFactory.getLogger("VulkanRenderer").error("Call to $name failed: ${translate(result)}")
 
-                if(result < 0) {
+                if (result < 0) {
                     throw RuntimeException("Call to $name failed: ${translate(result)}")
                 }
             }
@@ -363,11 +361,11 @@ class VU {
             val receiver = memAllocPointer(count)
             val result = function.invoke(receiver)
 
-            if(result != VK_SUCCESS) {
+            if (result != VK_SUCCESS) {
                 LoggerFactory.getLogger("VulkanRenderer").error("Call to $name failed: ${translate(result)}")
                 cleanup.invoke(receiver)
 
-                if(result < 0) {
+                if (result < 0) {
                     throw RuntimeException("Call to $name failed: ${translate(result)}")
                 }
             }
@@ -382,7 +380,7 @@ class VU {
          */
         fun translate(result: Int): String {
             when (result) {
-            // Success codes
+                // Success codes
                 VK_SUCCESS -> return "Command successfully completed."
                 VK_NOT_READY -> return "A fence or query has not yet completed."
                 VK_TIMEOUT -> return "A wait operation has not completed in the specified time."
@@ -391,7 +389,7 @@ class VU {
                 VK_INCOMPLETE -> return "A return array was too small for the result."
                 VK_SUBOPTIMAL_KHR -> return "A swapchain no longer matches the surface properties exactly, but can still be used to present to the surface successfully."
 
-            // Error codes
+                // Error codes
                 VK_ERROR_OUT_OF_HOST_MEMORY -> return "A host memory allocation has failed."
                 VK_ERROR_OUT_OF_DEVICE_MEMORY -> return "A device memory allocation has failed."
                 VK_ERROR_INITIALIZATION_FAILED -> return "Initialization of an object could not be completed for implementation-specific reasons."
@@ -407,7 +405,7 @@ class VU {
                 VK_ERROR_NATIVE_WINDOW_IN_USE_KHR -> return "The requested window is already connected to a VkSurfaceKHR, or to some other non-Vulkan API."
                 VK_ERROR_OUT_OF_DATE_KHR -> return """A surface has changed in such a way that it is no longer compatible with the swapchain, and further presentation requests using the
                 +"swapchain will fail. Applications must query the new surface properties and recreate their swapchain if they wish to continue presenting to the surface"""
-                    VK_ERROR_INCOMPATIBLE_DISPLAY_KHR -> return "The display used by a swapchain does not use the same presentable image layout, or is incompatible in a way that prevents sharing an" + " image."
+                VK_ERROR_INCOMPATIBLE_DISPLAY_KHR -> return "The display used by a swapchain does not use the same presentable image layout, or is incompatible in a way that prevents sharing an" + " image."
                 VK_ERROR_VALIDATION_FAILED_EXT -> return "A validation layer found an error."
                 else -> return String.format("%s [%d]", "Unknown", Integer.valueOf(result))
             }
@@ -531,8 +529,8 @@ class VU {
         fun newCommandBuffer(device: VulkanDevice, commandPool: Long, level: Int = VK_COMMAND_BUFFER_LEVEL_PRIMARY, autostart: Boolean = false): VkCommandBuffer {
             val cmdBuf = newCommandBuffer(device, commandPool, level)
 
-            if(autostart) {
-               beginCommandBuffer(cmdBuf)
+            if (autostart) {
+                beginCommandBuffer(cmdBuf)
             }
 
             return cmdBuf
@@ -665,7 +663,7 @@ class VU {
          * Updates a given _dynamic_ [descriptorSet] to use [buffer] from now on.
          */
         fun updateDynamicDescriptorSetBuffer(device: VulkanDevice, descriptorSet: Long,
-                                       bindingCount: Int, buffer: VulkanBuffer): Long {
+                                             bindingCount: Int, buffer: VulkanBuffer): Long {
             logger.trace("Updating dynamic descriptor set with {} bindings to use buffer {}", bindingCount, buffer)
 
             return stackPush().use { stack ->
@@ -744,8 +742,8 @@ class VU {
          * by setting [onlyFor] to the respective name of the attachment.
          */
         fun createRenderTargetDescriptorSet(device: VulkanDevice, descriptorPool: Long, descriptorSetLayout: Long,
-                                             rt: Map<String, RenderConfigReader.TargetFormat>,
-                                             target: VulkanFramebuffer, onlyFor: String? = null): Long {
+                                            rt: Map<String, RenderConfigReader.TargetFormat>,
+                                            target: VulkanFramebuffer, onlyFor: String? = null): Long {
 
             return stackPush().use { stack ->
                 val pDescriptorSetLayout = stack.callocLong(1).put(0, descriptorSetLayout)
@@ -759,7 +757,7 @@ class VU {
                 val descriptorSet = getLong("createDescriptorSet",
                     { vkAllocateDescriptorSets(device.vulkanDevice, allocInfo, this) }, {})
 
-                val descriptorWrites = if(onlyFor == null) {
+                val descriptorWrites = if (onlyFor == null) {
                     val writeDescriptorSet = VkWriteDescriptorSet.callocStack(rt.size, stack)
 
                     rt.entries.forEachIndexed { i, entry ->

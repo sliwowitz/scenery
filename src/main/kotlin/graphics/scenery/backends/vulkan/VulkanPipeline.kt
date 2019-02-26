@@ -1,10 +1,10 @@
 package graphics.scenery.backends.vulkan
 
+import graphics.scenery.GeometryType
+import graphics.scenery.utils.LazyLogger
 import org.lwjgl.system.MemoryUtil.*
 import org.lwjgl.vulkan.*
 import org.lwjgl.vulkan.VK10.*
-import graphics.scenery.GeometryType
-import graphics.scenery.utils.LazyLogger
 import java.nio.IntBuffer
 import java.util.*
 import kotlin.collections.LinkedHashMap
@@ -14,7 +14,7 @@ import kotlin.collections.LinkedHashMap
  *
  * @author Ulrik Günther <hello@ulrik.is>
  */
-class VulkanPipeline(val device: VulkanDevice, val pipelineCache: Long? = null): AutoCloseable {
+class VulkanPipeline(val device: VulkanDevice, val pipelineCache: Long? = null) : AutoCloseable {
     private val logger by LazyLogger()
 
     var pipeline = HashMap<GeometryType, VulkanRenderer.Pipeline>()
@@ -92,7 +92,8 @@ class VulkanPipeline(val device: VulkanDevice, val pipelineCache: Long? = null):
             }
 
             it.pushConstantSpecs.forEach { name, pushConstant ->
-                pushConstantSpecs[name]?.members?.putAll(pushConstant.members) ?: pushConstantSpecs.put(name, pushConstant)
+                pushConstantSpecs[name]?.members?.putAll(pushConstant.members)
+                    ?: pushConstantSpecs.put(name, pushConstant)
             }
         }
     }
@@ -102,7 +103,7 @@ class VulkanPipeline(val device: VulkanDevice, val pipelineCache: Long? = null):
         val setLayouts = memAllocLong(descriptorSetLayouts.size).put(descriptorSetLayouts.toLongArray())
         setLayouts.flip()
 
-        val pushConstantRanges = if(pushConstantSpecs.size > 0) {
+        val pushConstantRanges = if (pushConstantSpecs.size > 0) {
             val pcr = VkPushConstantRange.calloc(pushConstantSpecs.size)
             pushConstantSpecs.entries.forEachIndexed { i, p ->
                 val offset = p.value.members.map { it.value.offset }.min() ?: 0L
@@ -153,12 +154,15 @@ class VulkanPipeline(val device: VulkanDevice, val pipelineCache: Long? = null):
             .flags(VK_PIPELINE_CREATE_ALLOW_DERIVATIVES_BIT)
             .subpass(0)
 
-        if(onlyForTopology != null) {
+        if (onlyForTopology != null) {
             inputAssemblyState.topology(onlyForTopology.asVulkanTopology())
         }
 
         val p = VU.getLong("vkCreateGraphicsPipelines for ${renderpass.name} ($vulkanRenderpass)",
-            { vkCreateGraphicsPipelines(device.vulkanDevice, pipelineCache ?: VK_NULL_HANDLE, pipelineCreateInfo, null, this) }, {})
+            {
+                vkCreateGraphicsPipelines(device.vulkanDevice, pipelineCache
+                    ?: VK_NULL_HANDLE, pipelineCreateInfo, null, this)
+            }, {})
 
         val vkp = VulkanRenderer.Pipeline()
         vkp.layout = layout
@@ -169,10 +173,11 @@ class VulkanPipeline(val device: VulkanDevice, val pipelineCache: Long? = null):
 
         logger.debug("Pipeline needs descriptor sets ${descriptorSpecs.keys.joinToString(", ")}")
 
-        if(onlyForTopology == null) {
+        if (onlyForTopology == null) {
             // create pipelines for other topologies as well
             GeometryType.values().forEach { topology ->
-                if (topology == GeometryType.TRIANGLES) { return@forEach
+                if (topology == GeometryType.TRIANGLES) {
+                    return@forEach
                 }
 
                 inputAssemblyState.topology(topology.asVulkanTopology()).pNext(NULL)
@@ -184,7 +189,10 @@ class VulkanPipeline(val device: VulkanDevice, val pipelineCache: Long? = null):
                     .flags(VK_PIPELINE_CREATE_DERIVATIVE_BIT)
 
                 val derivativeP = VU.getLong("vkCreateGraphicsPipelines(derivative) for ${renderpass.name} ($vulkanRenderpass)",
-                    { vkCreateGraphicsPipelines(device.vulkanDevice, pipelineCache ?: VK_NULL_HANDLE, pipelineCreateInfo, null, this) }, {})
+                    {
+                        vkCreateGraphicsPipelines(device.vulkanDevice, pipelineCache
+                            ?: VK_NULL_HANDLE, pipelineCreateInfo, null, this)
+                    }, {})
 
                 val derivativePipeline = VulkanRenderer.Pipeline()
                 derivativePipeline.layout = layout
@@ -194,7 +202,11 @@ class VulkanPipeline(val device: VulkanDevice, val pipelineCache: Long? = null):
             }
         }
 
-        logger.debug("Created $this for renderpass ${renderpass.name} ($vulkanRenderpass) with pipeline layout $layout (${if(onlyForTopology == null) { "Derivatives:" + this.pipeline.keys.joinToString(", ")} else { "no derivatives, only ${this.pipeline.keys.first()}" }})")
+        logger.debug("Created $this for renderpass ${renderpass.name} ($vulkanRenderpass) with pipeline layout $layout (${if (onlyForTopology == null) {
+            "Derivatives:" + this.pipeline.keys.joinToString(", ")
+        } else {
+            "no derivatives, only ${this.pipeline.keys.first()}"
+        }})")
 
         pipelineCreateInfo.free()
         stages.free()
@@ -208,7 +220,7 @@ class VulkanPipeline(val device: VulkanDevice, val pipelineCache: Long? = null):
     }
 
     private fun GeometryType.asVulkanTopology(): Int {
-        return when(this) {
+        return when (this) {
             GeometryType.TRIANGLE_FAN -> VK_PRIMITIVE_TOPOLOGY_TRIANGLE_FAN
             GeometryType.TRIANGLES -> VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST
             GeometryType.LINE -> VK_PRIMITIVE_TOPOLOGY_LINE_LIST
@@ -225,7 +237,7 @@ class VulkanPipeline(val device: VulkanDevice, val pipelineCache: Long? = null):
     }
 
     override fun toString(): String {
-        return "VulkanPipeline (${pipeline.map { "${it.key.name} -> ${String.format("0x%X", it.value.pipeline)}"}.joinToString(", ")})"
+        return "VulkanPipeline (${pipeline.map { "${it.key.name} -> ${String.format("0x%X", it.value.pipeline)}" }.joinToString(", ")})"
     }
 
     override fun close() {
@@ -234,7 +246,7 @@ class VulkanPipeline(val device: VulkanDevice, val pipelineCache: Long? = null):
         pipeline.forEach { _, pipeline ->
             vkDestroyPipeline(device.vulkanDevice, pipeline.pipeline, null)
 
-            if(!removedLayouts.contains(pipeline.layout)) {
+            if (!removedLayouts.contains(pipeline.layout)) {
                 vkDestroyPipelineLayout(device.vulkanDevice, pipeline.layout, null)
                 removedLayouts.add(pipeline.layout)
             }

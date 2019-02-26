@@ -79,8 +79,9 @@ open class FPSCameraControl(private val name: String, private val n: () -> Camer
      * @param[x] x position in window
      * @param[y] y position in window
      */
-    @Synchronized override fun drag(x: Int, y: Int) {
-        if(node?.lock?.tryLock() != true) {
+    @Synchronized
+    override fun drag(x: Int, y: Int) {
+        if (node?.lock?.tryLock() != true) {
             return
         }
 
@@ -96,8 +97,8 @@ open class FPSCameraControl(private val name: String, private val n: () -> Camer
         val frameYaw = xoffset
         val framePitch = yoffset
 
-        val yawQ = Quaternion().setFromEuler(0.0f, frameYaw/180.0f*Math.PI.toFloat(), 0.0f)
-        val pitchQ = Quaternion().setFromEuler(framePitch/180.0f*Math.PI.toFloat(), 0.0f, 0.0f)
+        val yawQ = Quaternion().setFromEuler(0.0f, frameYaw / 180.0f * Math.PI.toFloat(), 0.0f)
+        val pitchQ = Quaternion().setFromEuler(framePitch / 180.0f * Math.PI.toFloat(), 0.0f, 0.0f)
         node?.rotation = pitchQ.mult(node?.rotation).mult(yawQ).normalize()
 
         node?.lock?.unlock()

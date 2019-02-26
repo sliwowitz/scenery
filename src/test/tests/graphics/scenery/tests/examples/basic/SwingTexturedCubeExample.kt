@@ -69,13 +69,14 @@ class SwingTexturedCubeExample : SceneryBase("SwingTexturedCubeExample", windowW
         }
 
         thread {
-            while(renderer?.shouldClose == false) {
+            while (renderer?.shouldClose == false) {
                 Thread.sleep(200)
             }
         }
     }
 
-    @Test override fun main() {
+    @Test
+    override fun main() {
         super.main()
     }
 }

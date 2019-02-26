@@ -19,17 +19,17 @@ open class JOGLMouseAndKeyHandler(protected var hub: Hub?) : MouseAndKeyHandlerB
     private var scrollSpeedMultiplier = 1.0f
 
     init {
-        os = if(System.getProperty("os.name").toLowerCase().indexOf("windows") != -1) {
+        os = if (System.getProperty("os.name").toLowerCase().indexOf("windows") != -1) {
             "windows"
-        } else if(System.getProperty("os.name").toLowerCase().indexOf("mac") != -1) {
+        } else if (System.getProperty("os.name").toLowerCase().indexOf("mac") != -1) {
             "mac"
-        } else if(System.getProperty("os.name").toLowerCase().indexOf("linux") != -1) {
+        } else if (System.getProperty("os.name").toLowerCase().indexOf("linux") != -1) {
             "linux"
         } else {
             "unknown"
         }
 
-        scrollSpeedMultiplier = if(os == "mac") {
+        scrollSpeedMultiplier = if (os == "mac") {
             1.0f
         } else {
             10.0f
@@ -171,10 +171,10 @@ open class JOGLMouseAndKeyHandler(protected var hub: Hub?) : MouseAndKeyHandlerB
         scrolls
             .filter { it.buttons.matches(mask, pressedKeys) }
             .forEach {
-                if(isHorizontal) {
-                    it.behaviour.scroll(wheelRotation[0].toDouble()*scrollSpeedMultiplier, isHorizontal, x, y)
+                if (isHorizontal) {
+                    it.behaviour.scroll(wheelRotation[0].toDouble() * scrollSpeedMultiplier, isHorizontal, x, y)
                 } else {
-                    it.behaviour.scroll(wheelRotation[1].toDouble()*scrollSpeedMultiplier, isHorizontal, x, y)
+                    it.behaviour.scroll(wheelRotation[1].toDouble() * scrollSpeedMultiplier, isHorizontal, x, y)
                 }
             }
     }
@@ -254,10 +254,9 @@ open class JOGLMouseAndKeyHandler(protected var hub: Hub?) : MouseAndKeyHandlerB
             metaPressed = true
         } else if (e.keyCode == KeyEvent.VK_WINDOWS) {
             winPressed = true
-        }
-        else if (e.keyCode != KeyEvent.VK_ALT &&
-                e.keyCode != KeyEvent.VK_CONTROL &&
-                e.keyCode != KeyEvent.VK_ALT_GRAPH) {
+        } else if (e.keyCode != KeyEvent.VK_ALT &&
+            e.keyCode != KeyEvent.VK_CONTROL &&
+            e.keyCode != KeyEvent.VK_ALT_GRAPH) {
             val inserted = pressedKeys.add(e.keyCode.toInt())
 
             /*
@@ -304,8 +303,8 @@ open class JOGLMouseAndKeyHandler(protected var hub: Hub?) : MouseAndKeyHandlerB
         } else if (e.keyCode == KeyEvent.VK_WINDOWS) {
             winPressed = false
         } else if (e.keyCode != KeyEvent.VK_ALT &&
-                e.keyCode != KeyEvent.VK_CONTROL &&
-                e.keyCode != KeyEvent.VK_ALT_GRAPH) {
+            e.keyCode != KeyEvent.VK_CONTROL &&
+            e.keyCode != KeyEvent.VK_ALT_GRAPH) {
             pressedKeys.remove(e.keyCode.toInt())
 
             for (drag in activeKeyDrags)

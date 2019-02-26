@@ -116,8 +116,16 @@ open class Icosphere(val radius: Float, val subdivisions: Int) : Node("Icosphere
     protected fun MutableList<GLVector>.getMiddlePoint(p1: Int, p2: Int): Int {
         // first check if we have it already
         val firstIsSmaller = p1 < p2
-        val smallerIndex = if(firstIsSmaller) { p1 } else { p2 }
-        val greaterIndex = if(!firstIsSmaller) { p1 } else { p2 }
+        val smallerIndex = if (firstIsSmaller) {
+            p1
+        } else {
+            p2
+        }
+        val greaterIndex = if (!firstIsSmaller) {
+            p1
+        } else {
+            p2
+        }
         val key: Long = (smallerIndex.toLong() shl 32) + greaterIndex.toLong()
 
         val ret = middlePointIndexCache[key]
@@ -159,7 +167,7 @@ open class Icosphere(val radius: Float, val subdivisions: Int) : Node("Icosphere
         vertexBuffer.forEach { v ->
             vertices.put((v * radius).toFloatArray())
             normals.put(v.toFloatArray())
-            texcoords.put(0.5f - atan2(v.x(), v.z())/(2.0f * PI.toFloat()))
+            texcoords.put(0.5f - atan2(v.x(), v.z()) / (2.0f * PI.toFloat()))
             texcoords.put(0.5f - asin(v.x()) / PI.toFloat())
         }
 

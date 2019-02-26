@@ -4,14 +4,14 @@ import graphics.scenery.backends.ShaderConsistencyException
 import graphics.scenery.backends.ShaderPackage
 import graphics.scenery.backends.ShaderType
 import graphics.scenery.backends.Shaders
-import graphics.scenery.spirvcrossj.*
+import graphics.scenery.spirvcrossj.CompilerGLSL
+import graphics.scenery.spirvcrossj.Decoration
 import graphics.scenery.utils.LazyLogger
 import org.lwjgl.system.MemoryUtil.*
 import org.lwjgl.vulkan.VK10.*
 import org.lwjgl.vulkan.VkPipelineShaderStageCreateInfo
 import org.lwjgl.vulkan.VkShaderModuleCreateInfo
 import java.util.concurrent.ConcurrentHashMap
-import kotlin.collections.LinkedHashMap
 
 
 /**
@@ -65,7 +65,7 @@ open class VulkanShaderModule(val device: VulkanDevice, entryPoint: String, sp: 
     init {
         signature = ShaderSignature(device, sp)
 
-        if(sp.spirv == null) {
+        if (sp.spirv == null) {
             throw IllegalStateException("Shader Package is expected to have SPIRV bytecode at this point")
         }
 
@@ -76,7 +76,7 @@ open class VulkanShaderModule(val device: VulkanDevice, entryPoint: String, sp: 
         val uniformBuffers = compiler.shaderResources.uniformBuffers
         val pushConstants = compiler.shaderResources.pushConstantBuffers
 
-        for(i in 0 until uniformBuffers.size()) {
+        for (i in 0 until uniformBuffers.size()) {
             val res = uniformBuffers.get(i.toInt())
             logger.debug("${res.name}, set=${compiler.getDecoration(res.id, Decoration.DecorationDescriptorSet)}, binding=${compiler.getDecoration(res.id, Decoration.DecorationBinding)}")
 
@@ -104,12 +104,12 @@ open class VulkanShaderModule(val device: VulkanDevice, entryPoint: String, sp: 
 
             // only add the UBO spec if it doesn't already exist, and has more than 0 members
             // SPIRV UBOs may have 0 members, if they are not used in the actual shader code
-            if(!uboSpecs.contains(res.name) && ubo.members.size > 0) {
+            if (!uboSpecs.contains(res.name) && ubo.members.size > 0) {
                 uboSpecs[res.name] = ubo
             }
         }
 
-        for(i in 0 until pushConstants.size()) {
+        for (i in 0 until pushConstants.size()) {
             val res = pushConstants.get(i.toInt())
             val activeRanges = compiler.getActiveBufferRanges(res.id)
             val members = LinkedHashMap<String, UBOMemberSpec>()
@@ -131,7 +131,7 @@ open class VulkanShaderModule(val device: VulkanDevice, entryPoint: String, sp: 
             val pcs = PushConstantSpec(res.name,
                 members = members)
 
-            if(!pushConstantSpecs.contains(res.name) && pcs.members.size > 0) {
+            if (!pushConstantSpecs.contains(res.name) && pcs.members.size > 0) {
                 pushConstantSpecs[res.name] = pcs
             }
         }
@@ -161,7 +161,7 @@ open class VulkanShaderModule(val device: VulkanDevice, entryPoint: String, sp: 
             val setId = compiler.getDecoration(res.id, Decoration.DecorationDescriptorSet)
             val type = compiler.getType(res.typeId)
 
-            val arraySize = if(type.array.size() > 0) {
+            val arraySize = if (type.array.size() > 0) {
                 type.array.get(0).toInt()
             } else {
                 1
@@ -170,8 +170,8 @@ open class VulkanShaderModule(val device: VulkanDevice, entryPoint: String, sp: 
             val samplerType = type.image.type
             val samplerDim = type.image.dim
 
-            val name = if(res.name.startsWith("Input")) {
-                if(!inputSets.contains(setId)) {
+            val name = if (res.name.startsWith("Input")) {
+                if (!inputSets.contains(setId)) {
                     inputSets.add(setId)
                 }
 
@@ -180,7 +180,7 @@ open class VulkanShaderModule(val device: VulkanDevice, entryPoint: String, sp: 
                 res.name
             }
 
-            if(uboSpecs.containsKey(name)) {
+            if (uboSpecs.containsKey(name)) {
                 logger.debug("Adding inputs member ${res.name}/$name type=${type.basetype}, a=$arraySize, type=$samplerType, dim=$samplerDim")
                 uboSpecs[name]?.let { spec ->
                     spec.members[res.name] = UBOMemberSpec(res.name, spec.members.size.toLong(), 0L, 0L)
@@ -191,7 +191,7 @@ open class VulkanShaderModule(val device: VulkanDevice, entryPoint: String, sp: 
                 uboSpecs[name] = UBOSpec(name,
                     set = setId,
                     binding = compiler.getDecoration(res.id, Decoration.DecorationBinding),
-                    type = when(samplerDim) {
+                    type = when (samplerDim) {
                         0 -> UBOSpecType.SampledImage1D
                         1 -> UBOSpecType.SampledImage2D
                         2 -> UBOSpecType.SampledImage3D
@@ -200,14 +200,14 @@ open class VulkanShaderModule(val device: VulkanDevice, entryPoint: String, sp: 
                     members = LinkedHashMap(),
                     size = arraySize)
 
-                if(name.startsWith("Inputs")) {
+                if (name.startsWith("Inputs")) {
                     uboSpecs[name]?.members?.put(res.name, UBOMemberSpec(res.name, 0L, 0L, 0L))
                 }
             }
         }
 
         val inputs = compiler.shaderResources.stageInputs
-        if(inputs.size() > 0) {
+        if (inputs.size() > 0) {
             for (i in 0 until inputs.size()) {
                 logger.debug("${sp.toShortString()}: ${inputs.get(i.toInt()).name}")
             }
@@ -217,7 +217,7 @@ open class VulkanShaderModule(val device: VulkanDevice, entryPoint: String, sp: 
         uboSpecs.entries
             .groupBy { it.value.set }
             .forEach { set, specs ->
-                if(specs.groupBy { it.value.binding }.any { it.value.size > 1 }) {
+                if (specs.groupBy { it.value.binding }.any { it.value.size > 1 }) {
                     throw ShaderConsistencyException("Shader package defines descriptor set $set multiple times (${specs.size} times, for UBOs ${specs.joinToString { it.key }}). This is not allowed. ")
                 }
             }
@@ -251,7 +251,7 @@ open class VulkanShaderModule(val device: VulkanDevice, entryPoint: String, sp: 
         sortedSpecs.forEach { uboSpecs[it.first] = it.second }
     }
 
-    protected fun ShaderType.toVulkanShaderStage() = when(this) {
+    protected fun ShaderType.toVulkanShaderStage() = when (this) {
         ShaderType.VertexShader -> VK_SHADER_STAGE_VERTEX_BIT
         ShaderType.GeometryShader -> VK_SHADER_STAGE_GEOMETRY_BIT
         ShaderType.TessellationControlShader -> VK_SHADER_STAGE_TESSELLATION_CONTROL_BIT
@@ -265,7 +265,7 @@ open class VulkanShaderModule(val device: VulkanDevice, entryPoint: String, sp: 
      * If the module has already been closed, no deallocation takes place.
      */
     fun close() {
-        if(!deallocated) {
+        if (!deallocated) {
             vkDestroyShaderModule(device.vulkanDevice, shader.module(), null)
             shaderModuleCache.remove(signature.hashCode())
 

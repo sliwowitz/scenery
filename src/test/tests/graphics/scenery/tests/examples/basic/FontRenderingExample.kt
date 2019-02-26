@@ -11,7 +11,7 @@ import kotlin.concurrent.thread
  *
  * @author Ulrik Günther <hello@ulrik.is>
  */
-class FontRenderingExample: SceneryBase("FontRenderingExample", windowWidth = 1280, windowHeight = 720) {
+class FontRenderingExample : SceneryBase("FontRenderingExample", windowWidth = 1280, windowHeight = 720) {
     override fun init() {
         renderer = Renderer.createRenderer(hub, applicationName, scene, windowWidth, windowHeight)
         hub.add(SceneryElement.Renderer, renderer!!)
@@ -24,7 +24,7 @@ class FontRenderingExample: SceneryBase("FontRenderingExample", windowWidth = 12
         val cam: Camera = DetachedHeadCamera()
         with(cam) {
             position = GLVector(3.3f, 0.0f, 4.0f)
-            perspectiveCamera(70.0f, windowWidth*1.0f, windowHeight*1.0f, 1.0f, 1000.0f)
+            perspectiveCamera(70.0f, windowWidth * 1.0f, windowHeight * 1.0f, 1.0f, 1000.0f)
             active = true
 
             scene.addChild(this)
@@ -47,14 +47,16 @@ class FontRenderingExample: SceneryBase("FontRenderingExample", windowWidth = 12
         scene.addChild(board)
 
         thread {
-            while(board.dirty) { Thread.sleep(200) }
+            while (board.dirty) {
+                Thread.sleep(200)
+            }
 
             val text = arrayOf(
                 "this is scenery.",
                 "hello world."
             )
 
-            while(running) {
+            while (running) {
                 text.map {
                     Thread.sleep(2500)
                     board.text = it
@@ -63,7 +65,8 @@ class FontRenderingExample: SceneryBase("FontRenderingExample", windowWidth = 12
         }
     }
 
-    @Test override fun main() {
+    @Test
+    override fun main() {
         super.main()
     }
 }

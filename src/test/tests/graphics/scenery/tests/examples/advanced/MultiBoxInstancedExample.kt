@@ -91,14 +91,13 @@ class MultiBoxInstancedExample : SceneryBase("MultiBoxInstancedExample") {
 
         thread {
             while (true) {
-                lights.mapIndexed {
-                    i, light ->
+                lights.mapIndexed { i, light ->
                     val phi = Math.PI * 2.0f * ticks / 1500.0f
 
                     light.position = GLVector(
-                        i.toFloat() * 10 * Math.sin(phi).toFloat() + Math.exp(i.toDouble()/10.0).toFloat(),
-                        i.toFloat()*5.0f - 100.0f,
-                        i.toFloat() * 10 * Math.cos(phi).toFloat() + Math.exp(i.toDouble()/10.0).toFloat())
+                        i.toFloat() * 10 * Math.sin(phi).toFloat() + Math.exp(i.toDouble() / 10.0).toFloat(),
+                        i.toFloat() * 5.0f - 100.0f,
+                        i.toFloat() * 10 * Math.cos(phi).toFloat() + Math.exp(i.toDouble() / 10.0).toFloat())
 
                 }
 
@@ -114,7 +113,8 @@ class MultiBoxInstancedExample : SceneryBase("MultiBoxInstancedExample") {
         }
     }
 
-    @Test override fun main() {
+    @Test
+    override fun main() {
         super.main()
     }
 

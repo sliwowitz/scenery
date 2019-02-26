@@ -1,13 +1,11 @@
 package graphics.scenery.tests.examples.stresstests
 
-import graphics.scenery.Hub
 import graphics.scenery.SceneryBase
 import graphics.scenery.SceneryElement
 import graphics.scenery.backends.Renderer
 import graphics.scenery.utils.ExtractsNatives
 import graphics.scenery.utils.LazyLogger
 import org.junit.Test
-import org.lwjgl.glfw.GLFW.glfwTerminate
 import org.reflections.Reflections
 import java.nio.file.Files
 import java.nio.file.Paths
@@ -24,7 +22,8 @@ import java.util.concurrent.Future
 class ExampleRunner {
     val logger by LazyLogger()
 
-    @Test fun runAllExamples() {
+    @Test
+    fun runAllExamples() {
         val reflections = Reflections("graphics.scenery.tests")
 
         // blacklist contains examples that require user interaction or additional devices
@@ -46,11 +45,13 @@ class ExampleRunner {
             .filter { !it.canonicalName.contains("stresstests") && !it.canonicalName.contains("cluster") }
             .filter { !blacklist.contains(it.simpleName) }
 
-        val renderers = when(ExtractsNatives.getPlatform()) {
+        val renderers = when (ExtractsNatives.getPlatform()) {
             ExtractsNatives.Platform.WINDOWS -> listOf("VulkanRenderer", "OpenGLRenderer")
             ExtractsNatives.Platform.LINUX -> listOf("VulkanRenderer", "OpenGLRenderer")
             ExtractsNatives.Platform.MACOS -> listOf("OpenGLRenderer")
-            ExtractsNatives.Platform.UNKNOWN -> { logger.error("Don't know what to do on this platform, sorry."); return }
+            ExtractsNatives.Platform.UNKNOWN -> {
+                logger.error("Don't know what to do on this platform, sorry."); return
+            }
         }
 
         val directoryName = "ExampleRunner-${SimpleDateFormat("yyyy-MM-dd_HH.mm.ss").format(Date())}"
@@ -66,7 +67,7 @@ class ExampleRunner {
             examples.shuffled().forEachIndexed { i, example ->
                 logger.info("Running ${example.simpleName} with $renderer ($i/${examples.size}) ...")
 
-                if(!example.simpleName.contains("JavaFX")) {
+                if (!example.simpleName.contains("JavaFX")) {
                     System.setProperty("scenery.Headless", "true")
                 }
 
@@ -96,11 +97,11 @@ class ExampleRunner {
                     }
 
                     future.get()
-                } catch(e: ThreadDeath) {
+                } catch (e: ThreadDeath) {
                     logger.info("JOGL threw ThreadDeath")
                 }
 
-                logger.info("${example.simpleName} closed ($renderer ran ${i+1}/${examples.size} so far).")
+                logger.info("${example.simpleName} closed ($renderer ran ${i + 1}/${examples.size} so far).")
 
                 Thread.sleep(5000)
             }

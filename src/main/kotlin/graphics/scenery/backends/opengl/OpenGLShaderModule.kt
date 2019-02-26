@@ -5,10 +5,10 @@ import cleargl.GLShaderType
 import com.jogamp.opengl.GL4
 import graphics.scenery.backends.ShaderPackage
 import graphics.scenery.backends.ShaderType
-import graphics.scenery.spirvcrossj.*
+import graphics.scenery.spirvcrossj.CompilerGLSL
+import graphics.scenery.spirvcrossj.Decoration
 import graphics.scenery.utils.LazyLogger
 import java.util.concurrent.ConcurrentHashMap
-import kotlin.collections.LinkedHashMap
 
 
 /**
@@ -35,13 +35,14 @@ open class OpenGLShaderModule(gl: GL4, entryPoint: String, sp: ShaderPackage) {
 
         logger.debug("Creating OpenGLShaderModule $entryPoint, ${sp.toShortString()}")
 
-        val spirv = sp.getSPIRVBytecode() ?: throw IllegalStateException("Shader Package is expected to have SPIRV bytecode at this point")
+        val spirv = sp.getSPIRVBytecode()
+            ?: throw IllegalStateException("Shader Package is expected to have SPIRV bytecode at this point")
 
         val compiler = CompilerGLSL(spirv)
 
         val uniformBuffers = compiler.shaderResources.uniformBuffers
         logger.debug("Analysing uniform buffers ...")
-        for(i in 0 until uniformBuffers.size()) {
+        for (i in 0 until uniformBuffers.size()) {
             logger.debug("Getting ${i.toInt()} for ${sp.toShortString()} (size: ${uniformBuffers.capacity()}/${uniformBuffers.size()})")
             val res = uniformBuffers.get(i.toInt())
             logger.debug("${res.name}, set=${compiler.getDecoration(res.id, Decoration.DecorationDescriptorSet)}, binding=${compiler.getDecoration(res.id, Decoration.DecorationBinding)}")
@@ -69,7 +70,7 @@ open class OpenGLShaderModule(gl: GL4, entryPoint: String, sp: ShaderPackage) {
 
             // only add the UBO spec if it doesn't already exist, and has more than 0 members
             // SPIRV UBOs may have 0 members, if they are not used in the actual shader code
-            if(!uboSpecs.contains(res.name) && ubo.members.size > 0) {
+            if (!uboSpecs.contains(res.name) && ubo.members.size > 0) {
                 uboSpecs[res.name] = ubo
             }
         }
@@ -93,7 +94,7 @@ open class OpenGLShaderModule(gl: GL4, entryPoint: String, sp: ShaderPackage) {
                     members = LinkedHashMap<String, UBOMemberSpec>()))
          */
         // inputs are summarized into one descriptor set
-        if(compiler.shaderResources.sampledImages.size() > 0) {
+        if (compiler.shaderResources.sampledImages.size() > 0) {
             val res = compiler.shaderResources.sampledImages.get(0)
             if (res.name != "ObjectTextures") {
                 uboSpecs[res.name] = UBOSpec("inputs",
@@ -104,7 +105,7 @@ open class OpenGLShaderModule(gl: GL4, entryPoint: String, sp: ShaderPackage) {
         }
 
         val inputs = compiler.shaderResources.stageInputs
-        if(inputs.size() > 0) {
+        if (inputs.size() > 0) {
             for (i in 0 until inputs.size()) {
                 logger.debug("${sp.toShortString()}: ${inputs.get(i.toInt()).name}")
             }
@@ -122,15 +123,15 @@ open class OpenGLShaderModule(gl: GL4, entryPoint: String, sp: ShaderPackage) {
         // remove binding and set qualifiers
         var start = 0
         var found = source.indexOf("layout(", start)
-        while(found != -1) {
+        while (found != -1) {
             logger.debug("Found match at $found with start index $start")
             start = found + 7
             val end = source.indexOf(")", start) + 1
 
-            if(source.substring(end, source.indexOf(";", end)).contains(" in ")) {
-                if(source.substring(end, source.indexOf(";", end)).contains("{")) {
+            if (source.substring(end, source.indexOf(";", end)).contains(" in ")) {
+                if (source.substring(end, source.indexOf(";", end)).contains("{")) {
                     logger.debug("Removing layout qualifier from interface block input")
-                    source = source.replaceRange(start-7, end, "")
+                    source = source.replaceRange(start - 7, end, "")
                 } else {
                     logger.debug("Not touching input layouts")
                 }
@@ -140,10 +141,10 @@ open class OpenGLShaderModule(gl: GL4, entryPoint: String, sp: ShaderPackage) {
                 continue
             }
 
-            if(source.substring(end, source.indexOf(";", end)).contains(" out ")) {
-                if(source.substring(end, source.indexOf(";", end)).contains("{")) {
+            if (source.substring(end, source.indexOf(";", end)).contains(" out ")) {
+                if (source.substring(end, source.indexOf(";", end)).contains("{")) {
                     logger.debug("Removing layout qualifier from interface block output")
-                    source = source.replaceRange(start-7, end, "")
+                    source = source.replaceRange(start - 7, end, "")
                 } else {
                     logger.debug("Not touching output layouts")
                 }
@@ -153,33 +154,33 @@ open class OpenGLShaderModule(gl: GL4, entryPoint: String, sp: ShaderPackage) {
                 continue
             }
 
-            if(source.substring(end, source.indexOf(";", end)).contains("sampler")) {
+            if (source.substring(end, source.indexOf(";", end)).contains("sampler")) {
                 logger.debug("Converting sampler UBO to uniform")
-                source = source.replaceRange(start-7, end, "")
+                source = source.replaceRange(start - 7, end, "")
                 start = found
                 found = source.indexOf("layout(", start)
                 continue
             }
 
-            if(source.substring(end, source.indexOf(";", end)).contains("vec")) {
+            if (source.substring(end, source.indexOf(";", end)).contains("vec")) {
                 logger.debug("Converting location-based struct to regular struct")
-                source = source.replaceRange(start-7, end, "")
+                source = source.replaceRange(start - 7, end, "")
                 start = found
                 found = source.indexOf("layout(", start)
                 continue
             }
 
-            if(source.substring(end, source.indexOf(";", end)).contains("mat")) {
+            if (source.substring(end, source.indexOf(";", end)).contains("mat")) {
                 logger.debug("Converting location-based struct to regular struct")
-                source = source.replaceRange(start-7, end, "")
+                source = source.replaceRange(start - 7, end, "")
                 start = found
                 found = source.indexOf("layout(", start)
                 continue
             }
 
-            if(source.substring(start, end).contains("set") || source.substring(start, end).contains("binding")) {
+            if (source.substring(start, end).contains("set") || source.substring(start, end).contains("binding")) {
                 logger.debug("Replacing ${source.substring(start, end)}")
-                source = source.replaceRange(start-7, end, "layout(std140)")
+                source = source.replaceRange(start - 7, end, "layout(std140)")
                 start = found + 15
             } else {
                 logger.debug("Skipping ${source.substring(start, end)}")
@@ -194,11 +195,11 @@ open class OpenGLShaderModule(gl: GL4, entryPoint: String, sp: ShaderPackage) {
 
         this.shader = GLShader(gl, source, toClearGLShaderType(this.shaderType))
 
-        if(this.shader.shaderInfoLog.isNotEmpty()) {
+        if (this.shader.shaderInfoLog.isNotEmpty()) {
             logger.warn("Shader compilation log:")
             logger.warn(this.shader.shaderInfoLog)
 
-            if(this.shader.shaderInfoLog.toLowerCase().contains("error")) {
+            if (this.shader.shaderInfoLog.toLowerCase().contains("error")) {
                 logger.error("Shader code follows:")
                 logger.error("--------------------\n$source")
             }
@@ -206,7 +207,7 @@ open class OpenGLShaderModule(gl: GL4, entryPoint: String, sp: ShaderPackage) {
     }
 
     private fun toClearGLShaderType(type: ShaderType): GLShaderType {
-        return when(type) {
+        return when (type) {
             ShaderType.VertexShader -> GLShaderType.VertexShader
             ShaderType.FragmentShader -> GLShaderType.FragmentShader
             ShaderType.TessellationControlShader -> GLShaderType.TesselationControlShader
@@ -220,7 +221,7 @@ open class OpenGLShaderModule(gl: GL4, entryPoint: String, sp: ShaderPackage) {
      * Returns a string representation of this module.
      */
     override fun toString(): String {
-        return "$shader: $shaderType with UBOs ${uboSpecs.keys.joinToString(", ") }}"
+        return "$shader: $shaderType with UBOs ${uboSpecs.keys.joinToString(", ")}}"
     }
 
     /**
@@ -228,16 +229,18 @@ open class OpenGLShaderModule(gl: GL4, entryPoint: String, sp: ShaderPackage) {
      */
     companion object {
         private data class ShaderSignature(val gl: GL4, val p: ShaderPackage)
+
         private val shaderModuleCache = ConcurrentHashMap<ShaderSignature, OpenGLShaderModule>()
 
         /**
          * Creates a new [OpenGLShaderModule] or returns it from the cache.
          * Must be given a [ShaderPackage] [sp], a [gl], and the name for the main [entryPoint].
          */
-        @JvmStatic fun getFromCacheOrCreate(gl: GL4, entryPoint: String, sp: ShaderPackage): OpenGLShaderModule {
+        @JvmStatic
+        fun getFromCacheOrCreate(gl: GL4, entryPoint: String, sp: ShaderPackage): OpenGLShaderModule {
             val signature = ShaderSignature(gl, sp)
 
-            return if(shaderModuleCache.containsKey(signature)) {
+            return if (shaderModuleCache.containsKey(signature)) {
                 shaderModuleCache[signature]!!
             } else {
                 val module = OpenGLShaderModule(gl, entryPoint, sp)

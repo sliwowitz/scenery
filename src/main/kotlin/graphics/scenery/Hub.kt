@@ -20,7 +20,7 @@ class Hub(val name: String = "default") {
      * @param[type] The type of [SceneryElement] to add.
      * @param[obj] The [Hubable] object.
      */
-    fun <T: Hubable> add(type: SceneryElement, obj: T): T {
+    fun <T : Hubable> add(type: SceneryElement, obj: T): T {
         elements[type] = obj
 
         obj.hub = this
@@ -63,8 +63,8 @@ class Hub(val name: String = "default") {
      * @param[type] [SceneryElement] type.
      * @return The instance of [SceneryElement] currently registered.
      */
-    fun <T: Hubable> get(type: SceneryElement): T? {
-        return if(elements.containsKey(type)) {
+    fun <T : Hubable> get(type: SceneryElement): T? {
+        return if (elements.containsKey(type)) {
             elements[type] as? T
         } else {
             null

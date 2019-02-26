@@ -34,7 +34,7 @@ import kotlin.math.sin
  */
 class PupilEyeTracker(val calibrationType: CalibrationType, val host: String = "localhost", val port: Int = 50020) {
     /** Shall we do a screen-space or world-space calibration? */
-    enum class CalibrationType { ScreenSpace, WorldSpace}
+    enum class CalibrationType { ScreenSpace, WorldSpace }
 
     private val logger by LazyLogger()
 
@@ -68,12 +68,14 @@ class PupilEyeTracker(val calibrationType: CalibrationType, val host: String = "
 
         /** Returns the normalized gaze position. */
         fun normalizedPosition() = this.norm_pos.toGLVector()
+
         /** Returns the point the user is gazing at. */
         fun gazePoint() = gaze_point_3d.toGLVector()
 
         /** Returns the center of the left eye. */
         @Suppress("unused")
         fun leftEyeCenter() = eye_centers_3d?.getOrDefault(0, floatArrayOf(0.0f, 0.0f, 0.0f)).toGLVector()
+
         /** Returns the center of the right eye. */
         @Suppress("unused")
         fun rightEyeCenter() = eye_centers_3d?.getOrDefault(1, floatArrayOf(0.0f, 0.0f, 0.0f)).toGLVector()
@@ -81,12 +83,13 @@ class PupilEyeTracker(val calibrationType: CalibrationType, val host: String = "
         /** Returns the normal orientation of the left eye. */
         @Suppress("unused")
         fun leftGazeNormal() = gaze_normals_3d?.getOrDefault(0, floatArrayOf(0.0f, 0.0f, 0.0f)).toGLVector()
+
         /** Returns the normal orientation of the right eye. */
         @Suppress("unused")
         fun rightGazeNormal() = gaze_normals_3d?.getOrDefault(1, floatArrayOf(0.0f, 0.0f, 0.0f)).toGLVector()
 
         private fun FloatArray?.toGLVector(): GLVector {
-            return if(this != null) {
+            return if (this != null) {
                 GLVector(this[0], this[1], this[2])
             } else {
                 GLVector(0.0f, 0.0f, 0.0f)
@@ -168,7 +171,7 @@ class PupilEyeTracker(val calibrationType: CalibrationType, val host: String = "
 
     private val subscriberSockets = HashMap<String, Job>()
     private fun subscribe(topic: String) {
-        if(!subscriberSockets.containsKey(topic)) {
+        if (!subscriberSockets.containsKey(topic)) {
 
             val job = GlobalScope.launch {
                 val socket = zmqContext.createSocket(ZMQ.SUB)
@@ -183,11 +186,11 @@ class PupilEyeTracker(val calibrationType: CalibrationType, val host: String = "
                     while (isActive) {
                         poller.poll(10)
 
-                        if(poller.isReadable(socket)) {
+                        if (poller.isReadable(socket)) {
                             val msg = ZMsg.recvMsg(socket)
                             val msgType = msg.popString()
 
-                            when(msgType) {
+                            when (msgType) {
                                 "notify.calibration.successful" -> {
                                     logger.info("Calibration successful.")
                                     calibrating = false
@@ -207,8 +210,8 @@ class PupilEyeTracker(val calibrationType: CalibrationType, val host: String = "
                                     val confidence = (dict["confidence"] as Double).toFloat()
                                     val eyeId = dict["id"] as Int
 
-                                    if(confidence > 0.8) {
-                                        when(eyeId) {
+                                    if (confidence > 0.8) {
+                                        when (eyeId) {
                                             0 -> currentPupilDatumLeft = dict
                                             1 -> currentPupilDatumRight = dict
                                         }
@@ -219,7 +222,7 @@ class PupilEyeTracker(val calibrationType: CalibrationType, val host: String = "
                                     val bytes = msg.pop().data
                                     val g = objectMapper.readValue(bytes, Gaze::class.java)
 
-                                    if(g.confidence > gazeConfidenceThreshold) {
+                                    if (g.confidence > gazeConfidenceThreshold) {
                                         currentGaze = g
                                         onGazeReceived?.invoke(g)
                                     }
@@ -242,7 +245,7 @@ class PupilEyeTracker(val calibrationType: CalibrationType, val host: String = "
     }
 
     private fun unsubscribe(topic: String) = runBlocking {
-        if(subscriberSockets.containsKey(topic)) {
+        if (subscriberSockets.containsKey(topic)) {
             logger.debug("Cancelling subscription of $topic")
             subscriberSockets.get(topic)?.cancel()
             subscriberSockets.get(topic)?.join()
@@ -277,7 +280,7 @@ class PupilEyeTracker(val calibrationType: CalibrationType, val host: String = "
         Thread.sleep(2000)
 
 
-        when(calibrationType) {
+        when (calibrationType) {
             CalibrationType.ScreenSpace -> {
                 notify(hashMapOf(
                     "subject" to "start_plugin",
@@ -322,11 +325,11 @@ class PupilEyeTracker(val calibrationType: CalibrationType, val host: String = "
         calibrating = true
         val referenceData = arrayListOf<HashMap<String, Serializable>>()
 
-        if(generateReferenceData) {
+        if (generateReferenceData) {
             val numReferencePoints = 8
             val samplesPerPoint = 120
 
-            val (posKeyName, posGenerator: ((Camera, Int, Int) -> Pair<GLVector, GLVector>)) = when(calibrationType) {
+            val (posKeyName, posGenerator: ((Camera, Int, Int) -> Pair<GLVector, GLVector>)) = when (calibrationType) {
                 CalibrationType.ScreenSpace -> "norm_pos" to PupilEyeTracker.CircularScreenSpaceCalibrationPointGenerator
                 CalibrationType.WorldSpace -> "mm_pos" to PupilEyeTracker.DefaultWorldSpaceCalibrationPointGenerator
             }
@@ -341,7 +344,7 @@ class PupilEyeTracker(val calibrationType: CalibrationType, val host: String = "
 
                 calibrationTarget?.position = position
 
-                if(normalizedScreenPos.first.x() == 0.5f && normalizedScreenPos.first.y() == 0.5f) {
+                if (normalizedScreenPos.first.x() == 0.5f && normalizedScreenPos.first.y() == 0.5f) {
                     calibrationTarget?.material?.diffuse = GLVector(1.0f, 1.0f, 0.0f)
                 } else {
                     calibrationTarget?.material?.diffuse = GLVector(1.0f, 1.0f, 1.0f)
@@ -362,7 +365,7 @@ class PupilEyeTracker(val calibrationType: CalibrationType, val host: String = "
                         "id" to 1
                     )
 
-                    if(it > eyeMovingSamples) {
+                    if (it > eyeMovingSamples) {
                         referenceData.add(datum0)
                         referenceData.add(datum1)
                     }
@@ -383,14 +386,14 @@ class PupilEyeTracker(val calibrationType: CalibrationType, val host: String = "
             "subject" to "calibration.should_stop"
         ))
 
-        while(calibrating) {
+        while (calibrating) {
             Thread.sleep(100)
         }
 
         unsubscribe("notify.calibration.successful")
         unsubscribe("notify.calibration.failed")
 
-        if(isCalibrated) {
+        if (isCalibrated) {
             logger.info("Calibration succeeded, subscribing to gaze data")
             subscribe("gaze")
 
@@ -412,14 +415,14 @@ class PupilEyeTracker(val calibrationType: CalibrationType, val host: String = "
             val origin = 0.5f
             val radius = 0.07f
 
-            val v = if(index == 0) {
+            val v = if (index == 0) {
                 GLVector(origin, origin)
             } else {
                 GLVector(
-                    origin + radius * cos(2 * PI.toFloat() * index.toFloat()/referencePointCount),
-                    origin + radius * sin(2 * PI.toFloat() * index.toFloat()/referencePointCount))
+                    origin + radius * cos(2 * PI.toFloat() * index.toFloat() / referencePointCount),
+                    origin + radius * sin(2 * PI.toFloat() * index.toFloat() / referencePointCount))
             }
-            v to cam.viewportToWorld(GLVector(v.x()*2.0f-1.0f, v.y()*2.0f-1.0f), offset = 0.5f)
+            v to cam.viewportToWorld(GLVector(v.x() * 2.0f - 1.0f, v.y() * 2.0f - 1.0f), offset = 0.5f)
         }
 
         /** Point generator for equidistributed calibration points. */

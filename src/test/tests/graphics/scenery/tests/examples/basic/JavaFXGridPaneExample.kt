@@ -43,7 +43,7 @@ class JavaFXGridPaneExample : SceneryBase("JavaFXGridPaneExample", windowWidth =
             val s = Stage()
             s.title = applicationName
 
-            pane.add(imagePanel, 0, 0 )
+            pane.add(imagePanel, 0, 0)
 
             initialWidth.bind(pane.widthProperty().divide(2))
             initialHeight.bind(pane.heightProperty().divide(2))
@@ -57,17 +57,17 @@ class JavaFXGridPaneExample : SceneryBase("JavaFXGridPaneExample", windowWidth =
             val rc2 = RowConstraints()
             rc2.percentHeight = 50.0
 
-            pane.columnConstraints.setAll( cc1, cc2 )
-            pane.rowConstraints.setAll( rc1, rc2 )
+            pane.columnConstraints.setAll(cc1, cc2)
+            pane.rowConstraints.setAll(rc1, rc2)
 
-            val img = Image( "https://github.com/hanslovsky/imglyb-examples/raw/master/resources/butterfly_small.jpg" );
+            val img = Image("https://github.com/hanslovsky/imglyb-examples/raw/master/resources/butterfly_small.jpg");
             val p = Pane()
             val v = ImageView(img)
             v.fitWidthProperty().bind(p.widthProperty())
             v.fitHeightProperty().bind(p.heightProperty())
             p.children.addAll(v)
 
-            pane.add( p, 1, 1)
+            pane.add(p, 1, 1)
 
             val scene = Scene(pane, windowWidth.toDouble(), windowHeight.toDouble())
             s.scene = scene
@@ -131,7 +131,7 @@ class JavaFXGridPaneExample : SceneryBase("JavaFXGridPaneExample", windowWidth =
         }
 
         thread {
-            while(renderer?.shouldClose == false) {
+            while (renderer?.shouldClose == false) {
                 Thread.sleep(200)
             }
 
@@ -141,7 +141,8 @@ class JavaFXGridPaneExample : SceneryBase("JavaFXGridPaneExample", windowWidth =
         }
     }
 
-    @Test override fun main() {
+    @Test
+    override fun main() {
         super.main()
     }
 }

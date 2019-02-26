@@ -20,7 +20,7 @@ import kotlin.math.max
  *
  * @author Ulrik Günther <hello@ulrik.is>
  */
-class BDVExample: SceneryBase("BDV Rendering example", 1280, 720) {
+class BDVExample : SceneryBase("BDV Rendering example", 1280, 720) {
     var volume: BDVVolume? = null
     var currentCacheSize = 512
 
@@ -29,10 +29,10 @@ class BDVExample: SceneryBase("BDV Rendering example", 1280, 720) {
         val files = ArrayList<String>()
 
         val fileFromProperty = System.getProperty("bdvXML")
-        if(fileFromProperty != null) {
+        if (fileFromProperty != null) {
             files.add(fileFromProperty)
         } else {
-            PlatformImpl.startup {  }
+            PlatformImpl.startup { }
             Platform.runLater {
                 val chooser = FileChooser()
                 chooser.title = "Open File"
@@ -48,7 +48,7 @@ class BDVExample: SceneryBase("BDV Rendering example", 1280, 720) {
             latch.await()
         }
 
-        if(files.size == 0) {
+        if (files.size == 0) {
             throw IllegalStateException("You have to select a file, sorry.")
         }
 
@@ -59,7 +59,7 @@ class BDVExample: SceneryBase("BDV Rendering example", 1280, 720) {
 
         val cam: Camera = DetachedHeadCamera()
         with(cam) {
-            perspectiveCamera(50.0f, 1.0f*windowWidth, 1.0f*windowHeight)
+            perspectiveCamera(50.0f, 1.0f * windowWidth, 1.0f * windowHeight)
             active = true
 
 //            position = GLVector(170.067406f, -138.45601f, -455.9538f)
@@ -82,7 +82,7 @@ class BDVExample: SceneryBase("BDV Rendering example", 1280, 720) {
         }
 
         lights.mapIndexed { i, light ->
-            light.position = GLVector(2.0f * i - 4.0f,  i - 1.0f, 0.0f)
+            light.position = GLVector(2.0f * i - 4.0f, i - 1.0f, 0.0f)
             light.emissionColor = GLVector(1.0f, 1.0f, 1.0f)
             light.intensity = 50.0f
             scene.addChild(light)
@@ -118,7 +118,8 @@ class BDVExample: SceneryBase("BDV Rendering example", 1280, 720) {
         inputHandler?.addKeyBinding("less_cache", "0")
     }
 
-    @Test override fun main() {
+    @Test
+    override fun main() {
         super.main()
     }
 }

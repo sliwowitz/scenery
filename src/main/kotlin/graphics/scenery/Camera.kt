@@ -56,7 +56,7 @@ open class Camera : Node("Camera") {
                 this.right = GLVector(m.get(0, 0), m.get(1, 0), m.get(2, 0)).normalize()
                 this.up = GLVector(m.get(0, 1), m.get(1, 1), m.get(2, 1)).normalize()
 
-                if(!targeted) {
+                if (!targeted) {
                     this.target = this.position + this.forward
                 }
             }
@@ -81,22 +81,22 @@ open class Camera : Node("Camera") {
      * Returns the current aspect ratio
      */
     fun aspectRatio(): Float {
-        if(projectionType == ProjectionType.Undefined) {
+        if (projectionType == ProjectionType.Undefined) {
             logger.warn("Querying aspect ratio but projection type is undefined")
             return 1.0f
         }
 
-        if(width < 0.0001f || height < 0.0001f) {
+        if (width < 0.0001f || height < 0.0001f) {
             logger.warn("Width or height too small, returning 1.0f")
         }
 
-        val scaleWidth = if(this is DetachedHeadCamera && this.tracker != null) {
+        val scaleWidth = if (this is DetachedHeadCamera && this.tracker != null) {
             0.5f
         } else {
             1.0f
         }
 
-        return (width*scaleWidth)/height
+        return (width * scaleWidth) / height
     }
 
     /**
@@ -168,7 +168,7 @@ open class Camera : Node("Camera") {
      * @return GLVector - [v] transformed into world space.
      */
     fun viewToWorld(v: GLVector): GLVector =
-        this.view.inverse.mult(if(v.dimension == 3) {
+        this.view.inverse.mult(if (v.dimension == 3) {
             GLVector(v.x(), v.y(), v.z(), 1.0f)
         } else {
             v
@@ -179,7 +179,8 @@ open class Camera : Node("Camera") {
      * If the vector is 2D, [nearPlaneDistance] is assumed for the Z value, otherwise
      * the Z value from the vector is taken.
      */
-    @JvmOverloads fun viewportToWorld(vector: GLVector, offset: Float = 0.01f): GLVector {
+    @JvmOverloads
+    fun viewportToWorld(vector: GLVector, offset: Float = 0.01f): GLVector {
         val unproject = projection.clone()
         unproject.mult(getTransformation())
         unproject.invert()
@@ -191,7 +192,7 @@ open class Camera : Node("Camera") {
             else -> vector
         })
 
-        clipSpace = clipSpace.times(1.0f/clipSpace.w())
+        clipSpace = clipSpace.times(1.0f / clipSpace.w())
         return clipSpace.xyz()
     }
 
@@ -199,9 +200,10 @@ open class Camera : Node("Camera") {
      * Returns the list of objects (as [Scene.RaycastResult]) under the screen space position
      * indicated by [x] and [y], sorted by their distance to the observer.
      */
-    @JvmOverloads fun getNodesForScreenSpacePosition(x: Int, y: Int,
-                                                       ignoredObjects: List<Class<*>> = emptyList(),
-                                                       debug: Boolean = false): List<Scene.RaycastResult> {
+    @JvmOverloads
+    fun getNodesForScreenSpacePosition(x: Int, y: Int,
+                                       ignoredObjects: List<Class<*>> = emptyList(),
+                                       debug: Boolean = false): List<Scene.RaycastResult> {
         val view = (target - position).normalize()
         var h = view.cross(up).normalize()
         var v = h.cross(view)
@@ -220,7 +222,7 @@ open class Camera : Node("Camera") {
         val worldDir = (worldPos - position).normalized
 
         val scene = getScene()
-        if(scene == null) {
+        if (scene == null) {
             logger.warn("No scene found for $this, returning empty list for raycast.")
             return emptyList()
         }

@@ -7,18 +7,16 @@ import graphics.scenery.Camera
 import graphics.scenery.Mesh
 import graphics.scenery.Node
 import graphics.scenery.utils.LazyLogger
-import org.slf4j.Logger
-import org.slf4j.LoggerFactory
 import vrpn.Loader
 import vrpn.TrackerRemote
 import vrpn.TrackerRemoteListener
 import java.util.*
 
 /**
-* TrackerInput for handling VRPN-based devices
-*
-* @author Ulrik Günther <hello@ulrik.is>
-*/
+ * TrackerInput for handling VRPN-based devices
+ *
+ * @author Ulrik Günther <hello@ulrik.is>
+ */
 
 class VRPNTrackerInput(trackerAddress: String = "device@locahost:5500") : TrackerInput {
     private val logger by LazyLogger()
@@ -137,7 +135,7 @@ class VRPNTrackerInput(trackerAddress: String = "device@locahost:5500") : Tracke
         listener?.let {
 
             it.lastTrackerUpdate?.let {
-                cachedPosition = GLVector(it.pos[0].toFloat(), it.pos[1].toFloat(), -it.pos[2].toFloat())*positionScaling
+                cachedPosition = GLVector(it.pos[0].toFloat(), it.pos[1].toFloat(), -it.pos[2].toFloat()) * positionScaling
 //                val newOrientation = Quaternion(
 //                   it.quat[0].toFloat(),
 //                   -it.quat[2].toFloat(),
@@ -155,7 +153,7 @@ class VRPNTrackerInput(trackerAddress: String = "device@locahost:5500") : Tracke
     }
 
     override fun getWorkingTracker(): TrackerInput? {
-        if(tracker?.isLive ?: false && tracker?.isConnected ?: false) {
+        if (tracker?.isLive ?: false && tracker?.isConnected ?: false) {
             return this
         } else {
             return null

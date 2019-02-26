@@ -42,7 +42,7 @@ sealed class Shaders {
      * [shaders], which are assumed to be relative to a class [clazz].
      */
     open class ShadersFromFiles(val shaders: Array<String>,
-                           val clazz: Class<*> = Renderer::class.java) : Shaders() {
+                                val clazz: Class<*> = Renderer::class.java) : Shaders() {
 
         /**
          * Returns a [ShaderPackage] targeting [target] (OpenGL or Vulkan), containing
@@ -111,7 +111,7 @@ sealed class Shaders {
      * Shader provider for deriving a [ShadersFromFiles] provider just by using
      * the simpleName of [clazz].
      */
-    class ShadersFromClassName @JvmOverloads constructor(clazz: Class<*>, shaderTypes: List<ShaderType> = listOf(ShaderType.VertexShader, ShaderType.FragmentShader)):
+    class ShadersFromClassName @JvmOverloads constructor(clazz: Class<*>, shaderTypes: List<ShaderType> = listOf(ShaderType.VertexShader, ShaderType.FragmentShader)) :
         ShadersFromFiles(
             shaderTypes
                 .map { it.toExtension() }.toTypedArray()
@@ -137,7 +137,7 @@ sealed class Shaders {
         }.filter { it.second != null }.toMutableList()
 
         var pathPrefix = ""
-        if(streams.isEmpty()) {
+        if (streams.isEmpty()) {
             pathPrefix = "shaders/"
         }
 
@@ -145,8 +145,8 @@ sealed class Shaders {
             clazz to clazz.getResourceAsStream("$pathPrefix$path")
         }.filter { it.second != null })
 
-        if(streams.isEmpty()) {
-            if(classes.contains(Renderer::class.java) && !path.endsWith(".spv")) {
+        if (streams.isEmpty()) {
+            if (classes.contains(Renderer::class.java) && !path.endsWith(".spv")) {
                 logger.warn("Shader path $path not found within given classes, falling back to default.")
             } else {
                 logger.debug("Shader path $path not found within given classes, falling back to default.")
@@ -155,8 +155,8 @@ sealed class Shaders {
             return streams.first().first to pathPrefix
         }
 
-        return if(Renderer::class.java.getResourceAsStream(path) == null) {
-            if(!path.endsWith(".spv")) {
+        return if (Renderer::class.java.getResourceAsStream(path) == null) {
+            if (!path.endsWith(".spv")) {
                 logger.warn("Shader path $path not found in class path of Renderer.")
             }
 
@@ -168,11 +168,11 @@ sealed class Shaders {
 
     protected fun compile(shaderPackage: ShaderPackage, type: ShaderType, target: ShaderTarget, base: Class<*>): ShaderPackage {
         val sourceCode: String
-        val spirv = if(shaderPackage.spirv != null && shaderPackage.priority == SourceSPIRVPriority.SPIRVPriority) {
+        val spirv = if (shaderPackage.spirv != null && shaderPackage.priority == SourceSPIRVPriority.SPIRVPriority) {
             val pair = compileFromSPIRVBytecode(shaderPackage, target)
             sourceCode = pair.second
             pair.first
-        } else if(shaderPackage.code != null && shaderPackage.priority == SourceSPIRVPriority.SourcePriority) {
+        } else if (shaderPackage.code != null && shaderPackage.priority == SourceSPIRVPriority.SourcePriority) {
             val pair = compileFromSource(shaderPackage, shaderPackage.code, type, target, base)
             sourceCode = pair.second
             pair.first
@@ -271,7 +271,7 @@ sealed class Shaders {
      * Converts an glslang-compatible IntVec to a [ByteBuffer].
      */
     protected fun IntVec.toByteBuffer(): ByteBuffer {
-        val buf = BufferUtils.allocateByte(this.size().toInt()*4)
+        val buf = BufferUtils.allocateByte(this.size().toInt() * 4)
         val ib = buf.asIntBuffer()
 
         for (i in 0 until this.size()) {

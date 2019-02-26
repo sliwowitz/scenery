@@ -18,11 +18,11 @@ class Line(var capacity: Int = 50) : Node("Line"), HasGeometry {
     /** Geometry type -- Default for Line is [GeometryType.LINE] */
     override var geometryType: GeometryType = GeometryType.LINE_STRIP_ADJACENCY
     /** Vertex buffer */
-    override var vertices: FloatBuffer = BufferUtils.allocateFloat(3*capacity)
+    override var vertices: FloatBuffer = BufferUtils.allocateFloat(3 * capacity)
     /** Normal buffer */
-    override var normals: FloatBuffer = BufferUtils.allocateFloat(3*capacity)
+    override var normals: FloatBuffer = BufferUtils.allocateFloat(3 * capacity)
     /** Texcoord buffer */
-    override var texcoords: FloatBuffer = BufferUtils.allocateFloat(2*capacity)
+    override var texcoords: FloatBuffer = BufferUtils.allocateFloat(2 * capacity)
     /** Index buffer */
     override var indices: IntBuffer = IntBuffer.wrap(intArrayOf())
 
@@ -66,8 +66,8 @@ class Line(var capacity: Int = 50) : Node("Line"), HasGeometry {
      * @param p     The vector containing the vertex data
      */
     fun addPoint(p: GLVector) {
-        if(vertices.limit() + 3 > vertices.capacity()) {
-            val newVertices = BufferUtils.allocateFloat(vertices.capacity() + 3*capacity)
+        if (vertices.limit() + 3 > vertices.capacity()) {
+            val newVertices = BufferUtils.allocateFloat(vertices.capacity() + 3 * capacity)
             vertices.position(0)
             vertices.limit(vertices.capacity())
             newVertices.put(vertices)
@@ -75,7 +75,7 @@ class Line(var capacity: Int = 50) : Node("Line"), HasGeometry {
 
             vertices = newVertices
 
-            val newNormals = BufferUtils.allocateFloat(vertices.capacity() + 3*capacity)
+            val newNormals = BufferUtils.allocateFloat(vertices.capacity() + 3 * capacity)
             normals.position(0)
             normals.limit(normals.capacity())
             newNormals.put(normals)
@@ -84,7 +84,7 @@ class Line(var capacity: Int = 50) : Node("Line"), HasGeometry {
             normals = newNormals
 
 
-            val newTexcoords = BufferUtils.allocateFloat(vertices.capacity() + 2*capacity)
+            val newTexcoords = BufferUtils.allocateFloat(vertices.capacity() + 2 * capacity)
             texcoords.position(0)
             texcoords.limit(texcoords.capacity())
             newTexcoords.put(texcoords)
@@ -92,7 +92,7 @@ class Line(var capacity: Int = 50) : Node("Line"), HasGeometry {
 
             texcoords = newTexcoords
 
-            capacity = vertices.capacity()/3
+            capacity = vertices.capacity() / 3
         }
 
         vertices.position(vertices.limit())
@@ -112,7 +112,7 @@ class Line(var capacity: Int = 50) : Node("Line"), HasGeometry {
         texcoords.flip()
 
         dirty = true
-        vertexCount = vertices.limit()/vertexSize
+        vertexCount = vertices.limit() / vertexSize
 
         boundingBox = generateBoundingBox()
     }

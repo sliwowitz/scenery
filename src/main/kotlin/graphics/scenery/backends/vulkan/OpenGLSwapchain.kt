@@ -29,7 +29,7 @@ import org.lwjgl.system.Platform
 import org.lwjgl.vulkan.VK10
 import org.lwjgl.vulkan.VK10.*
 import org.lwjgl.vulkan.VkQueue
-import java.lang.UnsupportedOperationException
+import vkk.VkMemoryProperty
 import java.nio.LongBuffer
 
 /**
@@ -167,7 +167,7 @@ class OpenGLSwapchain(val device: VulkanDevice,
 
                 val image = t.createImage(window.width, window.height, 1,
                     format, VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT or VK_IMAGE_USAGE_SAMPLED_BIT,
-                    VK_IMAGE_TILING_OPTIMAL, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT,
+                    VK_IMAGE_TILING_OPTIMAL, VkMemoryProperty.DEVICE_LOCAL_BIT.i,
                     1)
 
                 VulkanTexture.transitionLayout(image.image,

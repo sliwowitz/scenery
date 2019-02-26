@@ -1,6 +1,5 @@
 package graphics.scenery.tests.examples.basic
 
-import cleargl.GLMatrix
 import cleargl.GLVector
 import graphics.scenery.*
 import graphics.scenery.backends.Renderer
@@ -78,7 +77,8 @@ class ArcballExample : SceneryBase("ArcballExample") {
         (inputHandler?.getBehaviour("toggle_control_mode") as ClickBehaviour).click(0, 0)
     }
 
-    @Test override fun main() {
+    @Test
+    override fun main() {
         super.main()
     }
 }

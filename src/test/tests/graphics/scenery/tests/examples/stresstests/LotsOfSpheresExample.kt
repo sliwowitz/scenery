@@ -12,12 +12,12 @@ import kotlin.concurrent.thread
  *
  * @author Ulrik Günther <hello@ulrik.is>
  */
-class LotsOfSpheresExample: SceneryBase("LotsOfSpheres", wantREPL = true) {
+class LotsOfSpheresExample : SceneryBase("LotsOfSpheres", wantREPL = true) {
     override fun init() {
         renderer = Renderer.createRenderer(hub, applicationName, scene, 512, 512)
         hub.add(SceneryElement.Renderer, renderer!!)
 
-        for(i in 0 until 12000) {
+        for (i in 0 until 12000) {
             val s = Sphere(0.1f, 10)
             s.position = Random.randomVectorFromRange(3, -10.0f, 10.0f)
             scene.addChild(s)
@@ -39,7 +39,7 @@ class LotsOfSpheresExample: SceneryBase("LotsOfSpheres", wantREPL = true) {
         }
 
         thread {
-            for(i in 0 until 12000) {
+            for (i in 0 until 12000) {
                 val s = Sphere(0.1f, 10)
                 s.position = Random.randomVectorFromRange(3, -10.0f, 10.0f)
                 scene.addChild(s)
@@ -48,7 +48,8 @@ class LotsOfSpheresExample: SceneryBase("LotsOfSpheres", wantREPL = true) {
         }
     }
 
-    @Test override fun main() {
+    @Test
+    override fun main() {
         super.main()
     }
 }

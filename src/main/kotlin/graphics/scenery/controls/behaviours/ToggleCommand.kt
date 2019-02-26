@@ -2,7 +2,6 @@ package graphics.scenery.controls.behaviours
 
 import graphics.scenery.utils.LazyLogger
 import org.scijava.ui.behaviour.ClickBehaviour
-import org.slf4j.LoggerFactory
 import java.lang.reflect.InvocationTargetException
 
 /**
@@ -29,9 +28,9 @@ class ToggleCommand(private val name: String, private val receiver: Any, private
         try {
             val m = receiver.javaClass.getMethod(method)
             m.invoke(receiver)
-        } catch(e: NoSuchMethodException) {
+        } catch (e: NoSuchMethodException) {
             logger.warn("Method $method not found for ${receiver.javaClass.simpleName}")
-        } catch(e: InvocationTargetException) {
+        } catch (e: InvocationTargetException) {
             logger.warn("Method $method for ${receiver.javaClass.simpleName} threw an error: $e:")
             e.printStackTrace()
         }

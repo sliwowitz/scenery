@@ -53,7 +53,7 @@ class H264Encoder(val frameWidth: Int, val frameHeight: Int, filename: String, f
 
     private fun Int.nearestWholeMultipleOf(divisor: Int): Int {
         var out = this.div(divisor)
-        if(out == 0 && this > 0) {
+        if (out == 0 && this > 0) {
             out++
         }
 
@@ -61,15 +61,16 @@ class H264Encoder(val frameWidth: Int, val frameHeight: Int, filename: String, f
     }
 
     init {
-        if(logger.isDebugEnabled) {
+        if (logger.isDebugEnabled) {
             av_log_set_level(AV_LOG_TRACE)
         } else {
             av_log_set_level(AV_LOG_INFO)
         }
 
-        val url = System.getProperty("scenery.StreamingAddress") ?: "udp://${InetAddress.getLocalHost().hostAddress}:3337"
+        val url = System.getProperty("scenery.StreamingAddress")
+            ?: "udp://${InetAddress.getLocalHost().hostAddress}:3337"
 
-        val format = if(networked) {
+        val format = if (networked) {
             outputFile = url
             logger.info("Using network streaming, serving at $url")
 
@@ -79,7 +80,7 @@ class H264Encoder(val frameWidth: Int, val frameHeight: Int, filename: String, f
         }
 
         var ret = avformat_alloc_output_context2(outputContext, format.second, format.first, outputFile)
-        if(ret < 0) {
+        if (ret < 0) {
             logger.error("Could not allocate output context: $ret")
         }
 
@@ -90,12 +91,12 @@ class H264Encoder(val frameWidth: Int, val frameHeight: Int, filename: String, f
         actualFrameHeight = frameHeight.nearestWholeMultipleOf(2)
 
         codec = avcodec_find_encoder(outputContext.video_codec_id())
-        if(codec == null) {
+        if (codec == null) {
             logger.error("Could not find H264 encoder")
         }
 
         codecContext = avcodec_alloc_context3(codec)
-        if(codecContext == null) {
+        if (codecContext == null) {
             logger.error("Could not allocate video codecContext")
         }
 
@@ -111,11 +112,11 @@ class H264Encoder(val frameWidth: Int, val frameHeight: Int, filename: String, f
         codecContext.codec_tag(0)
         codecContext.codec_type(AVMEDIA_TYPE_VIDEO)
 
-        if(networked) {
+        if (networked) {
             codecContext.flags(AV_CODEC_FLAG_GLOBAL_HEADER)
         }
 
-        if(outputContext.oformat().flags() and AVFMT_GLOBALHEADER == 1) {
+        if (outputContext.oformat().flags() and AVFMT_GLOBALHEADER == 1) {
             logger.debug("Output format requires global format header")
             codecContext.flags(codecContext.flags() or AV_CODEC_FLAG_GLOBAL_HEADER)
         }
@@ -125,17 +126,17 @@ class H264Encoder(val frameWidth: Int, val frameHeight: Int, filename: String, f
         av_opt_set(codecContext.priv_data(), "repeat-headers", "1", 0)
 
         ret = avcodec_open2(codecContext, codec, AVDictionary())
-        if(ret < 0) {
+        if (ret < 0) {
             logger.error("Could not open codec: ${ffmpegErrorString(ret)}")
         }
 
         stream = avformat_new_stream(outputContext, codec)
-        if(stream == null) {
+        if (stream == null) {
             logger.error("Could not allocate stream")
         }
 
         stream.time_base(timebase)
-        stream.id(outputContext.nb_streams()-1)
+        stream.id(outputContext.nb_streams() - 1)
         stream.r_frame_rate(codecContext.framerate())
 
         logger.debug("Stream ID will be ${stream.id()}")
@@ -153,18 +154,18 @@ class H264Encoder(val frameWidth: Int, val frameHeight: Int, filename: String, f
         outputContext.streams(0, stream)
 
         ret = avcodec_parameters_from_context(stream.codecpar(), codecContext)
-        if(ret < 0) {
+        if (ret < 0) {
             logger.error("Could not get codec parameters")
         }
 
         ret = av_frame_get_buffer(frame, 32)
-        if(ret < 0) {
+        if (ret < 0) {
             logger.error("Could not allocate frame data")
         }
 
         av_dump_format(outputContext, 0, outputFile, 1)
 
-        if(outputContext.oformat().flags() and AVFMT_NOFILE == 0) {
+        if (outputContext.oformat().flags() and AVFMT_NOFILE == 0) {
             val pb = AVIOContext(null)
             ret = avio_open(pb, outputFile, AVIO_FLAG_WRITE)
             outputContext.pb(pb)
@@ -191,7 +192,7 @@ class H264Encoder(val frameWidth: Int, val frameHeight: Int, filename: String, f
 
         ret = avformat_write_header(outputContext, AVDictionary())
 
-        if(ret < 0) {
+        if (ret < 0) {
             logger.error("Failed to write header: ${ffmpegErrorString(ret)}")
         }
     }
@@ -200,11 +201,11 @@ class H264Encoder(val frameWidth: Int, val frameHeight: Int, filename: String, f
     protected var frameEncodingFailure = 0
 
     fun encodeFrame(data: ByteBuffer?) {
-        if(frameEncodingFailure != 0) {
+        if (frameEncodingFailure != 0) {
             return
         }
 
-        if(scalingContext == null) {
+        if (scalingContext == null) {
             scalingContext = swscale.sws_getContext(
                 frameWidth, frameHeight, AV_PIX_FMT_BGRA,
                 actualFrameWidth, actualFrameHeight, AV_PIX_FMT_YUV420P, swscale.SWS_BICUBIC,
@@ -219,7 +220,7 @@ class H264Encoder(val frameWidth: Int, val frameHeight: Int, filename: String, f
         val packet = AVPacket()
         av_init_packet(packet)
 
-        var ret = if(data != null) {
+        var ret = if (data != null) {
             tmpframe.pts(frameNum)
             frame.pts(frameNum)
 
@@ -233,13 +234,13 @@ class H264Encoder(val frameWidth: Int, val frameHeight: Int, filename: String, f
             avcodec_send_frame(codecContext, null)
         }
 
-        while(ret >= 0) {
+        while (ret >= 0) {
             ret = avcodec_receive_packet(codecContext, packet)
 
-            if(ret == -11 /* AVERROR_EAGAIN */|| ret == AVERROR_EOF || ret == -35 /* also AVERROR_EAGAIN -.- */) {
+            if (ret == -11 /* AVERROR_EAGAIN */ || ret == AVERROR_EOF || ret == -35 /* also AVERROR_EAGAIN -.- */) {
                 frameNum++
                 return
-            } else if(ret < 0){
+            } else if (ret < 0) {
                 logger.error("Error encoding frame $frameNum: ${ffmpegErrorString(ret)} ($ret)")
                 frameEncodingFailure = ret
                 return
@@ -251,7 +252,7 @@ class H264Encoder(val frameWidth: Int, val frameHeight: Int, filename: String, f
 
             ret = av_write_frame(outputContext, packet)
 
-            if(ret < 0) {
+            if (ret < 0) {
                 logger.error("Error writing frame $frameNum: ${ffmpegErrorString(ret)}")
             }
         }
@@ -273,7 +274,7 @@ class H264Encoder(val frameWidth: Int, val frameHeight: Int, filename: String, f
 
     private fun ffmpegErrorString(returnCode: Int): String {
         val buffer = ByteArray(1024, { _ -> 0 })
-        av_make_error_string(buffer, buffer.size*1L, returnCode)
+        av_make_error_string(buffer, buffer.size * 1L, returnCode)
 
         return String(buffer, 0, buffer.indexOfFirst { it == 0.toByte() })
     }

@@ -1,13 +1,9 @@
 package graphics.scenery.backends.vulkan
 
-import graphics.scenery.backends.RenderConfigReader
-import graphics.scenery.backends.SceneryWindow
-import org.lwjgl.system.MemoryUtil
-import org.lwjgl.vulkan.*
-import javafx.stage.Stage
-import java.util.concurrent.CountDownLatch
 import com.sun.javafx.application.PlatformImpl
 import graphics.scenery.Hub
+import graphics.scenery.backends.RenderConfigReader
+import graphics.scenery.backends.SceneryWindow
 import graphics.scenery.utils.SceneryFXPanel
 import graphics.scenery.utils.SceneryJPanel
 import graphics.scenery.utils.SceneryPanel
@@ -21,9 +17,13 @@ import javafx.scene.control.Label
 import javafx.scene.layout.*
 import javafx.scene.paint.Color
 import javafx.scene.text.TextAlignment
+import javafx.stage.Stage
 import javafx.stage.Window
+import org.lwjgl.system.MemoryUtil
+import org.lwjgl.vulkan.VkQueue
 import java.awt.event.ComponentAdapter
 import java.awt.event.ComponentEvent
+import java.util.concurrent.CountDownLatch
 import java.util.concurrent.locks.ReentrantLock
 
 
@@ -122,7 +122,7 @@ class FXSwapchain(device: VulkanDevice,
                 stage = s
             } else {
                 imagePanel?.let {
-                    window = when(it) {
+                    window = when (it) {
                         is SceneryFXPanel -> {
 
                             stage = it.scene.window
@@ -145,7 +145,7 @@ class FXSwapchain(device: VulkanDevice,
                             SceneryWindow.JavaFXStage(it)
                         }
                         is SceneryJPanel -> {
-                            it.addComponentListener(object: ComponentAdapter() {
+                            it.addComponentListener(object : ComponentAdapter() {
                                 override fun componentResized(e: ComponentEvent) {
                                     super.componentResized(e)
                                     logger.debug("SceneryJPanel component resized to ${e.component.width} ${e.component.height}")
@@ -213,7 +213,7 @@ class FXSwapchain(device: VulkanDevice,
     override fun toggleFullscreen(hub: Hub, swapchainRecreator: VulkanRenderer.SwapchainRecreator) {
         PlatformImpl.runLater {
             val s = stage
-            if(s is Stage) {
+            if (s is Stage) {
                 s.isFullScreen = !s.isFullScreen
             }
 

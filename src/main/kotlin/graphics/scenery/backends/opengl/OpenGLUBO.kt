@@ -24,14 +24,14 @@ class OpenGLUBO(val backingBuffer: OpenGLRenderer.OpenGLBuffer? = null) : UBO() 
     @Suppress("UNUSED_PARAMETER")
     fun populate(offset: Long = 0): Boolean {
         backingBuffer?.let { data ->
-            val sizeRequired = if(sizeCached <= 0) {
+            val sizeRequired = if (sizeCached <= 0) {
                 data.alignment
             } else {
                 sizeCached + data.alignment
             }
 
             // check if we can fit this UBO, if not, resize it to 1.5x it's original size
-            if(data.remaining() < sizeRequired) {
+            if (data.remaining() < sizeRequired) {
                 data.resize()
             }
 
@@ -73,7 +73,7 @@ class OpenGLUBO(val backingBuffer: OpenGLRenderer.OpenGLBuffer? = null) : UBO() 
     }
 
     fun advanceBackingBuffer(): Int {
-        if(backingBuffer == null) {
+        if (backingBuffer == null) {
             throw IllegalStateException("Tried to advance buffer that has no backing buffer")
         }
         return backingBuffer.advance()

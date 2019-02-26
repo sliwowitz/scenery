@@ -52,7 +52,11 @@ data class GenericTexture @JvmOverloads constructor(
 
     /** Clears all consumed updates */
     fun clearConsumedUpdates() {
-        updates.forEach { if(it.consumed && it.deallocate) { MemoryUtil.memFree(it.contents) } }
+        updates.forEach {
+            if (it.consumed && it.deallocate) {
+                MemoryUtil.memFree(it.contents)
+            }
+        }
         updates.removeIf { it.consumed }
     }
 
@@ -60,7 +64,7 @@ data class GenericTexture @JvmOverloads constructor(
     fun clearUpdates() {
         updates.clear()
     }
-    
+
     /** Companion object of [GenericTexture], containing mainly constant defines */
     companion object {
         /** The textures to be contained in the ObjectTextures texture array */

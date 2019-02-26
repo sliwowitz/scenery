@@ -126,7 +126,7 @@ open class MouseAndKeyHandlerBase : ControllerListener, ExtractsNatives {
 
         /** Returns the name of the DLL/so/dylib required by JInput on the given platform. */
         fun ExtractsNatives.Platform.getPlatformJinputLibraryName(): String {
-            return when(this) {
+            return when (this) {
                 WINDOWS -> "jinput-raw_64.dll"
                 LINUX -> "libjinput-linux64.so"
                 MACOS -> "libjinput-osx.jnilib"
@@ -219,7 +219,8 @@ open class MouseAndKeyHandlerBase : ControllerListener, ExtractsNatives {
      * [.behaviourMap]. If expected mod counts are not matched, call
      * [.updateInternalMaps] to rebuild the internal behaviour lists.
      */
-    @Synchronized protected fun update() {
+    @Synchronized
+    protected fun update() {
         val imc = inputTriggerMap.modCount()
         val bmc = behaviours.modCount()
 

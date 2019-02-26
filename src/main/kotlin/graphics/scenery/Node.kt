@@ -5,7 +5,8 @@ import cleargl.GLVector
 import com.jogamp.opengl.math.Quaternion
 import graphics.scenery.backends.Renderer
 import graphics.scenery.utils.LazyLogger
-import kotlinx.coroutines.*
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.async
 import java.io.Serializable
 import java.sql.Timestamp
 import java.util.*
@@ -39,10 +40,12 @@ open class Node(open var name: String = "Node") : Renderable, Serializable {
         private set
     /** Hash map used for storing metadata for the Node. [Renderer] implementations use
      * it to e.g. store renderer-specific state. */
-    @Transient var metadata: HashMap<String, Any> = HashMap()
+    @Transient
+    var metadata: HashMap<String, Any> = HashMap()
 
     /** Material of the Node */
-    @Transient final override var material: Material = Material.DefaultMaterial()
+    @Transient
+    final override var material: Material = Material.DefaultMaterial()
     /** Initialisation flag. */
     override var initialized: Boolean = false
     /** Whether the Node is dirty and needs updating. */
@@ -121,9 +124,11 @@ open class Node(open var name: String = "Node") : Renderable, Serializable {
     override var rotation: Quaternion by Delegates.observable(Quaternion(0.0f, 0.0f, 0.0f, 1.0f)) { property, old, new -> propertyChanged(property, old, new) }
 
     /** Children of the Node. */
-    @Transient var children: CopyOnWriteArrayList<Node>
+    @Transient
+    var children: CopyOnWriteArrayList<Node>
     /** Other nodes that have linked transforms. */
-    @Transient var linkedNodes: CopyOnWriteArrayList<Node>
+    @Transient
+    var linkedNodes: CopyOnWriteArrayList<Node>
     /** Parent node of this node. */
     var parent: Node? = null
 
@@ -216,9 +221,9 @@ open class Node(open var name: String = "Node") : Renderable, Serializable {
 
     @Suppress("UNUSED_PARAMETER")
     protected fun <R> propertyChanged(property: KProperty<*>, old: R, new: R) {
-        if(property.name == "rotation"
+        if (property.name == "rotation"
             || property.name == "position"
-            || property.name  == "scale"
+            || property.name == "scale"
             || property.name == "renderScale") {
             needsUpdate = true
             needsUpdateWorld = true
@@ -243,9 +248,9 @@ open class Node(open var name: String = "Node") : Renderable, Serializable {
         this.children.add(child)
 
         this.getScene()?.sceneSize?.incrementAndGet()
-        GlobalScope.async {  this@Node.getScene()?.onChildrenAdded?.forEach { it.value.invoke(this@Node, child) } }
+        GlobalScope.async { this@Node.getScene()?.onChildrenAdded?.forEach { it.value.invoke(this@Node, child) } }
 
-        if(child is PointLight) {
+        if (child is PointLight) {
             this.getScene()?.lights?.add(child)
         }
     }
@@ -259,7 +264,7 @@ open class Node(open var name: String = "Node") : Renderable, Serializable {
         this.getScene()?.sceneSize?.decrementAndGet()
         GlobalScope.async { this@Node.getScene()?.onChildrenRemoved?.forEach { it.value.invoke(this@Node, child) } }
 
-        if(child is PointLight) {
+        if (child is PointLight) {
             this.getScene()?.lights?.remove(child)
         }
 
@@ -314,7 +319,8 @@ open class Node(open var name: String = "Node") : Renderable, Serializable {
      * @param[recursive] Whether the [children] should be recursed into.
      * @param[force] Force update irrespective of [needsUpdate] state.
      */
-    @Synchronized fun updateWorld(recursive: Boolean, force: Boolean = false) {
+    @Synchronized
+    fun updateWorld(recursive: Boolean, force: Boolean = false) {
         update.forEach { it.invoke() }
 
         if ((needsUpdate or force) && wantsComposeModel) {
@@ -341,7 +347,7 @@ open class Node(open var name: String = "Node") : Renderable, Serializable {
             this.linkedNodes.forEach { it.updateWorld(true, needsUpdateWorld) }
         }
 
-        if(needsUpdateWorld) {
+        if (needsUpdateWorld) {
             needsUpdateWorld = false
         }
     }
@@ -352,11 +358,11 @@ open class Node(open var name: String = "Node") : Renderable, Serializable {
      */
     fun composeModel() {
         @Suppress("SENSELESS_COMPARISON")
-        if(position != null && rotation != null && scale != null) {
+        if (position != null && rotation != null && scale != null) {
             model.setIdentity()
             model.translate(this.position.x(), this.position.y(), this.position.z())
             model.mult(this.rotation)
-            model.scale(this.renderScale, this.renderScale, this. renderScale)
+            model.scale(this.renderScale, this.renderScale, this.renderScale)
             model.scale(this.scale.x(), this.scale.y(), this.scale.z())
         }
     }
@@ -388,7 +394,7 @@ open class Node(open var name: String = "Node") : Renderable, Serializable {
                 boundingBoxCoords[4] = vertex[2]
                 boundingBoxCoords[5] = vertex[2]
 
-                while(vertexBufferView.hasRemaining()) {
+                while (vertexBufferView.hasRemaining()) {
                     vertexBufferView.get(vertex)
 
                     boundingBoxCoords[0] = minOf(boundingBoxCoords[0], vertex[0])
@@ -453,7 +459,7 @@ open class Node(open var name: String = "Node") : Renderable, Serializable {
             .filter { it.findAnnotation<ShaderProperty>() != null }
             .forEach {
                 it.isAccessible = true
-                if(logger.isTraceEnabled) {
+                if (logger.isTraceEnabled) {
                     logger.trace("ShaderProperty of ${this@Node.name}: ${it.name} ${it.get(this)?.javaClass}")
                 }
             }
@@ -485,7 +491,7 @@ open class Node(open var name: String = "Node") : Renderable, Serializable {
      */
     fun getScene(): Scene? {
         var p: Node? = this
-        while(p !is Scene && p != null) {
+        while (p !is Scene && p != null) {
             p = p.parent
         }
 
@@ -534,9 +540,9 @@ open class Node(open var name: String = "Node") : Renderable, Serializable {
         val max = getMaximumBoundingBox().max.xyzw() ?: return GLVector.getNullVector(3)
 
         (max - min).toFloatArray().max()?.let { maxDimension ->
-            val scaling = sideLength/maxDimension
+            val scaling = sideLength / maxDimension
 
-            if((scaleUp && scaling > 1.0f) || scaling <= 1.0f) {
+            if ((scaleUp && scaling > 1.0f) || scaling <= 1.0f) {
                 this.scale = GLVector(scaling, scaling, scaling)
             } else {
                 this.scale = GLVector(1.0f, 1.0f, 1.0f)
@@ -560,17 +566,19 @@ open class Node(open var name: String = "Node") : Renderable, Serializable {
      * Returns the maximum [OrientedBoundingBox] of this [Node] and all its children.
      */
     fun getMaximumBoundingBox(): OrientedBoundingBox {
-        if(boundingBox == null) {
+        if (boundingBox == null) {
             return OrientedBoundingBox(0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f)
         }
 
-        if(children.none { it !is BoundingGrid }) {
-            return OrientedBoundingBox(boundingBox?.min ?: GLVector(0.0f, 0.0f, 0.0f), boundingBox?.max ?: GLVector(0.0f, 0.0f, 0.0f))
+        if (children.none { it !is BoundingGrid }) {
+            return OrientedBoundingBox(boundingBox?.min ?: GLVector(0.0f, 0.0f, 0.0f), boundingBox?.max
+                ?: GLVector(0.0f, 0.0f, 0.0f))
         }
 
         return children
-            .filter { it !is BoundingGrid  }.map { it.getMaximumBoundingBox() }
-            .fold(boundingBox ?: OrientedBoundingBox(0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f), { lhs, rhs -> expand(lhs, rhs) })
+            .filter { it !is BoundingGrid }.map { it.getMaximumBoundingBox() }
+            .fold(boundingBox
+                ?: OrientedBoundingBox(0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f), { lhs, rhs -> expand(lhs, rhs) })
     }
 
     /**
@@ -593,7 +601,7 @@ open class Node(open var name: String = "Node") : Renderable, Serializable {
      */
     fun worldPosition(v: GLVector? = null): GLVector {
         val target = v ?: position
-        return if(parent is Scene && v == null) {
+        return if (parent is Scene && v == null) {
             target.clone()
         } else {
             world.mult(GLVector(target.x(), target.y(), target.z(), 1.0f)).xyz()
@@ -639,7 +647,7 @@ open class Node(open var name: String = "Node") : Renderable, Serializable {
         val max = world.mult(bbmax)
 
         // skip if inside the bounding box
-        if(origin.isInside(min, max)) {
+        if (origin.isInside(min, max)) {
             return false to 0.0f
         }
 

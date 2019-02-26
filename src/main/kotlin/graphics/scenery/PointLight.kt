@@ -26,9 +26,10 @@ class PointLight(radius: Float = 5.0f) : Light("PointLight") {
 
     /** Maximum radius in world units */
     @Suppress("unused") // will be serialised into ShaderProperty buffer
-    @ShaderProperty var lightRadius: Float = radius
+    @ShaderProperty
+    var lightRadius: Float = radius
         set(value) {
-            if(value != lightRadius) {
+            if (value != lightRadius) {
                 logger.info("Resetting light radius")
                 field = value
                 proxySphere = Sphere(value * 1.1f, 10)
@@ -44,16 +45,18 @@ class PointLight(radius: Float = 5.0f) : Light("PointLight") {
     override var name = "PointLight"
 
     @Suppress("unused") // will be serialised into ShaderProperty buffer
-    @ShaderProperty val worldPosition
+    @ShaderProperty
+    val worldPosition
         get(): GLVector =
-            if(this.parent != null && this.parent !is Scene) {
+            if (this.parent != null && this.parent !is Scene) {
                 this.world.mult(GLVector(position.x(), position.y(), position.z(), 1.0f))
             } else {
                 GLVector(position.x(), position.y(), position.z(), 1.0f)
             }
 
     @Suppress("unused") // will be serialised into ShaderProperty buffer
-    @ShaderProperty var debugMode = 0
+    @ShaderProperty
+    var debugMode = 0
 
     init {
         this.vertices = proxySphere.vertices

@@ -67,7 +67,7 @@ class OpenGLObjectState : NodeMetadata {
      */
     fun getBackedUBO(name: String): Pair<OpenGLUBO, OpenGLRenderer.OpenGLBuffer>? {
         val ubo = UBOs[name]
-        return if(ubo?.backingBuffer != null) {
+        return if (ubo?.backingBuffer != null) {
             ubo to ubo.backingBuffer
         } else {
             logger.warn("UBO for $name has no backing buffer")

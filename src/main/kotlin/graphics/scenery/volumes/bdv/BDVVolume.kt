@@ -65,8 +65,12 @@ open class BDVVolume(bdvXMLFile: String = "", val options: VolumeViewerOptions) 
 
     /** Current timepoint in the set of [stacks]. */
     var currentTimepoint: Int
-        get() { return state.currentTimepoint }
-        set(value) {state.currentTimepoint = value}
+        get() {
+            return state.currentTimepoint
+        }
+        set(value) {
+            state.currentTimepoint = value
+        }
 
     protected var state: ViewerState
     protected var visibilityAndGrouping: VisibilityAndGrouping
@@ -131,7 +135,7 @@ open class BDVVolume(bdvXMLFile: String = "", val options: VolumeViewerOptions) 
         colormaps["plasma"] = Colormap.ColormapFile(Volume::class.java.getResource("colormap-plasma.png").file)
         colormaps["viridis"] = Colormap.ColormapFile(Volume::class.java.getResource("colormap-viridis.png").file)
 
-        if(bdvXMLFile == "") throw IllegalStateException("No file given, sorry")
+        if (bdvXMLFile == "") throw IllegalStateException("No file given, sorry")
 
         val spimData: SpimDataMinimal = XmlIoSpimDataMinimal().load(bdvXMLFile)
         stacks = SpimDataStacks(spimData)
@@ -141,7 +145,7 @@ open class BDVVolume(bdvXMLFile: String = "", val options: VolumeViewerOptions) 
         initSetups(spimData, converterSetups, sources)
 
         setupAssignments = SetupAssignments(converterSetups, 0.0, 65535.0)
-        if(setupAssignments.minMaxGroups.size > 0) {
+        if (setupAssignments.minMaxGroups.size > 0) {
             val group = setupAssignments.minMaxGroups[0]
             setupAssignments.converterSetups.forEach {
                 setupAssignments.moveSetupToGroup(it, group)
@@ -238,7 +242,7 @@ open class BDVVolume(bdvXMLFile: String = "", val options: VolumeViewerOptions) 
      * facilitate the updates on the GPU.
      */
     protected fun updateBlocks(context: SceneryContext) {
-        if(cacheSizeUpdated) {
+        if (cacheSizeUpdated) {
             resizeCacheInternal()
             cacheSizeUpdated = false
         }
@@ -257,7 +261,7 @@ open class BDVVolume(bdvXMLFile: String = "", val options: VolumeViewerOptions) 
 
         var numTasks = 0
         val fillTasksPerVolume = ArrayList<VolumeAndTasks>()
-        for(i in 0 until renderStacks.size) {
+        for (i in 0 until renderStacks.size) {
             val stack = renderStacks[i]
             val volume = outOfCoreVolumes[i]
 
@@ -268,21 +272,21 @@ open class BDVVolume(bdvXMLFile: String = "", val options: VolumeViewerOptions) 
             fillTasksPerVolume.add(VolumeAndTasks(tasks, volume, stack.resolutions().size - 1))
         }
 
-        while(numTasks > textureCache.maxNumTiles) {
-           fillTasksPerVolume.sortedBy { it.numTasks() }
-               .reversed()
-               .forEach {
-               val baseLevel = it.volume.baseLevel
-               if(baseLevel < it.maxLevel) {
-                   numTasks -= it.numTasks()
-                   it.tasks.clear()
-                   it.tasks.addAll(it.volume.fillTasks)
+        while (numTasks > textureCache.maxNumTiles) {
+            fillTasksPerVolume.sortedBy { it.numTasks() }
+                .reversed()
+                .forEach {
+                    val baseLevel = it.volume.baseLevel
+                    if (baseLevel < it.maxLevel) {
+                        numTasks -= it.numTasks()
+                        it.tasks.clear()
+                        it.tasks.addAll(it.volume.fillTasks)
 
-                   // TODO: Ask Tobi -- potentially solved
-                   return@forEach
-               }
-           }
-           break
+                        // TODO: Ask Tobi -- potentially solved
+                        return@forEach
+                    }
+                }
+            break
         }
 
         val fillTasks = ArrayList<FillTask>()
@@ -290,17 +294,17 @@ open class BDVVolume(bdvXMLFile: String = "", val options: VolumeViewerOptions) 
             fillTasks.addAll(it.tasks)
         }
 
-        if(fillTasks.size > textureCache.maxNumTiles) {
+        if (fillTasks.size > textureCache.maxNumTiles) {
             fillTasks.subList(textureCache.maxNumTiles, fillTasks.size).clear()
         }
 
         ProcessFillTasks.parallel(textureCache, pboChain, context, forkJoinPool, fillTasks)
 
         var repaint = false
-        for(i in 0 until renderStacks.size) {
+        for (i in 0 until renderStacks.size) {
             val volumeBlocks = outOfCoreVolumes[i]
             val complete = volumeBlocks.makeLut()
-            if(!complete) {
+            if (!complete) {
                 repaint = true
             }
             context.bindTexture(volumeBlocks.lookupTexture)
@@ -339,13 +343,13 @@ open class BDVVolume(bdvXMLFile: String = "", val options: VolumeViewerOptions) 
     override fun preDraw() {
         context.bindTexture(textureCache)
 
-        if(renderStateUpdated) {
+        if (renderStateUpdated) {
             updateRenderState()
             needAtLeastNumVolumes(renderStacks.size)
             renderStateUpdated = false
         }
 
-        if(freezeRequiredBlocks == false) {
+        if (freezeRequiredBlocks == false) {
             updateBlocks(context)
         }
 
@@ -420,6 +424,6 @@ open class BDVVolume(bdvXMLFile: String = "", val options: VolumeViewerOptions) 
     /** Companion object for BDVVolume */
     companion object {
         /** Static [ForkJoinPool] for fill task submission. */
-        protected val forkJoinPool: ForkJoinPool = ForkJoinPool(max(1, Runtime.getRuntime().availableProcessors()/2))
+        protected val forkJoinPool: ForkJoinPool = ForkJoinPool(max(1, Runtime.getRuntime().availableProcessors() / 2))
     }
 }

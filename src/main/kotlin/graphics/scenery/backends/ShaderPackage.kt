@@ -22,12 +22,12 @@ data class ShaderPackage(val baseClass: Class<*>,
     private val logger by LazyLogger()
 
     init {
-        val sourceNewer = if(code != null) {
+        val sourceNewer = if (code != null) {
             val codeDate = Date(baseClass.getResource(codePath).openConnection().lastModified)
-            val spirvDate = if(spirv != null) {
+            val spirvDate = if (spirv != null) {
                 logger.debug("base class for path=$spirvPath=$baseClass")
                 val res = baseClass.getResource(spirvPath)
-                if(res == null) {
+                if (res == null) {
                     Date(0)
                 } else {
                     Date(res.openConnection().lastModified + 500)
@@ -41,7 +41,7 @@ data class ShaderPackage(val baseClass: Class<*>,
             false
         }
 
-        priority = if(sourceNewer) {
+        priority = if (sourceNewer) {
             SourceSPIRVPriority.SourcePriority
         } else {
             SourceSPIRVPriority.SPIRVPriority
@@ -54,14 +54,14 @@ data class ShaderPackage(val baseClass: Class<*>,
     fun getSPIRVBytecode(): IntVec? {
         val bytecode = IntVec()
 
-        if(spirv == null) {
+        if (spirv == null) {
             return null
         }
 
         val buffer = BufferUtils.allocateByteAndPut(spirv).asIntBuffer()
 
-        while(buffer.hasRemaining()) {
-            bytecode.pushBack(1L*buffer.get())
+        while (buffer.hasRemaining()) {
+            bytecode.pushBack(1L * buffer.get())
         }
 
         return bytecode

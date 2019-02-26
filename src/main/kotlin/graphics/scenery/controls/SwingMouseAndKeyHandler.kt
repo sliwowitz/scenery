@@ -193,7 +193,7 @@ class SwingMouseAndKeyHandler : MouseAndKeyHandlerBase(), KeyListener, MouseList
 
 
     override fun mouseDragged(e: MouseEvent) {
-        		logger.trace( "MouseAndKeyHandler.mouseDragged()" );
+        logger.trace("MouseAndKeyHandler.mouseDragged()");
         //		logger.trace( e );
         update()
 
@@ -205,7 +205,7 @@ class SwingMouseAndKeyHandler : MouseAndKeyHandlerBase(), KeyListener, MouseList
     }
 
     override fun mouseMoved(e: MouseEvent) {
-        		logger.trace( "MouseAndKeyHandler.mouseMoved()" );
+        logger.trace("MouseAndKeyHandler.mouseMoved()");
         update()
 
         mouseX = e.x
@@ -216,7 +216,7 @@ class SwingMouseAndKeyHandler : MouseAndKeyHandlerBase(), KeyListener, MouseList
     }
 
     override fun mouseWheelMoved(e: MouseWheelEvent) {
-        		logger.trace( "MouseAndKeyHandler.mouseWheelMoved()" );
+        logger.trace("MouseAndKeyHandler.mouseWheelMoved()");
         //		logger.trace( e );
         update()
 
@@ -243,7 +243,7 @@ class SwingMouseAndKeyHandler : MouseAndKeyHandlerBase(), KeyListener, MouseList
     }
 
     override fun mouseClicked(e: MouseEvent) {
-        logger.trace( "MouseAndKeyHandler.mouseClicked()" );
+        logger.trace("MouseAndKeyHandler.mouseClicked()");
         //		logger.trace( e );
         update()
 
@@ -260,7 +260,7 @@ class SwingMouseAndKeyHandler : MouseAndKeyHandlerBase(), KeyListener, MouseList
     }
 
     override fun mousePressed(e: MouseEvent) {
-        logger.trace( "MouseAndKeyHandler.mousePressed()" )
+        logger.trace("MouseAndKeyHandler.mousePressed()")
         //		logger.trace( e );
         update()
 
@@ -277,7 +277,7 @@ class SwingMouseAndKeyHandler : MouseAndKeyHandlerBase(), KeyListener, MouseList
     }
 
     override fun mouseReleased(e: MouseEvent) {
-        logger.trace( "MouseAndKeyHandler.mouseReleased()" )
+        logger.trace("MouseAndKeyHandler.mouseReleased()")
         //		logger.trace( e );
         update()
 
@@ -296,21 +296,21 @@ class SwingMouseAndKeyHandler : MouseAndKeyHandlerBase(), KeyListener, MouseList
     }
 
     override fun mouseEntered(e: MouseEvent) {
-        logger.trace( "MouseAndKeyHandler.mouseEntered()" )
+        logger.trace("MouseAndKeyHandler.mouseEntered()")
         update()
         if (keypressManager != null)
             keypressManager!!.activate(receiver)
     }
 
     override fun mouseExited(e: MouseEvent) {
-        logger.trace( "MouseAndKeyHandler.mouseExited()" )
+        logger.trace("MouseAndKeyHandler.mouseExited()")
         update()
         if (keypressManager != null)
             keypressManager!!.deactivate(receiver)
     }
 
     override fun keyPressed(e: KeyEvent) {
-        logger.trace( "MouseAndKeyHandler.keyPressed()" )
+        logger.trace("MouseAndKeyHandler.keyPressed()")
         //		logger.trace( e );
         update()
 

@@ -2319,7 +2319,7 @@ open class VulkanRenderer(hub: Hub,
         }
 
         with(VU.newCommandBuffer(device, commandPools.Standard, autostart = true)) {
-            val copyRegion = vk.BufferCopy { size =instanceBufferSize }
+            val copyRegion = vk.BufferCopy { size = instanceBufferSize }
 
             nvkCmdCopyBuffer(this,
                 stagingBuffer.vulkanBuffer,

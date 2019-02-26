@@ -4,7 +4,6 @@ import graphics.scenery.Hub
 import graphics.scenery.backends.RenderConfigReader
 import graphics.scenery.backends.SceneryWindow
 import graphics.scenery.utils.LazyLogger
-import graphics.scenery.utils.SceneryFXPanel
 import graphics.scenery.utils.SceneryPanel
 import org.lwjgl.glfw.GLFW.*
 import org.lwjgl.glfw.GLFWVulkan
@@ -85,7 +84,7 @@ open class VulkanSwapchain(open val device: VulkanDevice,
         glfwDefaultWindowHints()
         glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API)
 
-        if(undecorated) {
+        if (undecorated) {
             glfwWindowHint(GLFW_DECORATED, GLFW_FALSE)
         }
 
@@ -133,7 +132,7 @@ open class VulkanSwapchain(open val device: VulkanDevice,
         val modes = IntArray(count)
         presentModes.get(modes)
 
-        return if(modes.contains(preferredMode)) {
+        return if (modes.contains(preferredMode)) {
             preferredMode
         } else {
             KHRSurface.VK_PRESENT_MODE_FIFO_KHR
@@ -163,7 +162,7 @@ open class VulkanSwapchain(open val device: VulkanDevice,
 
             // use fifo mode (aka, vsynced) if requested,
             // otherwise, use mailbox mode and present the most recently generated frame.
-            val preferredSwapchainPresentMode = if(vsync) {
+            val preferredSwapchainPresentMode = if (vsync) {
                 KHRSurface.VK_PRESENT_MODE_FIFO_KHR
             } else {
                 KHRSurface.VK_PRESENT_MODE_IMMEDIATE_KHR
@@ -417,7 +416,7 @@ open class VulkanSwapchain(open val device: VulkanDevice,
      * To be called after presenting, will deallocate retired swapchains.
      */
     override fun postPresent(image: Int) {
-        while(retiredSwapchains.isNotEmpty()) {
+        while (retiredSwapchains.isNotEmpty()) {
             retiredSwapchains.poll()?.let {
                 KHRSwapchain.vkDestroySwapchainKHR(it.first.vulkanDevice, it.second, null)
             }
@@ -499,7 +498,7 @@ open class VulkanSwapchain(open val device: VulkanDevice,
      * see [FXSwapchain] instead.
      */
     override fun embedIn(panel: SceneryPanel?) {
-        if(panel == null) {
+        if (panel == null) {
             return
         }
 

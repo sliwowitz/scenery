@@ -206,7 +206,7 @@ abstract class Renderer : Hubable {
                     } catch (e: Exception) {
                         logger.warn("Vulkan unavailable (${e.cause}, ${e.message}), falling back to OpenGL.")
                         logger.debug("Full exception: $e")
-                        if(logger.isDebugEnabled) {
+                        if (logger.isDebugEnabled) {
                             e.printStackTrace()
                         }
                         OpenGLRenderer(hub, applicationName, scene, windowWidth, windowHeight, config, embedIn, embedInDrawable)
@@ -216,7 +216,7 @@ abstract class Renderer : Hubable {
                 }
             } catch (e: Exception) {
                 logger.error("Could not instantiate renderer. Is your graphics card working properly and do you have the most recent drivers installed?")
-                if(logger.isDebugEnabled) {
+                if (logger.isDebugEnabled) {
                     e.printStackTrace()
                 }
                 throw e

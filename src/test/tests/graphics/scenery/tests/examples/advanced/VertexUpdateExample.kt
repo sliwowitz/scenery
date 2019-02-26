@@ -53,7 +53,7 @@ class VertexUpdateExample : SceneryBase("VertexUpdateExample") {
 
         var ticks = 0
         thread {
-            while(!scene.initialized) {
+            while (!scene.initialized) {
                 Thread.sleep(200)
             }
 
@@ -115,7 +115,8 @@ class VertexUpdateExample : SceneryBase("VertexUpdateExample") {
         }
     }
 
-    @Test override fun main() {
+    @Test
+    override fun main() {
         super.main()
     }
 }

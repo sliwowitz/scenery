@@ -2,8 +2,6 @@ package graphics.scenery.utils
 
 import graphics.scenery.Hub
 import graphics.scenery.Hubable
-import kotlinx.coroutines.CoroutineStart
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.async
 import java.util.*
@@ -49,7 +47,7 @@ class Statistics(override var hub: Hub?) : Hubable {
          * precision, if [isTime] is true.
          */
         fun Float.inMillisecondsIfTime(): String {
-            return if(isTime) {
+            return if (isTime) {
                 String.format(Locale.US, "%.2f", this / 1000000)
             } else {
                 String.format(Locale.US, "%.2f", this)
@@ -73,7 +71,7 @@ class Statistics(override var hub: Hub?) : Hubable {
                 d.data.push(value)
                 d
             }.let {
-                if(it.data.size >= dataSize) {
+                if (it.data.size >= dataSize) {
                     it.data.removeLast()
                 }
 
@@ -125,7 +123,8 @@ class Statistics(override var hub: Hub?) : Hubable {
     }
 
     /** Logs all statistics as info via the logger infrastructure */
-    @Suppress("unused") fun log() {
-         logger.info(this.toString())
+    @Suppress("unused")
+    fun log() {
+        logger.info(this.toString())
     }
 }

@@ -12,7 +12,7 @@ import kotlin.math.floor
  *
  * @author Ulrik Günther <hello@ulrik.is>
  */
-class PBLExample: SceneryBase("PBLExample", windowWidth = 1280, windowHeight = 720) {
+class PBLExample : SceneryBase("PBLExample", windowWidth = 1280, windowHeight = 720) {
     override fun init() {
         renderer = Renderer.createRenderer(hub, applicationName, scene, windowWidth, windowHeight)
         hub.add(SceneryElement.Renderer, renderer!!)
@@ -20,9 +20,9 @@ class PBLExample: SceneryBase("PBLExample", windowWidth = 1280, windowHeight = 7
         val rowSize = 10f
         val spheres = (0 until 100).map {
             val s = Icosphere(0.4f, 2)
-            s.position = GLVector(floor(it / rowSize), (it % rowSize.toInt()).toFloat(), 0.0f) - GLVector((rowSize - 1.0f)/2.0f, (rowSize - 1.0f)/2.0f, 0.0f)
-            s.material.roughness = (it / rowSize)/rowSize
-            s.material.metallic = (it % rowSize.toInt())/rowSize
+            s.position = GLVector(floor(it / rowSize), (it % rowSize.toInt()).toFloat(), 0.0f) - GLVector((rowSize - 1.0f) / 2.0f, (rowSize - 1.0f) / 2.0f, 0.0f)
+            s.material.roughness = (it / rowSize) / rowSize
+            s.material.metallic = (it % rowSize.toInt()) / rowSize
             s.material.diffuse = GLVector(1.0f, 0.0f, 0.0f)
 
             s
@@ -41,8 +41,8 @@ class PBLExample: SceneryBase("PBLExample", windowWidth = 1280, windowHeight = 7
         val lights = (0 until 8).map {
             val l = PointLight(radius = 20.0f)
             l.position = GLVector(
-                Random.randomFromRange(-rowSize/2.0f, rowSize/2.0f),
-                Random.randomFromRange(-rowSize/2.0f, rowSize/2.0f),
+                Random.randomFromRange(-rowSize / 2.0f, rowSize / 2.0f),
+                Random.randomFromRange(-rowSize / 2.0f, rowSize / 2.0f),
                 Random.randomFromRange(1.0f, 5.0f)
             )
             l.emissionColor = Random.randomVectorFromRange(3, 0.8f, 1.0f)
@@ -79,7 +79,8 @@ class PBLExample: SceneryBase("PBLExample", windowWidth = 1280, windowHeight = 7
         setupCameraModeSwitching()
     }
 
-    @Test override fun main() {
+    @Test
+    override fun main() {
         super.main()
     }
 }

@@ -43,10 +43,12 @@ open class Material : Serializable {
     /** Hash map storing the type and origin of the material's textures. Key is the
      * type, e.g. ("diffuse", "normal", "displacement"...), value can be a file path or
      * via "fromBuffer:[transferTextureName], a named [GenericTexture] in [transferTextures]. */
-    @Volatile var textures: ConcurrentHashMap<String, String> = ConcurrentHashMap()
+    @Volatile
+    var textures: ConcurrentHashMap<String, String> = ConcurrentHashMap()
     /** Storage for textures to be transfered to a concrete texture by the renderer. [GenericTexture]
      * stores the data and settings of the texture, a renderer will consume them later. */
-    @Volatile var transferTextures: ConcurrentHashMap<String, GenericTexture> = ConcurrentHashMap()
+    @Volatile
+    var transferTextures: ConcurrentHashMap<String, GenericTexture> = ConcurrentHashMap()
 
     /** Culling mode of the material. @see[CullingMode] */
     var cullingMode: CullingMode = CullingMode.Back
@@ -64,6 +66,7 @@ open class Material : Serializable {
          *
          * @return Material with default properties
          */
-        @JvmStatic fun DefaultMaterial(): Material = Material()
+        @JvmStatic
+        fun DefaultMaterial(): Material = Material()
     }
 }

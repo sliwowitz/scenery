@@ -65,7 +65,7 @@ class TrackedStereoGlasses(var address: String = "device@localhost:5500", var sc
             val top = screen.height - result.y()
             var near = -result.z()
 
-            if(near < 0.0001f) {
+            if (near < 0.0001f) {
                 near = 0.0001f
             }
 
@@ -146,7 +146,7 @@ class TrackedStereoGlasses(var address: String = "device@localhost:5500", var sc
      * @return HMD position as GLVector
      */
     override fun getPosition(): GLVector {
-        if(System.getProperty("scenery.FakeVRPN", "false").toBoolean()) {
+        if (System.getProperty("scenery.FakeVRPN", "false").toBoolean()) {
 //            val pos = GLVector(
 //                1.92f * Math.sin(System.nanoTime()/10e9 % (2.0*Math.PI)).toFloat(),
 //                1.5f,
@@ -203,7 +203,7 @@ class TrackedStereoGlasses(var address: String = "device@localhost:5500", var sc
      * @return True if HMD is initialised correctly and working properly
      */
     override fun initializedAndWorking(): Boolean {
-        if(System.getProperty("scenery.FakeVRPN", "false").toBoolean()) {
+        if (System.getProperty("scenery.FakeVRPN", "false").toBoolean()) {
             return true
         }
 
@@ -220,7 +220,7 @@ class TrackedStereoGlasses(var address: String = "device@localhost:5500", var sc
     override fun getVulkanInstanceExtensions(): List<String> = emptyList()
 
     override fun getWorkingTracker(): TrackerInput? {
-        if(initializedAndWorking()) {
+        if (initializedAndWorking()) {
             return this
         } else {
             return null
@@ -230,7 +230,7 @@ class TrackedStereoGlasses(var address: String = "device@localhost:5500", var sc
     override fun getVulkanDeviceExtensions(physicalDevice: VkPhysicalDevice): List<String> = emptyList()
 
     override fun getWorkingDisplay(): Display? {
-        if(initializedAndWorking()) {
+        if (initializedAndWorking()) {
             return this
         } else {
             return null
@@ -245,7 +245,7 @@ class TrackedStereoGlasses(var address: String = "device@localhost:5500", var sc
      */
     override fun getHeadToEyeTransform(eye: Int): GLMatrix {
         val shift = GLMatrix.getIdentity()
-        if(eye == 0) {
+        if (eye == 0) {
             shift.translate(-0.025f, 0.0f, 0.0f)
         } else {
             shift.translate(0.025f, 0.0f, 0.0f)

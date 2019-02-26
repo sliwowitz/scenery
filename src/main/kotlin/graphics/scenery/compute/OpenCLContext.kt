@@ -55,12 +55,12 @@ class OpenCLContext(override var hub: Hub?, devicePreference: String = System.ge
         }, { cl_device_id() })
         device = devices[devicePref]
 
-		logger.info("Selected device: ${getString(device, CL_DEVICE_NAME)} running ${getString(device, CL_DEVICE_VERSION)}")
+        logger.info("Selected device: ${getString(device, CL_DEVICE_NAME)} running ${getString(device, CL_DEVICE_VERSION)}")
 
         // Create a context for the selected device
         context = clCreateContext(
-                contextProperties, 1, arrayOf(device),
-                null, null, null)
+            contextProperties, 1, arrayOf(device),
+            null, null, null)
 
         // Create a command-queue for the selected device
         @Suppress("DEPRECATION")
@@ -71,8 +71,7 @@ class OpenCLContext(override var hub: Hub?, devicePreference: String = System.ge
      * Returns the device info for [device], specifically the parameter
      * named [paramName].
      */
-    fun getString(device: cl_device_id, paramName: Int): String
-    {
+    fun getString(device: cl_device_id, paramName: Int): String {
         // Obtain the length of the string that will be queried
         val size = LongArray(1)
         clGetDeviceInfo(device, paramName, 0, null, size)
@@ -82,7 +81,7 @@ class OpenCLContext(override var hub: Hub?, devicePreference: String = System.ge
         clGetDeviceInfo(device, paramName, buffer.size.toLong(), Pointer.to(buffer), null)
 
         // Create a string from the buffer (excluding the trailing \0 byte)
-        return String(buffer, 0, buffer.size-1)
+        return String(buffer, 0, buffer.size - 1)
     }
 
     /**
@@ -91,7 +90,7 @@ class OpenCLContext(override var hub: Hub?, devicePreference: String = System.ge
      */
     @Suppress("unused")
     fun loadKernel(source: String, name: String): OpenCLContext {
-        if(!kernels.containsKey(name)) {
+        if (!kernels.containsKey(name)) {
             // Create the program from the source code
             val program = clCreateProgramWithSource(context, 1, arrayOf(source), null, null)
 
@@ -129,21 +128,21 @@ class OpenCLContext(override var hub: Hub?, devicePreference: String = System.ge
      * Returns the OpenCL size of different JVM objects as Long.
      */
     protected fun getSizeof(obj: Any): Long {
-        return when(obj.javaClass) {
-            Float::class.java   -> Sizeof.cl_float
-            Int::class.java     -> Sizeof.cl_int
+        return when (obj.javaClass) {
+            Float::class.java -> Sizeof.cl_float
+            Int::class.java -> Sizeof.cl_int
             Integer::class.java -> Sizeof.cl_int
-            Byte::class.java    -> Sizeof.cl_uchar
-            cl_mem::class.java  -> Sizeof.cl_mem
+            Byte::class.java -> Sizeof.cl_uchar
+            cl_mem::class.java -> Sizeof.cl_mem
 
             // buffers
             FloatBuffer::class.java -> Sizeof.cl_float
-            ByteBuffer::class.java  -> Sizeof.cl_uchar
-            IntBuffer::class.java   -> Sizeof.cl_int
+            ByteBuffer::class.java -> Sizeof.cl_uchar
+            IntBuffer::class.java -> Sizeof.cl_int
 
-            else                -> {
+            else -> {
                 // these classes are package-local and can therefore not be matched for here directly
-                if(obj.javaClass.canonicalName.contains("DirectByteBuffer") || obj.javaClass.canonicalName.contains("HeapByteBuffer")) {
+                if (obj.javaClass.canonicalName.contains("DirectByteBuffer") || obj.javaClass.canonicalName.contains("HeapByteBuffer")) {
                     1
                 } else {
                     logger.error("Unrecognized class ${obj.javaClass.canonicalName}, returning 1 byte as size")
@@ -201,7 +200,7 @@ class OpenCLContext(override var hub: Hub?, devicePreference: String = System.ge
 
         // Execute the kernel
         clEnqueueNDRangeKernel(this.queue, k, 1, null,
-                global_work_size, local_work_size, 0, null, null)
+            global_work_size, local_work_size, 0, null, null)
 
     }
 
@@ -212,9 +211,9 @@ class OpenCLContext(override var hub: Hub?, devicePreference: String = System.ge
         buffer.rewind()
 
         val p = Pointer.to(buffer)
-        var flags = if(readonly) CL_MEM_READ_ONLY else CL_MEM_READ_WRITE
+        var flags = if (readonly) CL_MEM_READ_ONLY else CL_MEM_READ_WRITE
         flags = flags or CL_MEM_COPY_HOST_PTR
-        val mem = clCreateBuffer(this.context, flags, getSizeof(buffer)*buffer.remaining(), p, null)
+        val mem = clCreateBuffer(this.context, flags, getSizeof(buffer) * buffer.remaining(), p, null)
 
         return mem
     }
@@ -226,7 +225,7 @@ class OpenCLContext(override var hub: Hub?, devicePreference: String = System.ge
         buffer.rewind()
         val flags = CL_MEM_READ_WRITE
 
-        return clCreateBuffer(context, flags, getSizeof(buffer) *buffer.remaining(), null, null)
+        return clCreateBuffer(context, flags, getSizeof(buffer) * buffer.remaining(), null, null)
     }
 
     /**

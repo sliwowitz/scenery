@@ -24,17 +24,20 @@ class DirectionalLight(var direction: GLVector = GLVector(0.0f, 1.0f, 0.0f)) : L
     @ShaderProperty
     override val lightType: LightType = LightType.DirectionalLight
 
-    @ShaderProperty private var lightRadius: Float = 1.0f
+    @ShaderProperty
+    private var lightRadius: Float = 1.0f
 
     /** Node name of the Point Light */
     override var name = "PointLight"
 
     @Suppress("unused") // will be serialised into ShaderProperty buffer
-    @ShaderProperty val worldPosition
+    @ShaderProperty
+    val worldPosition
         get() = direction
 
     @Suppress("unused") // will be serialised into ShaderProperty buffer
-    @ShaderProperty var debugMode = 0
+    @ShaderProperty
+    var debugMode = 0
 
     init {
         // fake geometry

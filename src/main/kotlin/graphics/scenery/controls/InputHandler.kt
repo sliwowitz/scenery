@@ -55,8 +55,8 @@ class InputHandler(scene: Scene, renderer: Renderer, override var hub: Hub?) : H
 
     init {
 
-        when(window) {
-            is SceneryWindow.ClearGLWindow  -> {
+        when (window) {
+            is SceneryWindow.ClearGLWindow -> {
                 // create Mouse & Keyboard Handler
                 handler = JOGLMouseAndKeyHandler(hub)
                 handler.setInputMap(inputMap)
@@ -100,7 +100,7 @@ class InputHandler(scene: Scene, renderer: Renderer, override var hub: Hub?) : H
                 val component = window.panel.component
                 val cglWindow = window.panel.cglWindow
 
-                if(component is NewtCanvasAWT && cglWindow != null) {
+                if (component is NewtCanvasAWT && cglWindow != null) {
                     handler = JOGLMouseAndKeyHandler(hub)
 
                     handler.setInputMap(inputMap)
@@ -214,23 +214,23 @@ class InputHandler(scene: Scene, renderer: Renderer, override var hub: Hub?) : H
         } catch (e: FileNotFoundException) {
             logger.info("No custom key configuration found, using default keybindings.")
             reader = StringReader("---\n" +
-                    "- !mapping" + "\n" +
-                    "  action: mouse_control" + "\n" +
-                    "  contexts: [all]" + "\n" +
-                    "  triggers: [button1, G]" + "\n" +
-                    "- !mapping" + "\n" +
-                    "  action: gamepad_movement_control" + "\n" +
-                    "  contexts: [all]" + "\n" +
-                    "  triggers: [button1]" + "\n" +
-                    "- !mapping" + "\n" +
-                    "  action: gamepad_camera_control" + "\n" +
-                    "  contexts: [all]" + "\n" +
-                    "  triggers: [P]" + "\n" +
-                    "- !mapping" + "\n" +
-                    "  action: scroll1" + "\n" +
-                    "  contexts: [all]" + "\n" +
-                    "  triggers: [scroll]" + "\n" +
-                    "")
+                "- !mapping" + "\n" +
+                "  action: mouse_control" + "\n" +
+                "  contexts: [all]" + "\n" +
+                "  triggers: [button1, G]" + "\n" +
+                "- !mapping" + "\n" +
+                "  action: gamepad_movement_control" + "\n" +
+                "  contexts: [all]" + "\n" +
+                "  triggers: [button1]" + "\n" +
+                "- !mapping" + "\n" +
+                "  action: gamepad_camera_control" + "\n" +
+                "  contexts: [all]" + "\n" +
+                "  triggers: [P]" + "\n" +
+                "- !mapping" + "\n" +
+                "  action: scroll1" + "\n" +
+                "  contexts: [all]" + "\n" +
+                "  triggers: [scroll]" + "\n" +
+                "")
         }
 
         config = InputTriggerConfig(YamlConfigIO.read(reader))

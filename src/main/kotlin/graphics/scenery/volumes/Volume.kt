@@ -8,6 +8,8 @@ import graphics.scenery.backends.vulkan.toHexString
 import graphics.scenery.numerics.OpenSimplexNoise
 import graphics.scenery.numerics.Random
 import graphics.scenery.utils.forEachParallel
+import graphics.scenery.volumes.Volume.Colormap.ColormapBuffer
+import graphics.scenery.volumes.Volume.Colormap.ColormapFile
 import io.scif.SCIFIO
 import io.scif.util.FormatTools
 import org.lwjgl.system.MemoryUtil
@@ -60,6 +62,7 @@ open class Volume(var autosetProperties: Boolean = true) : Mesh("Volume") {
 
         /** Returns the minimum value contained in the histogram. */
         fun min(): T = bins.keys.minBy { it } ?: (0 as T)
+
         /** Returns the maximum value contained in the histogram. */
         fun max(): T = bins.keys.maxBy { it } ?: (0 as T)
     }
@@ -70,7 +73,8 @@ open class Volume(var autosetProperties: Boolean = true) : Mesh("Volume") {
     var lockTransferRange = false
 
     /** Flexible [ShaderProperty] storage */
-    @ShaderProperty var shaderProperties = hashMapOf<String, Any>()
+    @ShaderProperty
+    var shaderProperties = hashMapOf<String, Any>()
 
     /**
      *  The rendering method used in the shader, can be
@@ -79,67 +83,91 @@ open class Volume(var autosetProperties: Boolean = true) : Mesh("Volume") {
      *  1 -- Maximum Intensity Projection
      *  2 -- Alpha compositing
      */
-    @ShaderProperty var renderingMethod: Int = 0
+    @ShaderProperty
+    var renderingMethod: Int = 0
 
     /** Transfer function minimum */
-    @ShaderProperty var trangemin = 0.00f
+    @ShaderProperty
+    var trangemin = 0.00f
         set(value) {
-            if(!lockTransferRange) {
+            if (!lockTransferRange) {
                 field = value
             }
         }
 
     /** Transfer function maximum */
-    @ShaderProperty var trangemax = 1.0f
+    @ShaderProperty
+    var trangemax = 1.0f
         set(value) {
-            if(!lockTransferRange) {
+            if (!lockTransferRange) {
                 field = value
             }
         }
 
     /** Bounding box minimum in x direction */
-    @ShaderProperty var boxMin_x = -boxwidth
+    @ShaderProperty
+    var boxMin_x = -boxwidth
     /** Bounding box minimum in y direction */
-    @ShaderProperty var boxMin_y = -boxwidth
+    @ShaderProperty
+    var boxMin_y = -boxwidth
     /** Bounding box minimum in z direction */
-    @ShaderProperty var boxMin_z = -boxwidth
+    @ShaderProperty
+    var boxMin_z = -boxwidth
 
     /** Bounding box maximum in x direction */
-    @ShaderProperty var boxMax_x = boxwidth
+    @ShaderProperty
+    var boxMax_x = boxwidth
     /** Bounding box maximum in y direction */
-    @ShaderProperty var boxMax_y = boxwidth
+    @ShaderProperty
+    var boxMax_y = boxwidth
     /** Bounding box maximum in z direction */
-    @ShaderProperty var boxMax_z = boxwidth
+    @ShaderProperty
+    var boxMax_z = boxwidth
 
     /** Maximum steps to take along a single ray through the volume */
-    @ShaderProperty var stepSize = 0.01f
+    @ShaderProperty
+    var stepSize = 0.01f
     /** Alpha blending factor */
-    @ShaderProperty var alphaBlending = 1.0f
+    @ShaderProperty
+    var alphaBlending = 1.0f
     /** Gamma exponent */
-    @ShaderProperty var gamma = 1.0f
+    @ShaderProperty
+    var gamma = 1.0f
 
     /** Volume size in voxels along x direction */
-    @ShaderProperty var sizeX by Delegates.observable(256) { property, old, new -> volumePropertyChanged(property, old, new) }
+    @ShaderProperty
+    var sizeX by Delegates.observable(256) { property, old, new -> volumePropertyChanged(property, old, new) }
     /** Volume size in voxels along y direction */
-    @ShaderProperty var sizeY by Delegates.observable(256) { property, old, new -> volumePropertyChanged(property, old, new) }
+    @ShaderProperty
+    var sizeY by Delegates.observable(256) { property, old, new -> volumePropertyChanged(property, old, new) }
     /** Volume size in voxels along z direction */
-    @ShaderProperty var sizeZ by Delegates.observable(256) { property, old, new -> volumePropertyChanged(property, old, new) }
+    @ShaderProperty
+    var sizeZ by Delegates.observable(256) { property, old, new -> volumePropertyChanged(property, old, new) }
 
     /** Voxel size in x direction */
-    @ShaderProperty var voxelSizeX by Delegates.observable(1.0f) { property, old, new -> volumePropertyChanged(property, old, new) }
+    @ShaderProperty
+    var voxelSizeX by Delegates.observable(1.0f) { property, old, new -> volumePropertyChanged(property, old, new) }
     /** Voxel size in y direction */
-    @ShaderProperty var voxelSizeY by Delegates.observable(1.0f) { property, old, new -> volumePropertyChanged(property, old, new) }
+    @ShaderProperty
+    var voxelSizeY by Delegates.observable(1.0f) { property, old, new -> volumePropertyChanged(property, old, new) }
     /** Voxel size in z direction */
-    @ShaderProperty var voxelSizeZ by Delegates.observable(1.0f) { property, old, new -> volumePropertyChanged(property, old, new) }
+    @ShaderProperty
+    var voxelSizeZ by Delegates.observable(1.0f) { property, old, new -> volumePropertyChanged(property, old, new) }
 
-    @ShaderProperty protected var dataRangeMin: Int = 0
-    @ShaderProperty protected var dataRangeMax: Int = 255
+    @ShaderProperty
+    protected var dataRangeMin: Int = 0
+    @ShaderProperty
+    protected var dataRangeMax: Int = 255
 
-    @ShaderProperty var kernelSize: Float = 0.01f
-    @ShaderProperty var maxOcclusionDistance: Float = 0.01f
-    @ShaderProperty var occlusionSteps: Int = 4
+    @ShaderProperty
+    var kernelSize: Float = 0.01f
+    @ShaderProperty
+    var maxOcclusionDistance: Float = 0.01f
+    @ShaderProperty
+    var occlusionSteps: Int = 4
 
-    @ShaderProperty var time: Float = System.nanoTime().toFloat()
+    @ShaderProperty
+    var time: Float = System.nanoTime().toFloat()
 
     /** The transfer function to use for the volume. Flat by default. */
     var transferFunction: TransferFunction = TransferFunction.flat(1.0f)
@@ -194,7 +222,8 @@ open class Volume(var autosetProperties: Boolean = true) : Mesh("Volume") {
         }
 
     /** Temporary storage for volume data */
-    @Transient protected val volumes = ConcurrentHashMap<String, VolumeDescriptor>()
+    @Transient
+    protected val volumes = ConcurrentHashMap<String, VolumeDescriptor>()
 
     /** Stores the current volume's name. Can be set to the path of a new volume */
     var currentVolume: String = ""
@@ -328,7 +357,8 @@ open class Volume(var autosetProperties: Boolean = true) : Mesh("Volume") {
      * [buffer] is assumed to contain [x]*[y]*[z]*[bytesPerVoxel] bytes and be of the type
      * [dataType]. For anisotropic volumes, [voxelX], [voxelY] and [voxelZ] can be set appropriately.
      */
-    @JvmOverloads fun readFromBuffer(id: String, buffer: ByteBuffer,
+    @JvmOverloads
+    fun readFromBuffer(id: String, buffer: ByteBuffer,
                        x: Long, y: Long, z: Long,
                        voxelX: Float, voxelY: Float, voxelZ: Float,
                        dataType: NativeTypeEnum = NativeTypeEnum.UnsignedInt, bytesPerVoxel: Int = 2,
@@ -357,7 +387,7 @@ open class Volume(var autosetProperties: Boolean = true) : Mesh("Volume") {
         }
 
         if (vol != null) {
-            assignVolumeTexture( longArrayOf( x, y, z ), vol, allowDeallocation)
+            assignVolumeTexture(longArrayOf(x, y, z), vol, allowDeallocation)
         }
     }
 
@@ -367,7 +397,7 @@ open class Volume(var autosetProperties: Boolean = true) : Mesh("Volume") {
         assert(bytes.size % 4 == 0)
         var i = 0
         while (i < bytes.size) {
-            UNSAFE.putInt(bytes, 1L*BYTES_OFFSET + i, Integer.reverseBytes(UNSAFE.getInt(bytes, 1L*BYTES_OFFSET + i)))
+            UNSAFE.putInt(bytes, 1L * BYTES_OFFSET + i, Integer.reverseBytes(UNSAFE.getInt(bytes, 1L * BYTES_OFFSET + i)))
             i += 4
         }
 
@@ -379,13 +409,13 @@ open class Volume(var autosetProperties: Boolean = true) : Mesh("Volume") {
      * replace the current volumes' buffer and mark it for deallocation.
      */
     fun readFrom(file: Path, replace: Boolean = false): String {
-        if(file.normalize().toString().endsWith("raw")) {
+        if (file.normalize().toString().endsWith("raw")) {
             return readFromRaw(file, replace)
         }
 
         val reader = scifio.initializer().initializeReader(file.normalize().toString())
 
-        if(autosetProperties) {
+        if (autosetProperties) {
             voxelSizeX = 1.0f
             voxelSizeY = 1.0f
             voxelSizeZ = 1.0f
@@ -398,10 +428,10 @@ open class Volume(var autosetProperties: Boolean = true) : Mesh("Volume") {
         }
 
         val id = file.fileName.toString()
-        val bytesPerVoxel = reader.openPlane(0, 0).imageMetadata.bitsPerPixel/8
+        val bytesPerVoxel = reader.openPlane(0, 0).imageMetadata.bitsPerPixel / 8
         reader.openPlane(0, 0).imageMetadata.pixelType
 
-        val dataType = when(reader.openPlane(0, 0).imageMetadata.pixelType) {
+        val dataType = when (reader.openPlane(0, 0).imageMetadata.pixelType) {
             FormatTools.INT8 -> NativeTypeEnum.Byte
             FormatTools.INT16 -> NativeTypeEnum.Short
             FormatTools.INT32 -> NativeTypeEnum.Int
@@ -424,15 +454,15 @@ open class Volume(var autosetProperties: Boolean = true) : Mesh("Volume") {
             logger.info("Loading $id from disk")
             val imageData: ByteBuffer = memAlloc((bytesPerVoxel * sizeX * sizeY * sizeZ))
 
-            logger.info("${file.fileName}: Allocated ${imageData.capacity()} bytes for $dataType ${8*bytesPerVoxel}bit image of $sizeX/$sizeY/$sizeZ")
+            logger.info("${file.fileName}: Allocated ${imageData.capacity()} bytes for $dataType ${8 * bytesPerVoxel}bit image of $sizeX/$sizeY/$sizeZ")
 
             val start = System.nanoTime()
 
 //            if(reader.openPlane(0, 0).imageMetadata.isLittleEndian) {
-                logger.info("Volume is little endian")
-                (0 until reader.getPlaneCount(0)).forEach { plane ->
-                    imageData.put(reader.openPlane(0, plane).bytes)
-                }
+            logger.info("Volume is little endian")
+            (0 until reader.getPlaneCount(0)).forEach { plane ->
+                imageData.put(reader.openPlane(0, plane).bytes)
+            }
 //            } else {
 //                logger.info("Volume is big endian")
 //                (0 until reader.getPlaneCount(0)).forEach { plane ->
@@ -535,7 +565,7 @@ open class Volume(var autosetProperties: Boolean = true) : Mesh("Volume") {
                 NativeTypeEnum.UnsignedShort, 2, data = imageData
             )
 
-            if(autorange) {
+            if (autorange) {
                 thread {
                     val histogram = Histogram<Int>(65536)
                     val buf = imageData.asShortBuffer()
@@ -550,7 +580,7 @@ open class Volume(var autosetProperties: Boolean = true) : Mesh("Volume") {
                 }
             }
 
-            if(cache) {
+            if (cache) {
                 volumes.put(id, descriptor)
             }
 
@@ -563,7 +593,7 @@ open class Volume(var autosetProperties: Boolean = true) : Mesh("Volume") {
     }
 
     override fun preDraw() {
-        if(transferFunction.stale) {
+        if (transferFunction.stale) {
             logger.debug("Transfer function is stale, updating")
             material.transferTextures["transferFunction"] = GenericTexture(
                 "transferFunction", GLVector(transferFunction.textureSize.toFloat(), transferFunction.textureHeight.toFloat(), 1.0f),
@@ -593,7 +623,7 @@ open class Volume(var autosetProperties: Boolean = true) : Mesh("Volume") {
 
     protected fun assignEmptyVolumeTexture() {
         val emptyBuffer = BufferUtils.allocateByteAndPut(byteArrayOf(0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0,
-                                                                     0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0))
+            0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0))
         val dim = GLVector(2.0f, 2.0f, 2.0f)
         val gtv = GenericTexture("empty-volume", dim, 1, GLTypeEnum.UnsignedByte, emptyBuffer, false, false, normalized = true)
 
@@ -606,25 +636,25 @@ open class Volume(var autosetProperties: Boolean = true) : Mesh("Volume") {
     private val deallocations = ArrayDeque<ByteBuffer>()
 
     protected fun assignVolumeTexture(dimensions: LongArray, descriptor: VolumeDescriptor, replace: Boolean) {
-        while(deallocations.size > 20) {
+        while (deallocations.size > 20) {
             val last = deallocations.pollLast()
             logger.debug("Time series: deallocating $last from ${deallocations.map { it.hashCode() }.joinToString(", ")}")
             logger.trace("Address is ${MemoryUtil.memAddress(last).toHexString()}")
         }
 
-        val (min: Int, max: Int) = when(descriptor.dataType) {
-             NativeTypeEnum.Byte -> 0 to 255
-             NativeTypeEnum.UnsignedByte -> 0 to 255
-             NativeTypeEnum.Short -> 0 to 65536
-             NativeTypeEnum.UnsignedShort -> 0 to 65536
-             NativeTypeEnum.Int -> 0 to Integer.MAX_VALUE
-             NativeTypeEnum.UnsignedInt -> 0 to Integer.MAX_VALUE
-             NativeTypeEnum.HalfFloat -> 0 to Float.MAX_VALUE.toInt()
-             NativeTypeEnum.Float -> 0 to Float.MAX_VALUE.toInt()
+        val (min: Int, max: Int) = when (descriptor.dataType) {
+            NativeTypeEnum.Byte -> 0 to 255
+            NativeTypeEnum.UnsignedByte -> 0 to 255
+            NativeTypeEnum.Short -> 0 to 65536
+            NativeTypeEnum.UnsignedShort -> 0 to 65536
+            NativeTypeEnum.Int -> 0 to Integer.MAX_VALUE
+            NativeTypeEnum.UnsignedInt -> 0 to Integer.MAX_VALUE
+            NativeTypeEnum.HalfFloat -> 0 to Float.MAX_VALUE.toInt()
+            NativeTypeEnum.Float -> 0 to Float.MAX_VALUE.toInt()
 
-             NativeTypeEnum.Long,
-             NativeTypeEnum.UnsignedLong,
-             NativeTypeEnum.Double -> throw UnsupportedOperationException("64bit volumes are not supported")
+            NativeTypeEnum.Long,
+            NativeTypeEnum.UnsignedLong,
+            NativeTypeEnum.Double -> throw UnsupportedOperationException("64bit volumes are not supported")
         }
 
         dataRangeMin = min
@@ -664,7 +694,7 @@ open class Volume(var autosetProperties: Boolean = true) : Mesh("Volume") {
         trangemin = min
         trangemax = max
 
-        if(lock) {
+        if (lock) {
             lockTransferRange = true
         }
     }
@@ -711,23 +741,24 @@ open class Volume(var autosetProperties: Boolean = true) : Mesh("Volume") {
          *
          * Returns the newly-allocated [ByteBuffer], or the one given in [intoBuffer], set to position 0.
          */
-        @JvmStatic fun generateProceduralVolume(size: Long, radius: Float = 0.0f,
+        @JvmStatic
+        fun generateProceduralVolume(size: Long, radius: Float = 0.0f,
                                      seed: Long = Random.randomFromRange(0.0f, 133333337.0f).toLong(),
                                      shift: GLVector = GLVector.getNullVector(3),
                                      intoBuffer: ByteBuffer? = null, use16bit: Boolean = false): ByteBuffer {
             val f = 3.0f / size
             val center = size / 2.0f + 0.5f
             val noise = OpenSimplexNoise(seed)
-            val (range, bytesPerVoxel) = if(use16bit) {
+            val (range, bytesPerVoxel) = if (use16bit) {
                 65535 to 2
             } else {
                 255 to 1
             }
-            val byteSize = (size*size*size*bytesPerVoxel).toInt()
+            val byteSize = (size * size * size * bytesPerVoxel).toInt()
 
             val buffer = intoBuffer ?: memAlloc(byteSize * bytesPerVoxel)
 
-            (0 until byteSize/bytesPerVoxel).chunked(byteSize/4).forEachParallel { subList ->
+            (0 until byteSize / bytesPerVoxel).chunked(byteSize / 4).forEachParallel { subList ->
                 subList.forEach {
                     val x = it.rem(size)
                     val y = (it / size).rem(size)
@@ -740,13 +771,17 @@ open class Volume(var autosetProperties: Boolean = true) : Mesh("Volume") {
                     val offset = abs(noise.random3D((x + shift.x()) * f, (y + shift.y()) * f, (z + shift.z()) * f))
                     val d = sqrt(dx * dx + dy * dy + dz * dz) / size
 
-                    val result = if(radius > Math.ulp(1.0f)) {
-                        if(d - offset < radius) { ((d-offset)*range).toShort() } else { 0 }
+                    val result = if (radius > Math.ulp(1.0f)) {
+                        if (d - offset < radius) {
+                            ((d - offset) * range).toShort()
+                        } else {
+                            0
+                        }
                     } else {
                         ((d - offset) * range).toShort()
                     }
 
-                    if(use16bit) {
+                    if (use16bit) {
                         buffer.asShortBuffer().put(it, result)
                     } else {
                         buffer.put(it, result.toByte())

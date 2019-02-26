@@ -46,16 +46,18 @@ open class UBO {
      */
     @Suppress("PLATFORM_CLASS_MAPPED_TO_KOTLIN")
     protected fun sizeOf(element: Any): Int {
-        return when(element) {
+        return when (element) {
             is GLVector -> element.toFloatArray().size
             is GLMatrix -> element.floatArray.size
             is Float, is java.lang.Float -> 4
             is Double, is java.lang.Double -> 8
             is Int, is Integer -> 4
-            is Short, is java.lang.Short  -> 2
+            is Short, is java.lang.Short -> 2
             is Boolean, is java.lang.Boolean -> 4
             is Enum<*> -> 4
-            else -> { logger.error("Don't know how to determine size of $element"); 0 }
+            else -> {
+                logger.error("Don't know how to determine size of $element"); 0
+            }
         }
     }
 
@@ -64,16 +66,18 @@ open class UBO {
      */
     @Suppress("PLATFORM_CLASS_MAPPED_TO_KOTLIN")
     protected fun Any.objectId(): Int {
-        return when(this) {
+        return when (this) {
             is GLVector -> 0
             is GLMatrix -> 1
             is Float, is java.lang.Float -> 2
             is Double, is java.lang.Double -> 3
             is Int, is Integer -> 4
-            is Short, is java.lang.Short  -> 5
+            is Short, is java.lang.Short -> 5
             is Boolean, is java.lang.Boolean -> 6
             is Enum<*> -> 7
-            else -> { logger.error("Don't know how to determine object ID of $this/${this.javaClass.simpleName}"); -1 }
+            else -> {
+                logger.error("Don't know how to determine object ID of $this/${this.javaClass.simpleName}"); -1
+            }
         }
     }
 
@@ -86,7 +90,7 @@ open class UBO {
         // pack object id and size into one integer
         val key = (element.objectId() shl 16) or (sizeOf(element) and 0xffff)
 
-        if(alignments.containsKey(key)) {
+        if (alignments.containsKey(key)) {
             return alignments.get(key)
         } else {
             val sa = when (element) {
@@ -127,7 +131,7 @@ open class UBO {
      * Returns the total size in bytes required to store the contents of this UBO in a uniform buffer.
      */
     fun getSize(): Int {
-        val totalSize = if(sizeCached == -1) {
+        val totalSize = if (sizeCached == -1) {
             val size = members.map {
                 getSizeAndAlignment(it.value.invoke())
             }.fold(0) { current_position, (first, second) ->
@@ -165,11 +169,11 @@ open class UBO {
     @Suppress("PLATFORM_CLASS_MAPPED_TO_KOTLIN")
     fun populate(data: ByteBuffer, offset: Long = -1L, elements: (LinkedHashMap<String, () -> Any>)? = null): Boolean {
         // no need to look further
-        if(members.size == 0) {
+        if (members.size == 0) {
             return false
         }
 
-        if(offset != -1L) {
+        if (offset != -1L) {
             data.position(offset.toInt())
         }
 
@@ -178,11 +182,11 @@ open class UBO {
 
         val oldHash = hash
 
-        if(sizeCached > 0) {
+        if (sizeCached > 0) {
             // the members hash is also based on the memory address of the buffer, which is calculated at the
             // end of the routine and therefore dependent on the final buffer position.
             val newHash = getMembersHash(data.duplicate().order(ByteOrder.LITTLE_ENDIAN).position(originalPos + sizeCached) as ByteBuffer)
-            if(oldHash == newHash && elements == null) {
+            if (oldHash == newHash && elements == null) {
                 data.position(originalPos + sizeCached)
                 logger.trace("UBO members of {} have not changed, {} vs {}", this, hash, newHash)
 
@@ -198,14 +202,14 @@ open class UBO {
 
             val (size, alignment) = getSizeAndAlignment(value)
 
-            if(logger.isTraceEnabled) {
+            if (logger.isTraceEnabled) {
                 logger.trace("Populating {} of type {} size={} alignment={}", it.key, value.javaClass.simpleName, size, alignment)
             }
 
             val memberOffset = memberOffsets[it.key]
-            if(memberOffset != null) {
+            if (memberOffset != null) {
                 // position in buffer is known, use it
-                if(logger.isTraceEnabled) {
+                if (logger.isTraceEnabled) {
                     logger.trace("{} goes to {}", it.key, memberOffset)
                 }
 
@@ -262,7 +266,7 @@ open class UBO {
             memberOffsets.put(name, offset)
         }
 
-        if(previous == null || previous.invoke().javaClass != value.invoke().javaClass) {
+        if (previous == null || previous.invoke().javaClass != value.invoke().javaClass) {
             // invalidate sizes
             sizeCached = -1
         }
@@ -305,7 +309,7 @@ open class UBO {
      */
     protected fun getMembersHash(buffer: ByteBuffer): Int {
         return members.map { (it.key.hashCode() xor it.value.invoke().hashCode()).toLong() }
-            .fold(31L) { acc, value -> acc + (value xor (value.ushr(32)))}.toInt() + MemoryUtil.memAddress(buffer).hashCode()
+            .fold(31L) { acc, value -> acc + (value xor (value.ushr(32))) }.toInt() + MemoryUtil.memAddress(buffer).hashCode()
     }
 
     /**
@@ -324,7 +328,11 @@ open class UBO {
     }
 
     private fun Boolean.toInt(): Int {
-        return if(this) { 1 } else { 0 }
+        return if (this) {
+            1
+        } else {
+            0
+        }
     }
 }
 

@@ -17,7 +17,7 @@ import kotlin.reflect.KProperty
 
 class DetachedHeadCamera(@Transient var tracker: TrackerInput? = null) : Camera() {
     override var projection: GLMatrix = GLMatrix.getIdentity()
-        get() = if(tracker != null && tracker is Display) {
+        get() = if (tracker != null && tracker is Display) {
             (tracker as? Display)?.getEyeProjection(0) ?: super.projection
         } else {
             super.projection

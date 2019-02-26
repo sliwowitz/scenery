@@ -11,7 +11,7 @@ import org.junit.Test;
 public class TexturedCubeJavaExample {
     @Test
     public void testExample() throws Exception {
-        TexturedCubeJavaApplication viewer = new TexturedCubeJavaApplication( "scenery - TexturedCubeExample", 512, 512);
+        TexturedCubeJavaApplication viewer = new TexturedCubeJavaApplication("scenery - TexturedCubeExample", 512, 512);
         viewer.main();
     }
 
@@ -22,18 +22,18 @@ public class TexturedCubeJavaExample {
 
         public void init() {
 
-            setRenderer( Renderer.createRenderer(getHub(), getApplicationName(), getScene(), getWindowWidth(), getWindowHeight()));
+            setRenderer(Renderer.createRenderer(getHub(), getApplicationName(), getScene(), getWindowWidth(), getWindowHeight()));
             getHub().add(SceneryElement.Renderer, getRenderer());
 
             Material boxmaterial = new Material();
-            boxmaterial.setAmbient( new GLVector(1.0f, 0.0f, 0.0f) );
-            boxmaterial.setDiffuse( new GLVector(0.0f, 1.0f, 0.0f) );
-            boxmaterial.setSpecular( new GLVector(1.0f, 1.0f, 1.0f) );
-            boxmaterial.getTextures().put("diffuse", TexturedCubeJavaApplication.class.getResource("textures/helix.png").getFile() );
+            boxmaterial.setAmbient(new GLVector(1.0f, 0.0f, 0.0f));
+            boxmaterial.setDiffuse(new GLVector(0.0f, 1.0f, 0.0f));
+            boxmaterial.setSpecular(new GLVector(1.0f, 1.0f, 1.0f));
+            boxmaterial.getTextures().put("diffuse", TexturedCubeJavaApplication.class.getResource("textures/helix.png").getFile());
 
             final Box box = new Box(new GLVector(1.0f, 1.0f, 1.0f), false);
-            box.setMaterial( boxmaterial );
-            box.setPosition( new GLVector(0.0f, 0.0f, 0.0f) );
+            box.setMaterial(boxmaterial);
+            box.setPosition(new GLVector(0.0f, 0.0f, 0.0f));
 
             getScene().addChild(box);
 
@@ -44,12 +44,12 @@ public class TexturedCubeJavaExample {
             getScene().addChild(light);
 
             Camera cam = new DetachedHeadCamera();
-            cam.setPosition( new GLVector(0.0f, 0.0f, 5.0f) );
+            cam.setPosition(new GLVector(0.0f, 0.0f, 5.0f));
             cam.perspectiveCamera(50.0f, getRenderer().getWindow().getWidth(), getRenderer().getWindow().getHeight(), 0.1f, 1000.0f);
-            cam.setActive( true );
+            cam.setActive(true);
             getScene().addChild(cam);
 
-            Thread rotator = new Thread(){
+            Thread rotator = new Thread() {
                 public void run() {
                     while (true) {
                         box.getRotation().rotateByAngleY(0.01f);

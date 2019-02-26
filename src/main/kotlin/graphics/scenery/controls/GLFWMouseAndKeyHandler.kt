@@ -40,7 +40,7 @@ open class GLFWMouseAndKeyHandler(protected var hub: Hub?) : MouseAndKeyHandlerB
 
     var keyCallback = object : GLFWKeyCallback() {
         override fun invoke(window: Long, key: Int, scancode: Int, action: Int, mods: Int) {
-            val type = when(action) {
+            val type = when (action) {
                 GLFW_PRESS -> KeyEvent.EVENT_KEY_PRESSED
                 GLFW_RELEASE -> KeyEvent.EVENT_KEY_RELEASED
                 GLFW_REPEAT -> KeyEvent.EVENT_KEY_PRESSED
@@ -77,7 +77,7 @@ open class GLFWMouseAndKeyHandler(protected var hub: Hub?) : MouseAndKeyHandlerB
 
             var clickCount = 1
 
-            if(action == GLFW_PRESS) {
+            if (action == GLFW_PRESS) {
                 val now = System.nanoTime()
                 val diff = (now - clickBefore) / 10e5
 
@@ -116,23 +116,23 @@ open class GLFWMouseAndKeyHandler(protected var hub: Hub?) : MouseAndKeyHandlerB
                 0,
                 0,
                 0, 0,
-                floatArrayOf(xoffset.toFloat()*scrollSpeedMultiplier, yoffset.toFloat()*scrollSpeedMultiplier, 0.0f), 1.0f))
+                floatArrayOf(xoffset.toFloat() * scrollSpeedMultiplier, yoffset.toFloat() * scrollSpeedMultiplier, 0.0f), 1.0f))
         }
 
     }
 
     init {
-        os = if(System.getProperty("os.name").toLowerCase().indexOf("windows") != -1) {
+        os = if (System.getProperty("os.name").toLowerCase().indexOf("windows") != -1) {
             "windows"
-        } else if(System.getProperty("os.name").toLowerCase().indexOf("mac") != -1) {
+        } else if (System.getProperty("os.name").toLowerCase().indexOf("mac") != -1) {
             "mac"
-        } else if(System.getProperty("os.name").toLowerCase().indexOf("linux") != -1) {
+        } else if (System.getProperty("os.name").toLowerCase().indexOf("linux") != -1) {
             "linux"
         } else {
             "unknown"
         }
 
-        scrollSpeedMultiplier = if(os == "mac") {
+        scrollSpeedMultiplier = if (os == "mac") {
             1.0f
         } else {
             10.0f
@@ -283,7 +283,7 @@ open class GLFWMouseAndKeyHandler(protected var hub: Hub?) : MouseAndKeyHandlerB
 
         for (scroll in scrolls) {
             if (scroll.buttons.matches(mask, pressedKeys)) {
-                if(isHorizontal) {
+                if (isHorizontal) {
                     scroll.behaviour.scroll(wheelRotation[0].toDouble(), isHorizontal, x, y)
                 } else {
                     scroll.behaviour.scroll(wheelRotation[1].toDouble(), isHorizontal, x, y)
@@ -405,7 +405,7 @@ open class GLFWMouseAndKeyHandler(protected var hub: Hub?) : MouseAndKeyHandlerB
 
             for (click in keyClicks) {
                 logger.trace(click.buttons.mask.toString() + " vs " + mask.toString())
-                logger.trace(click.buttons.pressedKeys.toString() +  " vs " + pressedKeys.toString() )
+                logger.trace(click.buttons.pressedKeys.toString() + " vs " + pressedKeys.toString())
                 if (click.buttons.matches(mask, pressedKeys) || doubleClick && click.buttons.matches(doubleClickMask, pressedKeys)) {
                     click.behaviour.click(mouseX, mouseY)
                 }

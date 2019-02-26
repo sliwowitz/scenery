@@ -15,7 +15,10 @@ import java.awt.geom.AffineTransform
 import java.awt.image.AffineTransformOp
 import java.awt.image.BufferedImage
 import java.awt.image.DataBufferByte
-import java.io.*
+import java.io.File
+import java.io.FileInputStream
+import java.io.FileOutputStream
+import java.io.IOException
 import java.nio.ByteBuffer
 import java.nio.ByteOrder
 import java.nio.file.Files
@@ -57,7 +60,7 @@ open class SDFFontAtlas(var hub: Hub, val fontName: String, val distanceFieldSiz
     protected val sdfFileName = "$cacheDir/SDFFontAtlas-$sdfCacheFormatVersion-$fontName.sdf"
 
     init {
-        fontSize = distanceFieldSize*0.65f
+        fontSize = distanceFieldSize * 0.65f
 
         try {
             logger.debug("Trying to read SDF atlas from $sdfFileName ...")
@@ -142,7 +145,8 @@ open class SDFFontAtlas(var hub: Hub, val fontName: String, val distanceFieldSiz
         val file = File("$sdfFileName.metrics")
 
         val dump = "##$sdfCacheFormatVersion,$atlasWidth,$atlasHeight\n" + fontMap.entries.joinToString("\n") { entry ->
-            val uvs = glyphTexCoordMap[entry.key] ?: throw IllegalStateException("Could not find texture coordinates for ${entry.key}")
+            val uvs = glyphTexCoordMap[entry.key]
+                ?: throw IllegalStateException("Could not find texture coordinates for ${entry.key}")
 
             "${entry.key}->${entry.value.first},${uvs.toFloatArray().joinToString(",")}"
         }
@@ -156,8 +160,8 @@ open class SDFFontAtlas(var hub: Hub, val fontName: String, val distanceFieldSiz
     protected fun readAtlasFromFile(filename: String): ByteBuffer {
         val file = File(filename)
 
-        if(file.length().toInt() != atlasWidth * atlasHeight) {
-            throw IllegalStateException("Atlas file size invalid (metadata states ${atlasWidth*atlasHeight} bytes, is ${file.length()} bytes)")
+        if (file.length().toInt() != atlasWidth * atlasHeight) {
+            throw IllegalStateException("Atlas file size invalid (metadata states ${atlasWidth * atlasHeight} bytes, is ${file.length()} bytes)")
         }
 
         val buffer = BufferUtils.allocateByte(file.length().toInt())
@@ -178,11 +182,11 @@ open class SDFFontAtlas(var hub: Hub, val fontName: String, val distanceFieldSiz
         val lines = File(filename).readLines()
 
         lines.forEach { line ->
-            if(line.startsWith("##")) {
+            if (line.startsWith("##")) {
                 val info = line.substringAfter("##").split(",")
                 val version = info[0].toInt()
 
-                if(version != sdfCacheFormatVersion) {
+                if (version != sdfCacheFormatVersion) {
                     throw IllegalStateException("SDF cache format differs, expected: $sdfCacheFormatVersion, is: $version")
                 }
 
@@ -233,7 +237,7 @@ open class SDFFontAtlas(var hub: Hub, val fontName: String, val distanceFieldSiz
         g = image.createGraphics()
         g.font = font
         g.paint = Color.WHITE
-        g.drawString(c.toString(), 10, size/2 + metrics.maxAscent/2 - 10)
+        g.drawString(c.toString(), 10, size / 2 + metrics.maxAscent / 2 - 10)
         g.dispose()
 
         val data = (image.raster.dataBuffer as DataBufferByte).data
@@ -243,7 +247,7 @@ open class SDFFontAtlas(var hub: Hub, val fontName: String, val distanceFieldSiz
         imageBuffer.put(data, 0, data.size)
         imageBuffer.rewind()
 
-        return Pair(charWidth.toFloat()/size.toFloat(), imageBuffer)
+        return Pair(charWidth.toFloat() / size.toFloat(), imageBuffer)
     }
 
     /**
@@ -259,31 +263,31 @@ open class SDFFontAtlas(var hub: Hub, val fontName: String, val distanceFieldSiz
         val mapSize = map.size
 
         // find power-of-two texture size that fits
-        while (texWidth < charSize*Math.sqrt(mapSize.toDouble())) {
+        while (texWidth < charSize * Math.sqrt(mapSize.toDouble())) {
             texWidth *= 2
         }
         val texHeight = texWidth
 
-        val buffer = ArrayList<Byte>(texWidth*texWidth)
-        val glyphsPerLine: Int = texWidth/charSize
-        val lines: Int = mapSize/glyphsPerLine
+        val buffer = ArrayList<Byte>(texWidth * texWidth)
+        val glyphsPerLine: Int = texWidth / charSize
+        val lines: Int = mapSize / glyphsPerLine
 
-        for(line in 0..lines) {
-            val minGlyphIndex = 0 + glyphsPerLine*line
-            val maxGlyphIndex = if(glyphsPerLine*(line+1) - 1 >= mapSize) mapSize - 1 else glyphsPerLine*(line+1) - 1
+        for (line in 0..lines) {
+            val minGlyphIndex = 0 + glyphsPerLine * line
+            val maxGlyphIndex = if (glyphsPerLine * (line + 1) - 1 >= mapSize) mapSize - 1 else glyphsPerLine * (line + 1) - 1
 
             (0 until charSize).forEach {
-                for(glyph in minGlyphIndex..maxGlyphIndex) {
+                for (glyph in minGlyphIndex..maxGlyphIndex) {
                     val char = charset.toList()[glyph].toChar()
                     val charBuffer = map[charset.toList()[glyph].toChar()]!!
                     val glyphWidth = fontMap[char]!!.first
 
-                    val glyphIndexOnLine = glyph-minGlyphIndex
+                    val glyphIndexOnLine = glyph - minGlyphIndex
                     glyphTexcoords.putIfAbsent(char, GLVector(
-                            (glyphIndexOnLine*charSize*1.0f+12.0f)/texWidth,
-                            (line*charSize*1.0f)/texHeight,
-                            (glyphIndexOnLine*charSize*1.0f+12.0f)/texWidth+(glyphWidth*charSize*1.0f)/(1.0f*texWidth),
-                            (line*charSize*1.0f+charSize*1.0f)/texHeight))
+                        (glyphIndexOnLine * charSize * 1.0f + 12.0f) / texWidth,
+                        (line * charSize * 1.0f) / texHeight,
+                        (glyphIndexOnLine * charSize * 1.0f + 12.0f) / texWidth + (glyphWidth * charSize * 1.0f) / (1.0f * texWidth),
+                        (line * charSize * 1.0f + charSize * 1.0f) / texHeight))
                     buffer.addAll(readLineFromBuffer(charSize, it, charBuffer.second!!).asIterable())
                 }
             }
@@ -294,17 +298,17 @@ open class SDFFontAtlas(var hub: Hub, val fontName: String, val distanceFieldSiz
         System.arraycopy(buffer.toByteArray(), 0, a, 0, buffer.size)
 
         // we want to arrive at 64x64 per glyph
-        val scale = 64.0/charSize
+        val scale = 64.0 / charSize
 
-        val scaledImage = BufferedImage((texWidth*scale).toInt(), (texHeight*scale).toInt(), BufferedImage.TYPE_BYTE_GRAY)
+        val scaledImage = BufferedImage((texWidth * scale).toInt(), (texHeight * scale).toInt(), BufferedImage.TYPE_BYTE_GRAY)
         val at = AffineTransform.getScaleInstance(scale, scale)
         val scaleOp = AffineTransformOp(at, AffineTransformOp.TYPE_BICUBIC)
         scaleOp.filter(bi, scaledImage)
 
         val b = BufferUtils.allocateByteAndPut((scaledImage.raster.dataBuffer as DataBufferByte).data)
 
-        atlasWidth = (texWidth*scale).toInt()
-        atlasHeight = (texHeight*scale).toInt()
+        atlasWidth = (texWidth * scale).toInt()
+        atlasHeight = (texHeight * scale).toInt()
 
         logger.debug("Stored original ${texWidth}x${texHeight} atlas in ${atlasWidth}x${atlasHeight} texture")
 
@@ -322,7 +326,7 @@ open class SDFFontAtlas(var hub: Hub, val fontName: String, val distanceFieldSiz
     protected fun readLineFromBuffer(lineSize: Int, line: Int, buf: ByteBuffer): ByteArray {
         val array = ByteArray(lineSize)
 
-        buf.position(lineSize*line)
+        buf.position(lineSize * line)
         buf.get(array, 0, lineSize)
 
         return array
@@ -368,31 +372,31 @@ open class SDFFontAtlas(var hub: Hub, val fontName: String, val distanceFieldSiz
             val glyphWidth = fontMap[char]!!.first
 
             vertices.addAll(listOf(
-                    basex + 0.0f, 0.0f, 0.0f,
-                    basex + glyphWidth, 0.0f, 0.0f,
-                    basex + glyphWidth, 1.0f, 0.0f,
-                    basex + 0.0f, 1.0f, 0.0f
+                basex + 0.0f, 0.0f, 0.0f,
+                basex + glyphWidth, 0.0f, 0.0f,
+                basex + glyphWidth, 1.0f, 0.0f,
+                basex + 0.0f, 1.0f, 0.0f
             ))
 
             normals.addAll(listOf(
-                    0.0f, 0.0f, 1.0f,
-                    0.0f, 0.0f, 1.0f,
-                    0.0f, 0.0f, 1.0f,
-                    0.0f, 0.0f, 1.0f
+                0.0f, 0.0f, 1.0f,
+                0.0f, 0.0f, 1.0f,
+                0.0f, 0.0f, 1.0f,
+                0.0f, 0.0f, 1.0f
             ))
 
             indices.addAll(listOf(
-                    basei + 0, basei + 1, basei + 2,
-                    basei + 0, basei + 2, basei + 3
+                basei + 0, basei + 1, basei + 2,
+                basei + 0, basei + 2, basei + 3
             ))
 
             val glyphTexCoords = getTexcoordsForGlyph(char)
 
             texcoords.addAll(listOf(
-                    glyphTexCoords.x(), glyphTexCoords.w(),
-                    glyphTexCoords.z(), glyphTexCoords.w(),
-                    glyphTexCoords.z(), glyphTexCoords.y(),
-                    glyphTexCoords.x(), glyphTexCoords.y()
+                glyphTexCoords.x(), glyphTexCoords.w(),
+                glyphTexCoords.z(), glyphTexCoords.w(),
+                glyphTexCoords.z(), glyphTexCoords.y(),
+                glyphTexCoords.x(), glyphTexCoords.y()
             ))
 
             // add font width as new base size

@@ -36,7 +36,7 @@ class BloodCellsExample : SceneryBase("BloodCellsExample", windowWidth = 1280, w
 
         scene.addChild(cam)
 
-        val hull = Box(GLVector(2*positionRange, 2*positionRange, 2*positionRange), insideNormals = true)
+        val hull = Box(GLVector(2 * positionRange, 2 * positionRange, 2 * positionRange), insideNormals = true)
         hull.material.ambient = GLVector(0.0f, 0.0f, 0.0f)
         hull.material.diffuse = GLVector(1.0f, 1.0f, 1.0f)
         hull.material.specular = GLVector(0.0f, 0.0f, 0.0f)
@@ -48,7 +48,7 @@ class BloodCellsExample : SceneryBase("BloodCellsExample", windowWidth = 1280, w
         val lights = (0 until lightCount).map { PointLight(radius = 500.0f) }
 
         lights.map {
-            it.position = Random.randomVectorFromRange(3, -positionRange/2, positionRange/2)
+            it.position = Random.randomVectorFromRange(3, -positionRange / 2, positionRange / 2)
             it.emissionColor = GLVector(1.0f, 1.0f, 1.0f)
             it.intensity = 3000.0f
 
@@ -88,7 +88,7 @@ class BloodCellsExample : SceneryBase("BloodCellsExample", windowWidth = 1280, w
                 val v = Mesh()
                 v.name = "leucocyte_$it"
                 v.instanceOf = leucocyte
-                v.instancedProperties.put("ModelMatrix", { v.world})
+                v.instancedProperties.put("ModelMatrix", { v.world })
                 v
             }
             .map {
@@ -111,7 +111,7 @@ class BloodCellsExample : SceneryBase("BloodCellsExample", windowWidth = 1280, w
             }
 
         // erythrocytes make up about 40% of human blood, while leucocytes make up about 1%
-        val erythrocytes = (0 until leucocyteCount*40)
+        val erythrocytes = (0 until leucocyteCount * 40)
             .map {
                 val v = Mesh()
                 v.name = "erythrocyte_$it"
@@ -142,13 +142,13 @@ class BloodCellsExample : SceneryBase("BloodCellsExample", windowWidth = 1280, w
         scene.addChild(container)
 
         fun Node.hoverAndTumble(magnitude: Float, id: Int) {
-            val axis = GLVector(Math.sin(0.1 * id).toFloat(), -Math.cos(0.1 * id).toFloat(), sin(1.0f*id)*cos(1.0f*id)).normalized
+            val axis = GLVector(Math.sin(0.1 * id).toFloat(), -Math.cos(0.1 * id).toFloat(), sin(1.0f * id) * cos(1.0f * id)).normalized
             this.rotation.rotateByAngleNormalAxis(magnitude, axis.x(), axis.y(), axis.z())
             this.rotation.rotateByAngleY(-1.0f * magnitude)
         }
 
         thread {
-            while(true) {
+            while (true) {
                 erythrocytes.mapIndexed { id, erythrocyte -> erythrocyte.hoverAndTumble(Random.randomFromRange(0.001f, 0.01f), id) }
                 leucocytes.mapIndexed { id, leucocyte -> leucocyte.hoverAndTumble(0.001f, id) }
 
@@ -162,7 +162,8 @@ class BloodCellsExample : SceneryBase("BloodCellsExample", windowWidth = 1280, w
         }
     }
 
-    @Test override fun main() {
+    @Test
+    override fun main() {
         super.main()
     }
 }

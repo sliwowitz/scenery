@@ -138,7 +138,7 @@ class JavaFXTexturedCubeExample : SceneryBase("JavaFXTexturedCubeExample", windo
         }
 
         thread {
-            while(renderer?.shouldClose == false) {
+            while (renderer?.shouldClose == false) {
                 Thread.sleep(200)
             }
 
@@ -148,7 +148,8 @@ class JavaFXTexturedCubeExample : SceneryBase("JavaFXTexturedCubeExample", windo
         }
     }
 
-    @Test override fun main() {
+    @Test
+    override fun main() {
         super.main()
     }
 }

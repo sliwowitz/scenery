@@ -17,10 +17,10 @@ import java.lang.reflect.InvocationTargetException
  * @property[receiver] The receiving object.
  * @property[method] The name of the single-parameter method to invoke.
  */
-class EnumCycleCommand<T: Enum<*>>(private val name: String,
-                                   private val enumClass: Class<T>,
-                                   private val receiver: Any,
-                                   private val method: String) : ClickBehaviour {
+class EnumCycleCommand<T : Enum<*>>(private val name: String,
+                                    private val enumClass: Class<T>,
+                                    private val receiver: Any,
+                                    private val method: String) : ClickBehaviour {
 
     private val logger by LazyLogger()
     private var currentIndex = 0
@@ -34,7 +34,7 @@ class EnumCycleCommand<T: Enum<*>>(private val name: String,
      */
     override fun click(x: Int, y: Int) {
         val values = enumClass.enumConstants
-        if(values.isEmpty()) {
+        if (values.isEmpty()) {
             return
         }
 
@@ -46,9 +46,9 @@ class EnumCycleCommand<T: Enum<*>>(private val name: String,
             logger.debug("Ran ${receiver.javaClass.simpleName}.$method(${values[currentIndex].name})")
 
             currentIndex = (currentIndex + 1) % values.size
-        } catch(e: NoSuchMethodException) {
+        } catch (e: NoSuchMethodException) {
             logger.warn("Method $method not found for ${receiver.javaClass.simpleName}")
-        } catch(e: InvocationTargetException) {
+        } catch (e: InvocationTargetException) {
             logger.warn("Method $method for ${receiver.javaClass.simpleName} threw an error: $e:")
             e.printStackTrace()
         }

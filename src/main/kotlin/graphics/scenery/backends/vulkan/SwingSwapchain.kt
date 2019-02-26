@@ -80,7 +80,6 @@ open class SwingSwapchain(open val device: VulkanDevice,
     data class ColorFormatAndSpace(var colorFormat: Int = 0, var colorSpace: Int = 0)
 
 
-
     /**
      * Creates a window for this swapchain, and initialiases [win] as [SceneryWindow.GLFWWindow].
      * Needs to be handed a [VulkanRenderer.SwapchainRecreator].
@@ -97,6 +96,7 @@ open class SwingSwapchain(open val device: VulkanDevice,
             private val serialVersionUID = 1L
             var initialized: Boolean = false
                 private set
+
             override fun initVK() {
                 logger.info("Surface set to $surface")
                 this@SwingSwapchain.surface = surface
@@ -119,7 +119,7 @@ open class SwingSwapchain(open val device: VulkanDevice,
         frame.pack()
         frame.isVisible = true
 
-        while(!canvas.initialized) {
+        while (!canvas.initialized) {
             Thread.sleep(100)
         }
 
@@ -139,7 +139,7 @@ open class SwingSwapchain(open val device: VulkanDevice,
         val modes = IntArray(count)
         presentModes.get(modes)
 
-        return if(modes.contains(preferredMode)) {
+        return if (modes.contains(preferredMode)) {
             preferredMode
         } else {
             KHRSurface.VK_PRESENT_MODE_FIFO_KHR
@@ -169,7 +169,7 @@ open class SwingSwapchain(open val device: VulkanDevice,
 
             // use fifo mode (aka, vsynced) if requested,
             // otherwise, use mailbox mode and present the most recently generated frame.
-            val preferredSwapchainPresentMode = if(vsync) {
+            val preferredSwapchainPresentMode = if (vsync) {
                 KHRSurface.VK_PRESENT_MODE_FIFO_KHR
             } else {
                 KHRSurface.VK_PRESENT_MODE_IMMEDIATE_KHR
@@ -425,7 +425,7 @@ open class SwingSwapchain(open val device: VulkanDevice,
      * To be called after presenting, will deallocate retired swapchains.
      */
     override fun postPresent(image: Int) {
-        while(retiredSwapchains.isNotEmpty()) {
+        while (retiredSwapchains.isNotEmpty()) {
             retiredSwapchains.poll()?.let {
                 KHRSwapchain.vkDestroySwapchainKHR(it.first.vulkanDevice, it.second, null)
             }
@@ -465,7 +465,7 @@ open class SwingSwapchain(open val device: VulkanDevice,
      * see [FXSwapchain] instead.
      */
     override fun embedIn(panel: SceneryPanel?) {
-        if(panel == null) {
+        if (panel == null) {
             return
         }
 

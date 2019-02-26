@@ -19,7 +19,7 @@ import kotlin.concurrent.thread
  *
  * @author Ulrik Günther <hello@ulrik.is>
  */
-class ProceduralVolumeExample: SceneryBase("Volume Rendering example", 1280, 720) {
+class ProceduralVolumeExample : SceneryBase("Volume Rendering example", 1280, 720) {
     val bitsPerVoxel = 8
 
     override fun init() {
@@ -29,7 +29,7 @@ class ProceduralVolumeExample: SceneryBase("Volume Rendering example", 1280, 720
         val cam: Camera = DetachedHeadCamera()
         with(cam) {
             position = GLVector(0.0f, 0.5f, 5.0f)
-            perspectiveCamera(50.0f, 1.0f*windowWidth, 1.0f*windowHeight)
+            perspectiveCamera(50.0f, 1.0f * windowWidth, 1.0f * windowHeight)
             active = true
 
             scene.addChild(this)
@@ -63,30 +63,32 @@ class ProceduralVolumeExample: SceneryBase("Volume Rendering example", 1280, 720
         }
 
         lights.mapIndexed { i, light ->
-            light.position = GLVector(2.0f * i - 4.0f,  i - 1.0f, 0.0f)
+            light.position = GLVector(2.0f * i - 4.0f, i - 1.0f, 0.0f)
             light.emissionColor = GLVector(1.0f, 1.0f, 1.0f)
             light.intensity = 50.0f
             scene.addChild(light)
         }
 
         thread {
-            while(!scene.initialized) { Thread.sleep(200) }
+            while (!scene.initialized) {
+                Thread.sleep(200)
+            }
 
             val volumeSize = 128L
-            val volumeBuffer = RingBuffer<ByteBuffer>(2) { memAlloc((volumeSize*volumeSize*volumeSize*bitsPerVoxel/8).toInt()) }
+            val volumeBuffer = RingBuffer<ByteBuffer>(2) { memAlloc((volumeSize * volumeSize * volumeSize * bitsPerVoxel / 8).toInt()) }
 
             val seed = Random.randomFromRange(0.0f, 133333337.0f).toLong()
             var shift = GLVector.getNullVector(3)
             val shiftDelta = Random.randomVectorFromRange(3, -1.5f, 1.5f)
 
-            val dataType = if(bitsPerVoxel == 8) {
+            val dataType = if (bitsPerVoxel == 8) {
                 NativeTypeEnum.UnsignedByte
             } else {
                 NativeTypeEnum.UnsignedShort
             }
 
-            while(running) {
-                if(volume.metadata["animating"] == true) {
+            while (running) {
+                if (volume.metadata["animating"] == true) {
                     val currentBuffer = volumeBuffer.get()
 
                     Volume.generateProceduralVolume(volumeSize, 0.35f, seed = seed,
@@ -124,7 +126,8 @@ class ProceduralVolumeExample: SceneryBase("Volume Rendering example", 1280, 720
         inputHandler?.addKeyBinding("toggle_rendering_mode", "M")
     }
 
-    @Test override fun main() {
+    @Test
+    override fun main() {
         super.main()
     }
 }

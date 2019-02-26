@@ -13,7 +13,7 @@ import java.nio.LongBuffer
  *
  * @author Ulrik Günther <hello@ulrik.is>
  */
-class VulkanCommandBuffer(val device: VulkanDevice, var commandBuffer: VkCommandBuffer?, val fenced: Boolean = true): AutoCloseable {
+class VulkanCommandBuffer(val device: VulkanDevice, var commandBuffer: VkCommandBuffer?, val fenced: Boolean = true) : AutoCloseable {
     /** Whether this command buffer is stale and needs to be re-recorded. */
     var stale: Boolean = true
 
@@ -24,7 +24,7 @@ class VulkanCommandBuffer(val device: VulkanDevice, var commandBuffer: VkCommand
     var submitted = false
 
     init {
-        if(fenced) {
+        if (fenced) {
             addFence()
         }
     }
@@ -50,7 +50,7 @@ class VulkanCommandBuffer(val device: VulkanDevice, var commandBuffer: VkCommand
      * waiting for [timeout] milliseconds.
      */
     fun waitForFence(timeout: Long? = null) {
-        if(fenced && fenceInitialized) {
+        if (fenced && fenceInitialized) {
             VU.getLong("Waiting for fence",
                 { vkWaitForFences(device.vulkanDevice, fence, true, timeout ?: -1L) }, {})
         }
@@ -60,7 +60,7 @@ class VulkanCommandBuffer(val device: VulkanDevice, var commandBuffer: VkCommand
      * Resets this command buffer's fence.
      */
     fun resetFence() {
-        if(fenced && fenceInitialized) {
+        if (fenced && fenceInitialized) {
             VU.getLong("Resetting fence",
                 { vkResetFences(device.vulkanDevice, fence) }, {})
         }
@@ -70,7 +70,7 @@ class VulkanCommandBuffer(val device: VulkanDevice, var commandBuffer: VkCommand
      * Returns a reference to the fence, or null if the command buffer is not [fenced].
      */
     fun getFence(): Long {
-        return if(fenced) {
+        return if (fenced) {
             fence.get(0)
         } else {
             return NULL
@@ -81,7 +81,7 @@ class VulkanCommandBuffer(val device: VulkanDevice, var commandBuffer: VkCommand
      * Closes and deallocates this command buffer.
      */
     override fun close() {
-        if(fenced && fenceInitialized) {
+        if (fenced && fenceInitialized) {
             vkDestroyFence(device.vulkanDevice, fence.get(0), null)
         }
 

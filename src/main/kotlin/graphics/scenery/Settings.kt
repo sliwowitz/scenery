@@ -20,13 +20,13 @@ class Settings(override var hub: Hub? = null) : Hubable {
      * @return The setting as type T
      */
     fun <T> get(name: String): T {
-        if(!settingsStore.containsKey(name)) {
+        if (!settingsStore.containsKey(name)) {
             logger.warn("WARNING: Settings don't contain '$name'")
         }
 
         @Suppress("UNCHECKED_CAST")
         val s = settingsStore[name] as? T
-        if(s != null) {
+        if (s != null) {
             return s
         } else {
             throw IllegalStateException("Cast of $name failed.")
@@ -36,14 +36,14 @@ class Settings(override var hub: Hub? = null) : Hubable {
     /**
      * Compatibility function for Java, see [get]. Returns the settings value for [name], if found.
      */
-    fun <T> getProperty(name: String): T{
-        if(!settingsStore.containsKey(name)) {
+    fun <T> getProperty(name: String): T {
+        if (!settingsStore.containsKey(name)) {
             logger.warn("WARNING: Settings don't contain '$name'")
         }
 
         @Suppress("UNCHECKED_CAST")
         val s = settingsStore[name] as? T
-        if(s != null) {
+        if (s != null) {
             return s
         } else {
             throw IllegalStateException("Cast of $name failed.")

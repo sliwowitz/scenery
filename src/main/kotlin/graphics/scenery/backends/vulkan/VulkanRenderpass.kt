@@ -28,10 +28,10 @@ import java.util.concurrent.ConcurrentHashMap
  * @author Ulrik Günther <hello@ulrik.is>
  */
 open class VulkanRenderpass(val name: String, var config: RenderConfigReader.RenderConfig,
-                       val device: VulkanDevice,
-                       val descriptorPool: Long,
-                       val pipelineCache: Long,
-                       val vertexDescriptors: ConcurrentHashMap<VulkanRenderer.VertexDataKinds, VulkanRenderer.VertexDescription>): AutoCloseable {
+                            val device: VulkanDevice,
+                            val descriptorPool: Long,
+                            val pipelineCache: Long,
+                            val vertexDescriptors: ConcurrentHashMap<VulkanRenderer.VertexDataKinds, VulkanRenderer.VertexDescription>) : AutoCloseable {
 
     protected val logger by LazyLogger()
 
@@ -79,7 +79,6 @@ open class VulkanRenderpass(val name: String, var config: RenderConfigReader.Ren
         get() {
             return commandBufferBacking.get()
         }
-
         set(b) {
             commandBufferBacking.put(b)
         }
@@ -121,16 +120,16 @@ open class VulkanRenderpass(val name: String, var config: RenderConfigReader.Ren
      * Vulkan metadata class, keeping information about viewports, scissor areas, etc.
      */
     class VulkanMetadata(var descriptorSets: LongBuffer = memAllocLong(10),
-                              var vertexBufferOffsets: LongBuffer = memAllocLong(4),
-                              var scissor: VkRect2D.Buffer = VkRect2D.calloc(1),
-                              var viewport: VkViewport.Buffer = VkViewport.calloc(1),
-                              var vertexBuffers: LongBuffer = memAllocLong(4),
-                              var clearValues: VkClearValue.Buffer? = null,
-                              var renderArea: VkRect2D = VkRect2D.calloc(),
-                              var renderPassBeginInfo: VkRenderPassBeginInfo = VkRenderPassBeginInfo.calloc(),
-                              var uboOffsets: IntBuffer = memAllocInt(16),
-                              var eye: IntBuffer = memAllocInt(1),
-                              var renderLists: HashMap<VulkanCommandBuffer, Array<Node>> = HashMap()): AutoCloseable {
+                         var vertexBufferOffsets: LongBuffer = memAllocLong(4),
+                         var scissor: VkRect2D.Buffer = VkRect2D.calloc(1),
+                         var viewport: VkViewport.Buffer = VkViewport.calloc(1),
+                         var vertexBuffers: LongBuffer = memAllocLong(4),
+                         var clearValues: VkClearValue.Buffer? = null,
+                         var renderArea: VkRect2D = VkRect2D.calloc(),
+                         var renderPassBeginInfo: VkRenderPassBeginInfo = VkRenderPassBeginInfo.calloc(),
+                         var uboOffsets: IntBuffer = memAllocInt(16),
+                         var eye: IntBuffer = memAllocInt(1),
+                         var renderLists: HashMap<VulkanCommandBuffer, Array<Node>> = HashMap()) : AutoCloseable {
 
         /** Close this metadata instance, and frees all members */
         override fun close() {
@@ -201,7 +200,7 @@ open class VulkanRenderpass(val name: String, var config: RenderConfigReader.Ren
         inputs.entries.reversed().forEach { inputFramebuffer ->
             // we need to discern here whether the entire framebuffer is the input, or
             // only a part of it (indicated by a dot in the name)
-            val descriptorNum = if(inputFramebuffer.key.contains(".")) {
+            val descriptorNum = if (inputFramebuffer.key.contains(".")) {
                 1
             } else {
                 inputFramebuffer.value.attachments.count()
@@ -214,11 +213,12 @@ open class VulkanRenderpass(val name: String, var config: RenderConfigReader.Ren
                 type = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER
             )
 
-            val ds = if(inputFramebuffer.key.contains(".")) {
+            val ds = if (inputFramebuffer.key.contains(".")) {
                 val targetName = inputFramebuffer.key.substringBefore(".")
                 val attachmentName = inputFramebuffer.key.substringAfter(".")
 
-                val rendertarget = config.rendertargets[targetName] ?: throw IllegalStateException("Rendertargets do not contain required target ${inputFramebuffer.key}")
+                val rendertarget = config.rendertargets[targetName]
+                    ?: throw IllegalStateException("Rendertargets do not contain required target ${inputFramebuffer.key}")
 
                 VU.createRenderTargetDescriptorSet(device, descriptorPool, dsl,
                     rendertarget.attachments,
@@ -227,21 +227,22 @@ open class VulkanRenderpass(val name: String, var config: RenderConfigReader.Ren
                 inputFramebuffer.value.outputDescriptorSet
             }
 
-            val searchKeys = if(inputFramebuffer.key.contains(".")) {
+            val searchKeys = if (inputFramebuffer.key.contains(".")) {
                 listOf(inputFramebuffer.key.substringAfter("."))
             } else {
-                config.rendertargets[inputFramebuffer.key]?.attachments?.keys ?: throw IllegalStateException("Rendertargets do not contain required target ${inputFramebuffer.key}")
+                config.rendertargets[inputFramebuffer.key]?.attachments?.keys
+                    ?: throw IllegalStateException("Rendertargets do not contain required target ${inputFramebuffer.key}")
             }
 
             logger.debug("Search keys for input attachments: ${searchKeys.joinToString(",")}")
 
             val spec = shaderModules.flatMap { it.uboSpecs.entries }.firstOrNull { entry ->
                 entry.component2().members.count() == descriptorNum
-                && entry.component1().startsWith("Inputs")
-                && searchKeys.map { entry.component2().members.containsKey("Input$it") }.all { it == true }
+                    && entry.component1().startsWith("Inputs")
+                    && searchKeys.map { entry.component2().members.containsKey("Input$it") }.all { it == true }
             }
 
-            if(spec != null) {
+            if (spec != null) {
                 val inputKey = "input-${this.name}-${spec.value.set}"
 
                 logger.debug("${this.name}: Creating input descriptor set for ${inputFramebuffer.key}, $inputKey")
@@ -284,14 +285,14 @@ open class VulkanRenderpass(val name: String, var config: RenderConfigReader.Ren
                     else -> "Renderer.$name.${entry.key}"
                 }
 
-                if(!entry.key.startsWith("Global.") && !entry.key.startsWith("Pass.")) {
+                if (!entry.key.startsWith("Global.") && !entry.key.startsWith("Pass.")) {
                     settings.set(settingsKey, value)
                 }
 
                 ubo.add(entry.key, { settings.get(settingsKey) })
             }
 
-            if(logger.isDebugEnabled) {
+            if (logger.isDebugEnabled) {
                 logger.debug("Members are: {}", ubo.membersAndContent())
                 logger.debug("Allocating VulkanUBO memory now, space needed: {}", ubo.getSize())
             }
@@ -306,7 +307,7 @@ open class VulkanRenderpass(val name: String, var config: RenderConfigReader.Ren
                 0, VK_SHADER_STAGE_ALL)
 
             val ds = VU.createDescriptorSet(device, descriptorPool, dsl,
-            1, ubo.descriptor, type = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER)
+                1, ubo.descriptor, type = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER)
 
             // populate descriptor set
             ubo.populate()
@@ -326,7 +327,7 @@ open class VulkanRenderpass(val name: String, var config: RenderConfigReader.Ren
         // this creates a shader property UBO for items marked @ShaderProperty in node
         val alreadyCreated = descriptorSetLayouts.containsKey("ShaderProperties-$name")
 
-        val dsl = if(!alreadyCreated) {
+        val dsl = if (!alreadyCreated) {
             // create descriptor set layout
             val dsl = VU.createDescriptorSetLayout(
                 device,
@@ -354,7 +355,7 @@ open class VulkanRenderpass(val name: String, var config: RenderConfigReader.Ren
         logger.debug("specs: ${this.pipelines["preferred-${node.uuid}"]!!.descriptorSpecs}")
         val shaderPropertiesSpec = this.pipelines["preferred-${node.uuid}"]!!.descriptorSpecs.filter { it.key == "ShaderProperties" }.map { it.value.members }
 
-        if(shaderPropertiesSpec.count() == 0) {
+        if (shaderPropertiesSpec.count() == 0) {
             logger.debug("Warning: Shader file uses no declared shader properties, despite the class declaring them.")
             return emptyMap()
         }
@@ -371,7 +372,7 @@ open class VulkanRenderpass(val name: String, var config: RenderConfigReader.Ren
      */
     fun updateShaderParameters() {
         UBOs.forEach { uboName, ubo ->
-            if(uboName.startsWith("ShaderParameters-")) {
+            if (uboName.startsWith("ShaderParameters-")) {
                 ubo.populate()
             }
         }
@@ -414,7 +415,7 @@ open class VulkanRenderpass(val name: String, var config: RenderConfigReader.Ren
 
         val blendMasks = VkPipelineColorBlendAttachmentState.calloc(framebuffer.colorAttachmentCount())
         (0 until framebuffer.colorAttachmentCount()).forEach {
-            if(passConfig.renderTransparent) {
+            if (passConfig.renderTransparent) {
                 blendMasks[it]
                     .blendEnable(true)
                     .colorBlendOp(passConfig.colorBlendOp.toVulkan())
@@ -451,13 +452,13 @@ open class VulkanRenderpass(val name: String, var config: RenderConfigReader.Ren
 
         settings.invoke(p)
 
-        if(logger.isDebugEnabled) {
-            logger.debug("DS are: ${p.descriptorSpecs.entries.sortedBy { it.value.binding }.sortedBy { it.value.set }.joinToString { "${it.key} (set=${it.value.set}, binding=${it.value.binding})" } }")
+        if (logger.isDebugEnabled) {
+            logger.debug("DS are: ${p.descriptorSpecs.entries.sortedBy { it.value.binding }.sortedBy { it.value.set }.joinToString { "${it.key} (set=${it.value.set}, binding=${it.value.binding})" }}")
         }
 
-        logger.debug("Required DSLs: ${reqDescriptorLayouts.joinToString { it.toHexString() } }")
+        logger.debug("Required DSLs: ${reqDescriptorLayouts.joinToString { it.toHexString() }}")
 
-        when(passConfig.type) {
+        when (passConfig.type) {
             RenderConfigReader.RenderpassType.quad -> {
                 p.rasterizationState.cullMode(VK_CULL_MODE_FRONT_BIT)
                 p.rasterizationState.frontFace(VK_FRONT_FACE_COUNTER_CLOCKWISE)
@@ -519,7 +520,7 @@ open class VulkanRenderpass(val name: String, var config: RenderConfigReader.Ren
      * Returns the default output [VulkanFramebuffer] of this renderpass.
      */
     fun getOutput(): VulkanFramebuffer {
-        val fb = if(isViewportRenderpass) {
+        val fb = if (isViewportRenderpass) {
             val pos = currentPosition
             currentPosition = (currentPosition + 1).rem(commandBufferCount)
 
@@ -567,13 +568,13 @@ open class VulkanRenderpass(val name: String, var config: RenderConfigReader.Ren
 
         vulkanMetadata.close()
 
-        for(i in 1..commandBufferBacking.size) {
+        for (i in 1..commandBufferBacking.size) {
             commandBufferBacking.get().close()
         }
 
         commandBufferBacking.reset()
 
-        if(semaphore != -1L) {
+        if (semaphore != -1L) {
             vkDestroySemaphore(device.vulkanDevice, semaphore, null)
             memFree(waitSemaphores)
             memFree(signalSemaphores)

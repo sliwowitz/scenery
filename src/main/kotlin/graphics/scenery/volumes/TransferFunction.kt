@@ -4,7 +4,7 @@ import graphics.scenery.utils.LazyLogger
 import org.lwjgl.system.MemoryUtil
 import java.nio.ByteBuffer
 import java.nio.ByteOrder
-import java.util.ArrayList
+import java.util.*
 import kotlin.math.abs
 import kotlin.math.max
 import kotlin.math.min
@@ -55,7 +55,7 @@ open class TransferFunction(val name: String = "") {
     fun removeControlPoint(value: Float): Boolean {
         val removed = controlPoints.removeIf { abs(it.value - value) < 0.001f }
 
-        if(removed) {
+        if (removed) {
             stale = true
         }
 
@@ -68,7 +68,7 @@ open class TransferFunction(val name: String = "") {
     fun removeControlPoint(controlPoint: ControlPoint): Boolean {
         val removed = controlPoints.remove(controlPoint)
 
-        if(removed) {
+        if (removed) {
             stale = true
         }
 
@@ -88,7 +88,11 @@ open class TransferFunction(val name: String = "") {
      * end of the interval.
      */
     protected fun findExtremalControlPoint(points: Iterable<ControlPoint>, left: Boolean): ControlPoint {
-        val pos = if(left) { 0.0f } else { 1.0f }
+        val pos = if (left) {
+            0.0f
+        } else {
+            1.0f
+        }
         val candidate = points.firstOrNull { abs(it.value - pos) < 0.00001f }
 
         return when {
@@ -104,24 +108,24 @@ open class TransferFunction(val name: String = "") {
      * in the shader.
      */
     fun serialise(): ByteBuffer {
-        if(!stale) {
+        if (!stale) {
             return buffer.duplicate()
         }
 
         val points = controlPoints.sortedBy { it.value }
         val tmp = FloatArray(textureSize)
 
-        for(coord in 0 until textureSize) {
-            if(points.isEmpty()) {
+        for (coord in 0 until textureSize) {
+            if (points.isEmpty()) {
                 tmp[coord] = 1.0f
                 continue
             }
 
-            val pos = coord.toFloat()/(textureSize-1)
+            val pos = coord.toFloat() / (textureSize - 1)
             val left = points.reversed().firstOrNull { it.value <= pos } ?: findExtremalControlPoint(points, true)
             val right = points.firstOrNull { it.value >= pos } ?: findExtremalControlPoint(points, false)
 
-            var current = if(left == right) {
+            var current = if (left == right) {
                 left.factor
             } else {
                 -(left.factor * (right.value - pos) + right.factor * (pos - left.value)) / (left.value - right.value)
@@ -132,7 +136,7 @@ open class TransferFunction(val name: String = "") {
         }
 
         val fb = buffer.asFloatBuffer()
-        for(copy in 0 until textureHeight) {
+        for (copy in 0 until textureHeight) {
             fb.put(tmp)
         }
 
@@ -149,7 +153,9 @@ open class TransferFunction(val name: String = "") {
 
     companion object {
         /** Returns a flat transfer function that transfers all values */
-        @JvmStatic @JvmOverloads fun flat(factor: Float = 1.0f): TransferFunction {
+        @JvmStatic
+        @JvmOverloads
+        fun flat(factor: Float = 1.0f): TransferFunction {
             val tf = TransferFunction("Flat")
             tf.addControlPoint(0.0f, factor)
             tf.addControlPoint(1.0f, factor)
@@ -158,7 +164,9 @@ open class TransferFunction(val name: String = "") {
         }
 
         /** Returns a ramp transfer function, transferring nothing before [offset] (0.0f by default), and everything at the top. */
-        @JvmStatic @JvmOverloads fun ramp(offset: Float = 0.0f, rampMax: Float = 1.0f): TransferFunction {
+        @JvmStatic
+        @JvmOverloads
+        fun ramp(offset: Float = 0.0f, rampMax: Float = 1.0f): TransferFunction {
             val tf = TransferFunction()
             tf.addControlPoint(0.0f, 0.0f)
             tf.addControlPoint(offset, 0.0f)

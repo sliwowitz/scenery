@@ -17,8 +17,8 @@ import kotlin.reflect.KProperty
  * @property[h] The window height
  */
 open class GamepadCameraControl(private val name: String,
-                           override val axis: List<Component.Identifier.Axis>,
-                           private val n: () -> Camera?, private val w: Int, private val h: Int) : GamepadBehaviour {
+                                override val axis: List<Component.Identifier.Axis>,
+                                private val n: () -> Camera?, private val w: Int, private val h: Int) : GamepadBehaviour {
     private var lastX: Float = 0.0f
     private var lastY: Float = 0.0f
     private var firstEntered = true
@@ -63,14 +63,14 @@ open class GamepadCameraControl(private val name: String,
      */
     @Synchronized
     override fun axisEvent(axis: Component.Identifier, value: Float) {
-        if(Math.abs(value) < threshold) {
+        if (Math.abs(value) < threshold) {
             return
         }
 
         val x: Float
         val y: Float
 
-        if(axis == this.axis.first()) {
+        if (axis == this.axis.first()) {
             x = value
             y = lastY
         } else {
@@ -104,9 +104,9 @@ open class GamepadCameraControl(private val name: String,
         }
 
         val forward = GLVector(
-                Math.cos(Math.toRadians(yaw.toDouble())).toFloat() * Math.cos(Math.toRadians(pitch.toDouble())).toFloat(),
-                Math.sin(Math.toRadians(pitch.toDouble())).toFloat(),
-                Math.sin(Math.toRadians(yaw.toDouble())).toFloat() * Math.cos(Math.toRadians(pitch.toDouble())).toFloat())
+            Math.cos(Math.toRadians(yaw.toDouble())).toFloat() * Math.cos(Math.toRadians(pitch.toDouble())).toFloat(),
+            Math.sin(Math.toRadians(pitch.toDouble())).toFloat(),
+            Math.sin(Math.toRadians(yaw.toDouble())).toFloat() * Math.cos(Math.toRadians(pitch.toDouble())).toFloat())
 
         node?.forward = forward.normalized
     }

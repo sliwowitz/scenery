@@ -15,7 +15,7 @@ class SceneryJPanel : JPanel(), SceneryPanel {
     override var refreshRate: Int = 60
 
     /** Updates the backing buffer of the window. Does nothing for Swing. */
-    override fun update(buffer: ByteBuffer, id: Int) { }
+    override fun update(buffer: ByteBuffer, id: Int) {}
 
     private val logger by LazyLogger()
 

@@ -23,7 +23,7 @@ class ReaderExample : SceneryBase("ReaderExample", 1280, 720) {
     override fun init() {
         val latch = CountDownLatch(1)
         val files = ArrayList<String>()
-        PlatformImpl.startup {  }
+        PlatformImpl.startup { }
 
         Platform.runLater {
             val chooser = FileChooser()
@@ -33,7 +33,7 @@ class ReaderExample : SceneryBase("ReaderExample", 1280, 720) {
             chooser.extensionFilters.add(FileChooser.ExtensionFilter("Volume files", "*.tif", "*.tiff", "*.raw"))
             val file = chooser.showOpenDialog(Stage())
 
-            if(file != null) {
+            if (file != null) {
                 files.add(file.absolutePath)
             }
             latch.countDown()
@@ -50,14 +50,14 @@ class ReaderExample : SceneryBase("ReaderExample", 1280, 720) {
         scene.addChild(b)
 
         val tetrahedron = listOf(
-            GLVector(1.0f, 0f, -1.0f/Math.sqrt(2.0).toFloat()),
-            GLVector(-1.0f,0f,-1.0f/Math.sqrt(2.0).toFloat()),
-            GLVector(0.0f,1.0f,1.0f/Math.sqrt(2.0).toFloat()),
-            GLVector(0.0f,-1.0f,1.0f/Math.sqrt(2.0).toFloat()))
+            GLVector(1.0f, 0f, -1.0f / Math.sqrt(2.0).toFloat()),
+            GLVector(-1.0f, 0f, -1.0f / Math.sqrt(2.0).toFloat()),
+            GLVector(0.0f, 1.0f, 1.0f / Math.sqrt(2.0).toFloat()),
+            GLVector(0.0f, -1.0f, 1.0f / Math.sqrt(2.0).toFloat()))
 
         val lights = (0 until 4).map { PointLight(radius = 50.0f) }
 
-        val n: Node = if(files.isNotEmpty()) {
+        val n: Node = if (files.isNotEmpty()) {
             when {
                 files.first().endsWith(".tiff") || files.first().endsWith(".tif") -> {
                     val v = Volume()
@@ -107,7 +107,7 @@ class ReaderExample : SceneryBase("ReaderExample", 1280, 720) {
         }
 
         thread {
-            while(!n.initialized) {
+            while (!n.initialized) {
                 Thread.sleep(200)
             }
 
@@ -120,7 +120,8 @@ class ReaderExample : SceneryBase("ReaderExample", 1280, 720) {
         setupCameraModeSwitching()
     }
 
-    @Test override fun main() {
+    @Test
+    override fun main() {
         super.main()
     }
 }

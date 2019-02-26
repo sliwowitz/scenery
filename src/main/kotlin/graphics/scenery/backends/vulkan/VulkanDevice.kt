@@ -6,6 +6,7 @@ import org.lwjgl.system.MemoryUtil
 import org.lwjgl.system.MemoryUtil.memUTF8
 import org.lwjgl.vulkan.*
 import org.lwjgl.vulkan.VK10.*
+import vkk.VkMemoryPropertyFlags
 import java.util.*
 
 /**
@@ -102,7 +103,9 @@ open class VulkanDevice(val instance: VkInstance, val physicalDevice: VkPhysical
                 logger.debug("Adding queue with familyIndex=$familyIndex, size=${group.size}")
 
                 val pQueuePriorities = stack.callocFloat(group.size)
-                for(pr in 0 until group.size) { pQueuePriorities.put(pr, 1.0f) }
+                for (pr in 0 until group.size) {
+                    pQueuePriorities.put(pr, 1.0f)
+                }
 
                 queueCreateInfo[i]
                     .sType(VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO)
@@ -118,7 +121,7 @@ open class VulkanDevice(val instance: VkInstance, val physicalDevice: VkPhysical
 
             // allocate enough pointers for required extensions, plus the swapchain extension
             // if we are not running in headless mode
-            val extensions = if(!headless) {
+            val extensions = if (!headless) {
                 val e = stack.callocPointer(1 + extensionsRequested.size)
                 e.put(stack.UTF8(KHRSwapchain.VK_KHR_SWAPCHAIN_EXTENSION_NAME))
                 e
@@ -129,7 +132,7 @@ open class VulkanDevice(val instance: VkInstance, val physicalDevice: VkPhysical
             utf8Exts.forEach { extensions.put(it) }
             extensions.flip()
 
-            if(validationLayers.isNotEmpty()) {
+            if (validationLayers.isNotEmpty()) {
                 logger.warn("Enabled Vulkan API validations. Expect degraded performance.")
             }
 
@@ -194,7 +197,7 @@ open class VulkanDevice(val instance: VkInstance, val physicalDevice: VkPhysical
      * bear [typeBits] and [flags]. May return an empty list in case
      * the device does not support the given types and flags.
      */
-    fun getMemoryType(typeBits: Int, flags: Int): List<Int> {
+    fun getMemoryType(typeBits: Int, flags: VkMemoryPropertyFlags): List<Int> {
         var bits = typeBits
         val types = ArrayList<Int>(5)
 
@@ -208,7 +211,7 @@ open class VulkanDevice(val instance: VkInstance, val physicalDevice: VkPhysical
             bits = bits shr 1
         }
 
-        if(types.isEmpty()) {
+        if (types.isEmpty()) {
             logger.warn("Memory type $flags not found for device $this (${vulkanDevice.address().toHexString()}")
         }
 
@@ -295,7 +298,7 @@ open class VulkanDevice(val instance: VkInstance, val physicalDevice: VkPhysical
         )
 
         private fun toDeviceType(vkDeviceType: Int): DeviceType {
-            return when(vkDeviceType) {
+            return when (vkDeviceType) {
                 0 -> DeviceType.Other
                 1 -> DeviceType.IntegratedGPU
                 2 -> DeviceType.DiscreteGPU
@@ -306,7 +309,7 @@ open class VulkanDevice(val instance: VkInstance, val physicalDevice: VkPhysical
         }
 
         private fun vendorToString(vendor: Int): String =
-            when(vendor) {
+            when (vendor) {
                 0x1002 -> "AMD"
                 0x10DE -> "Nvidia"
                 0x8086 -> "Intel"
@@ -328,10 +331,11 @@ open class VulkanDevice(val instance: VkInstance, val physicalDevice: VkPhysical
          * given by [additionalExtensions]. The device selection is done in a fuzzy way by [physicalDeviceFilter],
          * such that one can filter for certain vendors, e.g.
          */
-        @JvmStatic fun fromPhysicalDevice(instance: VkInstance, physicalDeviceFilter: (Int, DeviceData) -> Boolean,
-                                          additionalExtensions: (VkPhysicalDevice) -> Array<String> = { arrayOf() },
-                                          validationLayers: Array<String> = arrayOf(),
-                                          headless: Boolean = false): VulkanDevice {
+        @JvmStatic
+        fun fromPhysicalDevice(instance: VkInstance, physicalDeviceFilter: (Int, DeviceData) -> Boolean,
+                               additionalExtensions: (VkPhysicalDevice) -> Array<String> = { arrayOf() },
+                               validationLayers: Array<String> = arrayOf(),
+                               headless: Boolean = false): VulkanDevice {
             return stackPush().use { stack ->
 
                 val physicalDeviceCount = VU.getInt("Enumerate physical devices") {
@@ -364,7 +368,7 @@ open class VulkanDevice(val instance: VkInstance, val physicalDevice: VkPhysical
                         apiVersion = driverVersionToString(properties.apiVersion()),
                         type = toDeviceType(properties.deviceType()))
 
-                    if(physicalDeviceFilter.invoke(i, deviceData)) {
+                    if (physicalDeviceFilter.invoke(i, deviceData)) {
                         devicePreference = i
                     }
 
@@ -384,7 +388,7 @@ open class VulkanDevice(val instance: VkInstance, val physicalDevice: VkPhysical
                 val selectedDevice = physicalDevices.get(devicePreference)
                 val selectedDeviceData = deviceList[devicePreference]
 
-                if(System.getProperty("scenery.DisableDeviceWorkarounds", "false")?.toBoolean() != true) {
+                if (System.getProperty("scenery.DisableDeviceWorkarounds", "false")?.toBoolean() != true) {
                     deviceWorkarounds.forEach {
                         if (it.filter.invoke(selectedDeviceData)) {
                             logger.warn("Workaround activated: ${it.description}")

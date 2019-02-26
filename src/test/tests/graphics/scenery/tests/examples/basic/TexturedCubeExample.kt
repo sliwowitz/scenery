@@ -59,7 +59,8 @@ class TexturedCubeExample : SceneryBase("TexturedCubeExample") {
         }
     }
 
-    @Test override fun main() {
+    @Test
+    override fun main() {
         super.main()
     }
 }

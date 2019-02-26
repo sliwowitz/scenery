@@ -13,7 +13,7 @@ import org.junit.Test
  *
  * @author Ulrik Günther <hello@ulrik.is>
  */
-class BileExample: SceneryBase("Bile Canaliculi example") {
+class BileExample : SceneryBase("Bile Canaliculi example") {
     var hmd: TrackedStereoGlasses? = null
     var publishedNodes = ArrayList<Node>()
 
@@ -31,7 +31,7 @@ class BileExample: SceneryBase("Bile Canaliculi example") {
         val cam: Camera = DetachedHeadCamera(hmd)
         with(cam) {
             position = GLVector(.0f, -0.4f, 5.0f)
-            perspectiveCamera(50.0f, 1.0f*windowWidth, 1.0f*windowHeight)
+            perspectiveCamera(50.0f, 1.0f * windowWidth, 1.0f * windowHeight)
             active = true
 
             scene.addChild(this)
@@ -49,14 +49,14 @@ class BileExample: SceneryBase("Bile Canaliculi example") {
         }
 
         val tetrahedron = listOf(
-            GLVector(1.0f, 0f, -1.0f/Math.sqrt(2.0).toFloat()),
-            GLVector(-1.0f,0f,-1.0f/Math.sqrt(2.0).toFloat()),
-            GLVector(0.0f,1.0f,1.0f/Math.sqrt(2.0).toFloat()),
-            GLVector(0.0f,-1.0f,1.0f/Math.sqrt(2.0).toFloat()))
+            GLVector(1.0f, 0f, -1.0f / Math.sqrt(2.0).toFloat()),
+            GLVector(-1.0f, 0f, -1.0f / Math.sqrt(2.0).toFloat()),
+            GLVector(0.0f, 1.0f, 1.0f / Math.sqrt(2.0).toFloat()),
+            GLVector(0.0f, -1.0f, 1.0f / Math.sqrt(2.0).toFloat()))
 
         tetrahedron.mapIndexed { i, position ->
             lights[i].position = position * 50.0f
-            lights[i].emissionColor = GLVector(1.0f, 0.5f,0.3f)//Random.randomVectorFromRange(3, 0.2f, 0.8f)
+            lights[i].emissionColor = GLVector(1.0f, 0.5f, 0.3f)//Random.randomVectorFromRange(3, 0.2f, 0.8f)
             lights[i].intensity = 200.2f
             scene.addChild(lights[i])
         }
@@ -85,7 +85,8 @@ class BileExample: SceneryBase("Bile Canaliculi example") {
         }
     }
 
-    @Test override fun main() {
+    @Test
+    override fun main() {
         super.main()
     }
 }

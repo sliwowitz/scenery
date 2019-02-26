@@ -13,7 +13,6 @@ import org.junit.Test
 import java.util.concurrent.CountDownLatch
 
 
-
 /**
  * Example to load localisation microscopy files.
  * Files have to have the format X\tY\tZ\tdX\tdY
@@ -26,7 +25,7 @@ class LocalisationExample : SceneryBase("Localisation Microscopy Rendering examp
     override fun init() {
         val latch = CountDownLatch(1)
         val files = ArrayList<String>()
-        PlatformImpl.startup {  }
+        PlatformImpl.startup { }
 
         Platform.runLater {
             val chooser = FileChooser()
@@ -34,7 +33,7 @@ class LocalisationExample : SceneryBase("Localisation Microscopy Rendering examp
             chooser.extensionFilters.addAll(FileChooser.ExtensionFilter("CSV/TSV files", "*.txt", "*.csv", "*.tsv", "*.xls"))
             val file = chooser.showOpenMultipleDialog(Stage())
 
-            if(file != null) {
+            if (file != null) {
                 files.addAll(file.map { it.absolutePath })
             }
             latch.countDown()
@@ -60,7 +59,7 @@ class LocalisationExample : SceneryBase("Localisation Microscopy Rendering examp
         shell.material.ambient = GLVector.getNullVector(3)
         scene.addChild(shell)
 
-        if(System.getProperty("datasets") != null) {
+        if (System.getProperty("datasets") != null) {
             files.clear()
             files.addAll(System.getProperty("datasets").split(";").toList())
         }
@@ -93,7 +92,8 @@ class LocalisationExample : SceneryBase("Localisation Microscopy Rendering examp
         setupCameraModeSwitching()
     }
 
-    @Test override fun main() {
+    @Test
+    override fun main() {
         super.main()
     }
 }

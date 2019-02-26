@@ -33,8 +33,7 @@ class MultiBoxExample : SceneryBase("MultiBoxExample") {
             Box(GLVector(0.2f, 0.2f, 0.2f))
         }
 
-        boxes.mapIndexed {
-            s, box ->
+        boxes.mapIndexed { s, box ->
 
             val k: Double = s % boundaryWidth
             val j: Double = (s / boundaryWidth) % boundaryHeight
@@ -76,8 +75,7 @@ class MultiBoxExample : SceneryBase("MultiBoxExample") {
             val step = 0.02f
 
             while (true) {
-                lights.mapIndexed {
-                    i, light ->
+                lights.mapIndexed { i, light ->
                     val phi = Math.PI * 2.0f * ticks / 1500.0f
 
                     light.position = GLVector(
@@ -97,7 +95,8 @@ class MultiBoxExample : SceneryBase("MultiBoxExample") {
         }
     }
 
-    @Test override fun main() {
+    @Test
+    override fun main() {
         super.main()
     }
 

@@ -17,16 +17,22 @@ import javax.swing.SwingUtilities
 sealed class SceneryWindow {
     /** The default window state, before it becomes initialized to a specific window kind */
     class UninitializedWindow : SceneryWindow()
+
     /** GLFW window, with [window] being the pointer to GLFW's window object. */
-    class GLFWWindow(var window: Long): SceneryWindow()
+    class GLFWWindow(var window: Long) : SceneryWindow()
+
     /** ClearGL (JOGL) window, with [window] being the reference to a [cleargl.ClearGLWindow]. */
-    class ClearGLWindow(var window: cleargl.ClearGLWindow): SceneryWindow()
+    class ClearGLWindow(var window: cleargl.ClearGLWindow) : SceneryWindow()
+
     /** JOGL GLAutoDrawable, with [drawable] being the reference to a [GLAutoDrawable]. */
-    class JOGLDrawable(var drawable: GLAutoDrawable): SceneryWindow()
+    class JOGLDrawable(var drawable: GLAutoDrawable) : SceneryWindow()
+
     /** JavaFX window or stage, with [panel] being the [SceneryFXPanel] scenery will render to. */
-    class JavaFXStage(var panel: SceneryFXPanel): SceneryWindow()
+    class JavaFXStage(var panel: SceneryFXPanel) : SceneryWindow()
+
     /** Swing window with [panel] being the [SceneryJPanel] */
-    class SwingWindow(var panel: SceneryJPanel): SceneryWindow()
+    class SwingWindow(var panel: SceneryJPanel) : SceneryWindow()
+
     /** Headless window with no chrome whatsoever. */
     class HeadlessWindow : SceneryWindow()
 
@@ -47,8 +53,9 @@ sealed class SceneryWindow {
      * Sets the title of this window to [title].
      */
     fun setTitle(title: String) {
-        when(this) {
-            is UninitializedWindow -> {}
+        when (this) {
+            is UninitializedWindow -> {
+            }
             is GLFWWindow -> glfwSetWindowTitle(window, title)
             is ClearGLWindow -> window.windowTitle = title
             is JavaFXStage -> {
@@ -56,11 +63,12 @@ sealed class SceneryWindow {
             }
             is SwingWindow -> {
                 val window = SwingUtilities.getWindowAncestor(panel)
-                if(window != null) {
+                if (window != null) {
                     (window as? JFrame)?.title = title
                 }
             }
-            is HeadlessWindow -> {}
+            is HeadlessWindow -> {
+            }
         }
     }
 
@@ -69,7 +77,7 @@ sealed class SceneryWindow {
      * (Only the case for GLFW so far)
      */
     fun pollEvents() {
-        if(this is GLFWWindow) {
+        if (this is GLFWWindow) {
             if (glfwWindowShouldClose(window)) {
                 shouldClose = true
             }

@@ -89,7 +89,8 @@ class DirectWritableImage(pWidth: Int, pHeight: Int) : WritableImage(pWidth, pHe
         // Get the platform image
         val getWritablePlatformImage = javafx.scene.image.Image::class.java.getDeclaredMethod("getWritablePlatformImage")
         getWritablePlatformImage.isAccessible = true
-        val prismImg = getWritablePlatformImage(writableImg) as? com.sun.prism.Image ?: throw IllegalAccessException("Could not cast prismImg")
+        val prismImg = getWritablePlatformImage(writableImg) as? com.sun.prism.Image
+            ?: throw IllegalAccessException("Could not cast prismImg")
 
         // Replace the buffer
         val pixelBuffer = com.sun.prism.Image::class.java.getDeclaredField("pixelBuffer")

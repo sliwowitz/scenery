@@ -3,7 +3,6 @@ package graphics.scenery.backends
 import cleargl.GLMatrix
 import cleargl.GLVector
 import graphics.scenery.backends.vulkan.VulkanDevice
-import org.lwjgl.vulkan.VkDevice
 import org.lwjgl.vulkan.VkInstance
 import org.lwjgl.vulkan.VkPhysicalDevice
 import org.lwjgl.vulkan.VkQueue
@@ -28,6 +27,7 @@ interface Display {
      * @return IPD as Float
      */
     fun getIPD(): Float
+
     /**
      * Query the HMD whether a compositor is used or the renderer should take
      * care of displaying on the HMD on its own.

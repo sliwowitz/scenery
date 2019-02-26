@@ -45,7 +45,7 @@ fun RenderConfigReader.RenderConfig.createRenderpassFlow(): List<String> {
     var inputs: List<String>? = start.value.inputs
     dag.add(start.key)
 
-    while(inputs != null) {
+    while (inputs != null) {
         passes.filter { inputs!!.map { it.substringBefore(".") }.contains(it.value.output) }.entries.forEach {
             inputs = it.value.inputs
 
@@ -90,7 +90,7 @@ class RenderConfigReader {
      */
     class VREyeDeserializer : JsonDeserializer<Int>() {
         override fun deserialize(p: JsonParser, ctxt: DeserializationContext?): Int {
-            return when(p.text.trim().trimEnd()) {
+            return when (p.text.trim().trimEnd()) {
                 "LeftEye" -> 0
                 "RightEye" -> 1
                 else -> -1

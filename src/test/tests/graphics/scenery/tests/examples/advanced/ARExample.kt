@@ -19,7 +19,7 @@ import kotlin.concurrent.thread
  *
  * @author Ulrik Günther <hello@ulrik.is>
  */
-class ARExample: SceneryBase("AR Volume Rendering example", 1280, 720) {
+class ARExample : SceneryBase("AR Volume Rendering example", 1280, 720) {
     val hololens = Hololens()
     val bitsPerVoxel = 16
 
@@ -32,7 +32,7 @@ class ARExample: SceneryBase("AR Volume Rendering example", 1280, 720) {
         val cam: Camera = DetachedHeadCamera(hololens)
         with(cam) {
             position = GLVector(-0.2f, 0.0f, 1.0f)
-            perspectiveCamera(50.0f, 1.0f*windowWidth, 1.0f*windowHeight)
+            perspectiveCamera(50.0f, 1.0f * windowWidth, 1.0f * windowHeight)
             active = true
 
             scene.addChild(this)
@@ -49,29 +49,31 @@ class ARExample: SceneryBase("AR Volume Rendering example", 1280, 720) {
         }
 
         lights.mapIndexed { i, light ->
-            light.position = GLVector(2.0f * i - 4.0f,  i - 1.0f, 0.0f)
+            light.position = GLVector(2.0f * i - 4.0f, i - 1.0f, 0.0f)
             light.emissionColor = GLVector(1.0f, 1.0f, 1.0f)
             light.intensity = 50.0f
             scene.addChild(light)
         }
 
         thread {
-            while(!scene.initialized) { Thread.sleep(200) }
+            while (!scene.initialized) {
+                Thread.sleep(200)
+            }
 
             val volumeSize = 64L
-            val volumeBuffer = RingBuffer<ByteBuffer>(2) { memAlloc((volumeSize*volumeSize*volumeSize*bitsPerVoxel/8).toInt()) }
+            val volumeBuffer = RingBuffer<ByteBuffer>(2) { memAlloc((volumeSize * volumeSize * volumeSize * bitsPerVoxel / 8).toInt()) }
 
             val seed = Random.randomFromRange(0.0f, 133333337.0f).toLong()
             var shift = GLVector.getNullVector(3)
             val shiftDelta = Random.randomVectorFromRange(3, -0.5f, 0.5f)
 
-            val dataType = if(bitsPerVoxel == 8) {
+            val dataType = if (bitsPerVoxel == 8) {
                 NativeTypeEnum.UnsignedByte
             } else {
                 NativeTypeEnum.UnsignedShort
             }
 
-            while(true) {
+            while (true) {
                 val currentBuffer = volumeBuffer.get()
 
                 Volume.generateProceduralVolume(volumeSize, 0.95f, seed = seed,
@@ -80,7 +82,7 @@ class ARExample: SceneryBase("AR Volume Rendering example", 1280, 720) {
                 volume.readFromBuffer(
                     "procedural-cloud-${shift.hashCode()}", currentBuffer,
                     volumeSize, volumeSize, volumeSize, 1.0f, 1.0f, 1.0f,
-                    dataType = dataType, bytesPerVoxel = bitsPerVoxel/8)
+                    dataType = dataType, bytesPerVoxel = bitsPerVoxel / 8)
 
                 shift = shift + shiftDelta
 
@@ -89,7 +91,7 @@ class ARExample: SceneryBase("AR Volume Rendering example", 1280, 720) {
         }
 
         thread {
-            while(true) {
+            while (true) {
 //                volume.rotation = volume.rotation.rotateByAngleY(0.005f)
 
                 Thread.sleep(15)
@@ -101,7 +103,8 @@ class ARExample: SceneryBase("AR Volume Rendering example", 1280, 720) {
         setupCameraModeSwitching()
     }
 
-    @Test override fun main() {
+    @Test
+    override fun main() {
         super.main()
     }
 }

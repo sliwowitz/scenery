@@ -14,7 +14,7 @@ class Random {
          * Returns a random float from the range [min]-[max].
          */
         @JvmStatic
-        fun randomFromRange(min: Float, max: Float): Float = (max - min)*Math.random().toFloat() + min
+        fun randomFromRange(min: Float, max: Float): Float = (max - min) * Math.random().toFloat() + min
 
         /**
          * Returns a random [GLVector] with given [dimension], where all elements are in the

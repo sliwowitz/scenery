@@ -10,7 +10,7 @@ import java.util.concurrent.CopyOnWriteArrayList
 
 
 /** Default [VulkanBufferPool] backing store size. */
-val basicBufferSize = VkDeviceSize(1024*1024*32)
+val basicBufferSize = VkDeviceSize(1024 * 1024 * 32)
 
 /**
  * Represents a pool of [VulkanBuffer]s, from which [VulkanSuballocation]s can be made.
@@ -28,19 +28,20 @@ class VulkanBufferPool(val device: VulkanDevice,
      * Creates a new [VulkanSuballocation] of a given [size]. If the allocation cannot be made with
      * the current set of buffers in [backingStore], a new buffer will be added.
      */
-    @Synchronized fun create(size: Int): VulkanSuballocation {
+    @Synchronized
+    fun create(size: Int): VulkanSuballocation {
         val options = backingStore.filter { it.usage == usage && it.fit(size) != null }
 
-        return if(options.isEmpty()) {
+        return if (options.isEmpty()) {
             logger.trace("Could not find space for allocation of {}, creating new buffer", size)
             var bufferSize = this.bufferSize
-            while(bufferSize < size) {
+            while (bufferSize < size) {
                 bufferSize *= 2
             }
 
             // increase size for new backing store members in case we already have a few,
             // to limit the number of necessary buffers
-            if(bufferSize == this.bufferSize && backingStore.size > 4) {
+            if (bufferSize == this.bufferSize && backingStore.size > 4) {
                 bufferSize *= 4
             }
 
@@ -49,7 +50,8 @@ class VulkanBufferPool(val device: VulkanDevice,
             backingStore.add(alloc)
             logger.trace("Added new buffer of size {} to backing store", bufferSize)
 
-            val suballocation = alloc.allocate(alloc.fit(size) ?: throw IllegalStateException("New allocation of ${vb.allocatedSize} cannot fit $size"))
+            val suballocation = alloc.allocate(alloc.fit(size)
+                ?: throw IllegalStateException("New allocation of ${vb.allocatedSize} cannot fit $size"))
 
             suballocation
         } else {

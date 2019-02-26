@@ -1,8 +1,10 @@
 package graphics.scenery
 
 import cleargl.GLVector
-import kotlinx.coroutines.*
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.channels.Channel
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.runBlocking
 import java.util.*
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.atomic.AtomicLong
@@ -54,7 +56,7 @@ open class Scene : Node("RootNode") {
      * @return The [Camera] that is currently active.
      */
     fun findObserver(): Camera? {
-        return if(activeObserver == null) {
+        return if (activeObserver == null) {
             val observers = discover(this, { n -> n.nodeType == "Camera" && (n as Camera?)?.active == true }, useDiscoveryBarriers = true)
 
             activeObserver = observers.firstOrNull() as Camera?
@@ -82,7 +84,7 @@ open class Scene : Node("RootNode") {
                     matched.add(v)
                 }
 
-                if(!(useDiscoveryBarriers && v.discoveryBarrier)) {
+                if (!(useDiscoveryBarriers && v.discoveryBarrier)) {
                     discover(v, f)
                 }
             }
@@ -109,7 +111,7 @@ open class Scene : Node("RootNode") {
             if (!visited.add(current)) return
 
             crs.add(launch {
-                for(v in current.children) {
+                for (v in current.children) {
                     if (f(v)) {
 //                        channel.send(v)
                         matches.add(v)
@@ -184,16 +186,17 @@ open class Scene : Node("RootNode") {
      * be given a list of classes as [ignoredObjects], which will then be ignored for
      * the raycast. If [debug] is true, a set of spheres is placed along the cast ray.
      */
-    @JvmOverloads fun raycast(position: GLVector, direction: GLVector,
-                              ignoredObjects: List<Class<*>>,
-                              debug: Boolean = false): List<RaycastResult> {
+    @JvmOverloads
+    fun raycast(position: GLVector, direction: GLVector,
+                ignoredObjects: List<Class<*>>,
+                debug: Boolean = false): List<RaycastResult> {
         if (debug) {
             val indicatorMaterial = Material()
             indicatorMaterial.diffuse = GLVector(1.0f, 0.2f, 0.2f)
             indicatorMaterial.specular = GLVector(1.0f, 0.2f, 0.2f)
             indicatorMaterial.ambient = GLVector(0.0f, 0.0f, 0.0f)
 
-            for(it in 5..50) {
+            for (it in 5..50) {
                 val s = Box(GLVector(0.08f, 0.08f, 0.08f))
                 s.material = indicatorMaterial
                 s.position = position + direction * it.toFloat()

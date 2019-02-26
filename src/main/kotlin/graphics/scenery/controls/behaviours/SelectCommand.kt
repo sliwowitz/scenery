@@ -1,7 +1,8 @@
 package graphics.scenery.controls.behaviours
 
-import cleargl.GLVector
-import graphics.scenery.*
+import graphics.scenery.BoundingGrid
+import graphics.scenery.Camera
+import graphics.scenery.Scene
 import graphics.scenery.backends.Renderer
 import graphics.scenery.utils.LazyLogger
 import org.scijava.ui.behaviour.ClickBehaviour

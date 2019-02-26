@@ -72,8 +72,7 @@ class RungholtExample : SceneryBase("RungholtExample", windowWidth = 1280, windo
         thread {
             var ticks = 0L
             while (true) {
-                boxes.mapIndexed {
-                    i, box ->
+                boxes.mapIndexed { i, box ->
                     val phi = ticks / 1500.0f % (Math.PI * 2.0f)
 
                     box.position = GLVector(
@@ -90,7 +89,8 @@ class RungholtExample : SceneryBase("RungholtExample", windowWidth = 1280, windo
         }
     }
 
-    @Test override fun main() {
+    @Test
+    override fun main() {
         super.main()
     }
 }

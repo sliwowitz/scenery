@@ -3,11 +3,7 @@ package graphics.scenery.tests.unit
 import cleargl.GLMatrix
 import cleargl.GLVector
 import com.jogamp.opengl.math.Quaternion
-import graphics.scenery.BufferUtils
-import graphics.scenery.Material
-import graphics.scenery.Mesh
-import graphics.scenery.Node
-import graphics.scenery.Scene
+import graphics.scenery.*
 import graphics.scenery.numerics.Random
 import graphics.scenery.utils.LazyLogger
 import org.junit.Assert.*
@@ -68,7 +64,7 @@ class NodeTests {
         val numSib = ThreadLocalRandom.current().nextInt(1, maxSiblings)
 
         (0 until numSib).map {
-            if(currentLevel >= maxLevels) {
+            if (currentLevel >= maxLevels) {
                 return totalNodes
             }
 
@@ -102,9 +98,9 @@ class NodeTests {
 
         val start = System.nanoTime()
         scene.updateWorld(true, true)
-        val duration = (System.nanoTime() - start)/10e6
+        val duration = (System.nanoTime() - start) / 10e6
 
-        assert(totalNodes <= Math.pow(1.0*maxSiblings, 1.0*levels).toInt())
+        assert(totalNodes <= Math.pow(1.0 * maxSiblings, 1.0 * levels).toInt())
         assert(totalNodes > maxSiblings)
 
         logger.info("Updating world for $totalNodes took $duration ms")
@@ -127,18 +123,18 @@ class NodeTests {
 
         var start = System.nanoTime()
         scene.updateWorld(true, true)
-        var duration = (System.nanoTime() - start)/10e6
+        var duration = (System.nanoTime() - start) / 10e6
 
-        assert(totalNodes <= Math.pow(1.0*maxSiblings, 1.0*levels).toInt())
+        assert(totalNodes <= Math.pow(1.0 * maxSiblings, 1.0 * levels).toInt())
         assert(totalNodes > maxSiblings)
 
         logger.info("Updating world for $totalNodes took $duration ms")
 
         start = System.nanoTime()
         val discoveredNodes = scene.discover(scene, { node -> node.visible })
-        duration = (System.nanoTime() - start)/10e6
+        duration = (System.nanoTime() - start) / 10e6
 
-        assert(totalNodes == discoveredNodes.size) { "$totalNodes nodes created, but only ${discoveredNodes.size} nodes discovered."}
+        assert(totalNodes == discoveredNodes.size) { "$totalNodes nodes created, but only ${discoveredNodes.size} nodes discovered." }
 
         logger.info("Scene discovery for $totalNodes took $duration ms, discovered ${discoveredNodes.size} nodes")
     }

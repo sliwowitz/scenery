@@ -165,12 +165,12 @@ class SystemHelpers {
                     val fs = FileSystems.newFileSystem(path, env)
 
                     fs.provider().getPath(path)
-                } catch(pnfe: ProviderNotFoundException) {
+                } catch (pnfe: ProviderNotFoundException) {
                     FileSystems.getDefault().getPath(path.toString())
                 }
-            } catch (e : IllegalArgumentException) {
+            } catch (e: IllegalArgumentException) {
                 // handle the case when no scheme is given
-                when(ExtractsNatives.getPlatform()) {
+                when (ExtractsNatives.getPlatform()) {
                     // on macOS and Linux, we'll just use the default file system and hand over the scheme-less path
                     ExtractsNatives.Platform.MACOS,
                     ExtractsNatives.Platform.LINUX -> FileSystems.getDefault().getPath(path.toString())
@@ -191,22 +191,26 @@ class SystemHelpers {
             var file = f
             var c = 0
 
-            if(overwrite) {
+            if (overwrite) {
                 return file
             }
 
-            while(file.exists()) {
+            while (file.exists()) {
                 val ext = file.name.substringAfterLast(".")
                 var name = file.name.substringBeforeLast(".")
 
                 val counter = name.substringAfterLast("(").substringBeforeLast(")")
                 name = name.substringBeforeLast("(")
 
-                if(counter.toIntOrNull() != null) {
+                if (counter.toIntOrNull() != null) {
                     c = counter.toInt()
                 }
 
-                val newName = "$name(${c+1})" + if(ext.isNotEmpty()) { ".$ext" } else { "" }
+                val newName = "$name(${c + 1})" + if (ext.isNotEmpty()) {
+                    ".$ext"
+                } else {
+                    ""
+                }
 
                 file = File(file.parent, newName)
             }

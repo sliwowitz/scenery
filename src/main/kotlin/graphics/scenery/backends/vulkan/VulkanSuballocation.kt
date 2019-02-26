@@ -10,7 +10,7 @@ class VulkanSuballocation(var offset: Int, var size: VkDeviceSize, var buffer: V
     /** Mark this suballocation for garbage collection, can only be set true once. */
     var free: Boolean = false
         set(value) {
-            field = if(free) {
+            field = if (free) {
                 true
             } else {
                 value

@@ -41,7 +41,7 @@ class ProceduralTextureExample : SceneryBase("ProceduralTextureExample") {
         lights.mapIndexed { i, light ->
             light.position = GLVector(2.0f * i, 2.0f * i, 2.0f * i)
             light.emissionColor = GLVector(1.0f, 1.0f, 1.0f)
-            light.intensity = 500.2f*(i+1)
+            light.intensity = 500.2f * (i + 1)
             scene.addChild(light)
         }
 
@@ -61,8 +61,8 @@ class ProceduralTextureExample : SceneryBase("ProceduralTextureExample") {
             val textureBuffer = BufferUtils.allocateByte(imageSizeX * imageSizeY * imageChannels)
             var ticks = 0L
 
-            while(true) {
-                if(box.lock.tryLock(2, TimeUnit.MILLISECONDS)) {
+            while (true) {
+                if (box.lock.tryLock(2, TimeUnit.MILLISECONDS)) {
                     box.rotation.rotateByAngleY(0.01f)
                     box.needsUpdate = true
 
@@ -102,8 +102,8 @@ class ProceduralTextureExample : SceneryBase("ProceduralTextureExample") {
             val x = it % width
             val y = it / height
 
-            val g = (255*Math.sin(0.1*x + 0.1*y + tick/10.0f)).toByte()
-            val m = (Math.sin(tick/100.0) * g).toByte()
+            val g = (255 * Math.sin(0.1 * x + 0.1 * y + tick / 10.0f)).toByte()
+            val m = (Math.sin(tick / 100.0) * g).toByte()
             rgba[0] = g
             rgba[1] = m
             rgba[2] = m
@@ -114,7 +114,8 @@ class ProceduralTextureExample : SceneryBase("ProceduralTextureExample") {
         this.flip()
     }
 
-    @Test override fun main() {
+    @Test
+    override fun main() {
         super.main()
     }
 }

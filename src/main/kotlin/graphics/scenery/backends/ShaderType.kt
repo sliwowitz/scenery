@@ -17,7 +17,7 @@ enum class ShaderType {
 /**
  * Extension function to turn a [ShaderType] into the canonical GLSL file extension.
  */
-fun ShaderType.toExtension(): String = when(this) {
+fun ShaderType.toExtension(): String = when (this) {
     ShaderType.VertexShader -> ".vert"
     ShaderType.TessellationControlShader -> ".tesc"
     ShaderType.TessellationEvaluationShader -> ".tese"

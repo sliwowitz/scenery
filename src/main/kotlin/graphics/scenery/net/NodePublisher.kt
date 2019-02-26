@@ -19,7 +19,7 @@ import java.util.*
  * Created by ulrik on 4/4/2017.
  */
 
-class NodePublisher(override var hub: Hub?, val address: String = "tcp://*:6666", val context: ZContext = ZContext(4)): Hubable {
+class NodePublisher(override var hub: Hub?, val address: String = "tcp://*:6666", val context: ZContext = ZContext(4)) : Hubable {
     private val logger by LazyLogger()
 
     var nodes: HashMap<Int, Node> = HashMap()
@@ -55,9 +55,9 @@ class NodePublisher(override var hub: Hub?, val address: String = "tcp://*:6666"
 
                 output.close()
                 bos.close()
-            } catch(e: IOException) {
+            } catch (e: IOException) {
                 logger.warn("in ${node.name}: ${e}")
-            } catch(e: AssertionError) {
+            } catch (e: AssertionError) {
                 logger.warn("assertion: ${node.name}: ${e}")
             }
 

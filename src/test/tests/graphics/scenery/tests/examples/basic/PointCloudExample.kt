@@ -39,7 +39,7 @@ class PointCloudExample : SceneryBase("PointCloudExample") {
         lights.mapIndexed { i, light ->
             light.position = GLVector(2.0f * i, 2.0f * i, 2.0f * i)
             light.emissionColor = GLVector(1.0f, 1.0f, 1.0f)
-            light.intensity = 5000.2f*(i+1)
+            light.intensity = 5000.2f * (i + 1)
             scene.addChild(light)
         }
 
@@ -58,7 +58,7 @@ class PointCloudExample : SceneryBase("PointCloudExample") {
 
         val pointCloud = PointCloud(pointRadius = 0.025f)
         with(pointCloud) {
-            readFromOBJ( TexturedCubeExample::class.java.getResource("models/sphere.obj").file, importMaterials = false)
+            readFromOBJ(TexturedCubeExample::class.java.getResource("models/sphere.obj").file, importMaterials = false)
             position = GLVector(0.0f, 0.0f, 0.0f)
             name = "Sphere Mesh"
             material = pcmaterial
@@ -73,7 +73,8 @@ class PointCloudExample : SceneryBase("PointCloudExample") {
         setupCameraModeSwitching(keybinding = "C")
     }
 
-    @Test override fun main() {
+    @Test
+    override fun main() {
         super.main()
     }
 }

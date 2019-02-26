@@ -32,7 +32,7 @@ open class OpenGLShaderProgram(var gl: GL4, val modules: HashMap<ShaderType, Ope
 
         modules.forEach { type, module ->
             module.uboSpecs.forEach { uboName, ubo ->
-                if(uboSpecs.containsKey(uboName)) {
+                if (uboSpecs.containsKey(uboName)) {
                     uboSpecs[uboName]!!.members.putAll(ubo.members)
                 } else {
                     uboSpecs[uboName] = ubo
@@ -45,7 +45,7 @@ open class OpenGLShaderProgram(var gl: GL4, val modules: HashMap<ShaderType, Ope
         logger.debug("Creating shader program from ${modules.keys.joinToString(", ")}")
 
         program = GLProgram(gl, shaders)
-        if(program.programInfoLog.isNotEmpty()) {
+        if (program.programInfoLog.isNotEmpty()) {
             logger.warn("There was an issue linking the following shaders:")
             logger.warn("Error produced: ${program.programInfoLog}")
 
@@ -57,7 +57,7 @@ open class OpenGLShaderProgram(var gl: GL4, val modules: HashMap<ShaderType, Ope
         val result = intArrayOf(0)
         gl.glGetProgramiv(program.id, GL4.GL_LINK_STATUS, result, 0)
 
-        id = if(result[0] != GL4.GL_TRUE) {
+        id = if (result[0] != GL4.GL_TRUE) {
             logger.error("An error occurred during linking.")
             -1
         } else {
@@ -119,7 +119,7 @@ open class OpenGLShaderProgram(var gl: GL4, val modules: HashMap<ShaderType, Ope
     }
 
     private fun ShaderType.toClearGLShaderType(): GLShaderType {
-        return when(this) {
+        return when (this) {
             ShaderType.VertexShader -> GLShaderType.VertexShader
             ShaderType.FragmentShader -> GLShaderType.FragmentShader
             ShaderType.TessellationControlShader -> GLShaderType.TesselationControlShader

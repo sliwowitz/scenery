@@ -91,7 +91,8 @@ class UBOTests {
     /**
      * Tests repeated UBO serialisation with caching of the member hashes
      */
-    @Test fun testHashedSerialisation() {
+    @Test
+    fun testHashedSerialisation() {
         logger.info("Testing hashed UBO serialisation...")
 
         val ubo = UBO()
@@ -130,7 +131,7 @@ class UBOTests {
         verifyData(v = defaultVector)
 
         logger.info("+ Testing 10 hashed runs and checking buffer is not being updated ...")
-        for(i in 0..10) {
+        for (i in 0..10) {
             storage.flip()
             assertEquals(false, ubo.populate(storage))
 

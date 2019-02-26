@@ -74,7 +74,7 @@ class SponzaExample : SceneryBase("SponzaExample", windowWidth = 1920, windowHei
         thread {
             var ticks = 0L
             while (true) {
-                if(movingLights) {
+                if (movingLights) {
                     lights.mapIndexed { i, light ->
                         val phi = (Math.PI * 2.0f * ticks / 1000.0f) % (Math.PI * 2.0f)
 
@@ -101,7 +101,8 @@ class SponzaExample : SceneryBase("SponzaExample", windowWidth = 1920, windowHei
         inputHandler?.addKeyBinding("toggle_light_movement", "T")
     }
 
-    @Test override fun main() {
+    @Test
+    override fun main() {
         super.main()
     }
 }

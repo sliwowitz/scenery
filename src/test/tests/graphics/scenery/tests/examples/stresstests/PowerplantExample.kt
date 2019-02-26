@@ -69,8 +69,7 @@ class PowerplantExample : SceneryBase("PowerplantExample", windowWidth = 1280, w
         thread {
             var ticks = 0L
             while (true) {
-                boxes.mapIndexed {
-                    i, box ->
+                boxes.mapIndexed { i, box ->
                     val phi = Math.PI * 2.0f * ticks / 2500.0f
 
                     box.position = GLVector(
@@ -88,7 +87,8 @@ class PowerplantExample : SceneryBase("PowerplantExample", windowWidth = 1280, w
         }
     }
 
-    @Test override fun main() {
+    @Test
+    override fun main() {
         super.main()
     }
 }

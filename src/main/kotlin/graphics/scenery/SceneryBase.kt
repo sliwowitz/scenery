@@ -40,10 +40,10 @@ import kotlin.concurrent.thread
  */
 
 open class SceneryBase @JvmOverloads constructor(var applicationName: String,
-                       var windowWidth: Int = 1024,
-                       var windowHeight: Int = 1024,
-                       val wantREPL: Boolean = true,
-                       val scijavaContext: Context? = null) {
+                                                 var windowWidth: Int = 1024,
+                                                 var windowHeight: Int = 1024,
+                                                 val wantREPL: Boolean = true,
+                                                 val scijavaContext: Context? = null) {
 
     /** The scene used by the renderer in the application */
     protected val scene: Scene = Scene()
@@ -66,6 +66,7 @@ open class SceneryBase @JvmOverloads constructor(var applicationName: String,
     data class NewRendererParameters(val rendererType: String, val hub: Hub,
                                      val applicationName: String, val width: Int, val height: Int,
                                      val scene: Scene, val embedIn: SceneryPanel?, val config: String)
+
     protected var registerNewRenderer: NewRendererParameters? = null
 
     /** Logger for this application, will be instantiated upon first use. */
@@ -89,7 +90,7 @@ open class SceneryBase @JvmOverloads constructor(var applicationName: String,
     protected var t = 0.0f
     protected var shouldClose: Boolean = false
 
-    interface XLib: Library {
+    interface XLib : Library {
         fun XInitThreads()
 
         companion object {
@@ -98,7 +99,7 @@ open class SceneryBase @JvmOverloads constructor(var applicationName: String,
     }
 
     init {
-        if(Platform.get() == Platform.LINUX) {
+        if (Platform.get() == Platform.LINUX) {
             logger.debug("Running XInitThreads")
             XLib.INSTANCE.XInitThreads()
         }
@@ -135,7 +136,7 @@ open class SceneryBase @JvmOverloads constructor(var applicationName: String,
         logger.info("Started application as PID ${getProcessID()}")
 
         val headless = parseBoolean(System.getProperty("scenery.Headless", "false"))
-        val renderdoc = if(System.getProperty("scenery.AttachRenderdoc")?.toBoolean() == true) {
+        val renderdoc = if (System.getProperty("scenery.AttachRenderdoc")?.toBoolean() == true) {
             Renderdoc()
         } else {
             null
@@ -166,7 +167,7 @@ open class SceneryBase @JvmOverloads constructor(var applicationName: String,
         running = true
 
         // wait for renderer
-        while(renderer?.initialized == false) {
+        while (renderer?.initialized == false) {
             Thread.sleep(100)
         }
 
@@ -177,7 +178,7 @@ open class SceneryBase @JvmOverloads constructor(var applicationName: String,
         thread {
             val r = renderer ?: return@thread
 
-            while(!r.firstImageReady) {
+            while (!r.firstImageReady) {
                 Thread.sleep(100)
             }
 
@@ -233,7 +234,7 @@ open class SceneryBase @JvmOverloads constructor(var applicationName: String,
             runtime = (System.nanoTime() - startTime) / 1000000f
             settings.set("System.Runtime", runtime)
 
-            if(renderer?.managesRenderLoop == false) {
+            if (renderer?.managesRenderLoop == false) {
                 hub.getWorkingHMD()?.update()
             }
 
@@ -246,11 +247,11 @@ open class SceneryBase @JvmOverloads constructor(var applicationName: String,
             // only run loop if we are either in standalone mode, or master
             // for details about the interpolation code, see
             // https://gafferongames.com/post/fix_your_timestep/
-            if(master || masterAddress == null) {
+            if (master || masterAddress == null) {
                 val newTime = System.nanoTime()
                 lastFrameTime = frameTime
-                frameTime = (newTime - currentTime)/1e6f
-                if(frameTime > 250.0f) {
+                frameTime = (newTime - currentTime) / 1e6f
+                if (frameTime > 250.0f) {
                     frameTime = 250.0f
                 }
 
@@ -259,7 +260,7 @@ open class SceneryBase @JvmOverloads constructor(var applicationName: String,
 
                 inputHandler?.window?.pollEvents()
 
-                while(accumulator >= timeStep) {
+                while (accumulator >= timeStep) {
                     // evolve state
                     t += timeStep
                     accumulator -= timeStep
@@ -267,14 +268,14 @@ open class SceneryBase @JvmOverloads constructor(var applicationName: String,
                     updateFunction?.let { update -> stats.addTimed("Scene.Update", update) }
                 }
 
-                val alpha = accumulator/timeStep
+                val alpha = accumulator / timeStep
 
-                if(frameTimes.size > frameTimeKeepCount) {
+                if (frameTimes.size > frameTimeKeepCount) {
                     frameTimes.removeLast()
                 }
 
-                if(renderer?.managesRenderLoop == false) {
-                    frameTimes.push((alpha * frameTime / 100.0f) + (1.0f - alpha)*(lastFrameTime/100.0f))
+                if (renderer?.managesRenderLoop == false) {
+                    frameTimes.push((alpha * frameTime / 100.0f) + (1.0f - alpha) * (lastFrameTime / 100.0f))
                     scene.activeObserver?.deltaT = frameTimes.average().toFloat()
                 } else {
                     frameTimes.push((renderer?.lastFrameTime ?: 1.0f) / 100.0f)
@@ -290,8 +291,8 @@ open class SceneryBase @JvmOverloads constructor(var applicationName: String,
             stats.add("ticks", ticks, isTime = false)
 
             val r = registerNewRenderer
-            if(r != null) {
-                if(renderer?.managesRenderLoop == false) {
+            if (r != null) {
+                if (renderer?.managesRenderLoop == false) {
                     renderer?.render()
                 }
 
@@ -405,7 +406,7 @@ open class SceneryBase @JvmOverloads constructor(var applicationName: String,
             }
         }
 
-        if(requestedRenderer == renderer?.javaClass?.simpleName) {
+        if (requestedRenderer == renderer?.javaClass?.simpleName) {
             logger.info("Not replacing renderer, because already running the same.")
             return
         }
@@ -426,7 +427,8 @@ open class SceneryBase @JvmOverloads constructor(var applicationName: String,
          *
          * @return The process ID as integer.
          */
-        @JvmStatic fun getProcessID(): Int {
+        @JvmStatic
+        fun getProcessID(): Int {
             return Integer.parseInt(ManagementFactory.getRuntimeMXBean().name.split("@".toRegex()).dropLastWhile { it.isEmpty() }.toTypedArray()[0])
         }
 
@@ -437,7 +439,8 @@ open class SceneryBase @JvmOverloads constructor(var applicationName: String,
          *
          * @return String containing the path set in SCENERY_DEMO_FILES.
          */
-        @JvmStatic fun getDemoFilesPath(): String {
+        @JvmStatic
+        fun getDemoFilesPath(): String {
             val demoDir = System.getenv("SCENERY_DEMO_FILES")
 
             return if (demoDir == null) {

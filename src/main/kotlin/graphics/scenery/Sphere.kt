@@ -24,9 +24,9 @@ open class Sphere(val radius: Float, val segments: Int) : Node("sphere"), HasGeo
     final override var indices: IntBuffer = BufferUtils.allocateInt(0)
 
     init {
-        val vbuffer = ArrayList<Float>(segments*segments*2*3)
-        val nbuffer = ArrayList<Float>(segments*segments*2*3)
-        val tbuffer = ArrayList<Float>(segments*segments*2*2)
+        val vbuffer = ArrayList<Float>(segments * segments * 2 * 3)
+        val nbuffer = ArrayList<Float>(segments * segments * 2 * 3)
+        val tbuffer = ArrayList<Float>(segments * segments * 2 * 2)
 
         for (i in 0 until segments) {
             val theta0: Float = PI.toFloat() * i.toFloat() / segments
@@ -138,7 +138,7 @@ open class Sphere(val radius: Float, val segments: Int) : Node("sphere"), HasGeo
      * @return UV coordinates in [0.0, 1.0] range.
      */
     private fun uvOnSphere(normal: Array<Float>) = arrayOf(
-        atan2(normal[2], normal[0]) / (2.0f*PI.toFloat()) + 0.5f,
-        0.5f + asin(normal[1])/PI.toFloat()
+        atan2(normal[2], normal[0]) / (2.0f * PI.toFloat()) + 0.5f,
+        0.5f + asin(normal[1]) / PI.toFloat()
     )
 }

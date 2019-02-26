@@ -7,21 +7,26 @@ import graphics.scenery.*
 import graphics.scenery.backends.Display
 import graphics.scenery.backends.vulkan.*
 import graphics.scenery.utils.LazyLogger
-import kotlinx.coroutines.*
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.isActive
+import kotlinx.coroutines.launch
 import org.lwjgl.system.MemoryStack
 import org.lwjgl.system.MemoryUtil.memAllocInt
 import org.lwjgl.system.MemoryUtil.memAllocLong
 import org.lwjgl.vulkan.*
-import org.lwjgl.vulkan.NVDedicatedAllocation.*
-import org.lwjgl.vulkan.NVExternalMemory.*
+import org.lwjgl.vulkan.NVDedicatedAllocation.VK_STRUCTURE_TYPE_DEDICATED_ALLOCATION_IMAGE_CREATE_INFO_NV
+import org.lwjgl.vulkan.NVDedicatedAllocation.VK_STRUCTURE_TYPE_DEDICATED_ALLOCATION_MEMORY_ALLOCATE_INFO_NV
+import org.lwjgl.vulkan.NVExternalMemory.VK_STRUCTURE_TYPE_EXTERNAL_MEMORY_IMAGE_CREATE_INFO_NV
 import org.lwjgl.vulkan.NVExternalMemoryCapabilities.*
-import org.lwjgl.vulkan.NVExternalMemoryWin32.*
+import org.lwjgl.vulkan.NVExternalMemoryWin32.VK_STRUCTURE_TYPE_IMPORT_MEMORY_WIN32_HANDLE_INFO_NV
 import org.lwjgl.vulkan.NVWin32KeyedMutex.VK_STRUCTURE_TYPE_WIN32_KEYED_MUTEX_ACQUIRE_RELEASE_INFO_NV
 import org.lwjgl.vulkan.VK10.*
 import org.zeromq.ZContext
 import org.zeromq.ZMQ
 import org.zeromq.ZMsg
 import org.zeromq.ZPoller
+import vkk.VkMemoryProperty
 import java.math.BigInteger
 import java.nio.ByteBuffer
 import java.nio.ByteOrder
@@ -33,7 +38,7 @@ import java.util.*
  * @author Ulrik Günther <hello@ulrik.is>
  * @constructor Creates a new Hololens HMD instance
  */
-class Hololens: TrackerInput, Display, Hubable {
+class Hololens : TrackerInput, Display, Hubable {
     override var hub: Hub? = null
 
     private val logger by LazyLogger()
@@ -54,6 +59,7 @@ class Hololens: TrackerInput, Display, Hubable {
     private val subscriberSockets = HashMap<String, Job>()
 
     data class CommandBufferWithStatus(val commandBuffer: VulkanCommandBuffer, var current: Boolean = false)
+
     private var commandBuffers: MutableList<CommandBufferWithStatus> = mutableListOf()
     private var hololensCommandPool = -1L
     private var d3dImages: List<Pair<VulkanTexture.VulkanImage, Long>?> = emptyList()
@@ -130,7 +136,7 @@ class Hololens: TrackerInput, Display, Hubable {
      * update state
      */
     override fun update() {
-        if(poseLeftDeque.isNotEmpty() && poseRightDeque.isNotEmpty()) {
+        if (poseLeftDeque.isNotEmpty() && poseRightDeque.isNotEmpty()) {
             poseLeft = poseLeftDeque.pop()
             poseRight = poseRightDeque.pop()
         }
@@ -147,15 +153,17 @@ class Hololens: TrackerInput, Display, Hubable {
      * @return GLMatrix containing the per-eye projection matrix
      */
     override fun getEyeProjection(eye: Int, nearPlane: Float, farPlane: Float): GLMatrix {
-        return when(eye) {
+        return when (eye) {
             0 -> leftProjection ?: GLMatrix().setPerspectiveProjectionMatrix(50.0f, 1.0f, nearPlane, farPlane)
             1 -> rightProjection ?: GLMatrix().setPerspectiveProjectionMatrix(50.0f, 1.0f, nearPlane, farPlane)
-            else -> { logger.error("3rd eye, wtf?"); GLMatrix.getIdentity() }
+            else -> {
+                logger.error("3rd eye, wtf?"); GLMatrix.getIdentity()
+            }
         }
     }
 
     override fun getPoseForEye(eye: Int): GLMatrix {
-        return when(eye) {
+        return when (eye) {
             0 -> poseLeft
             else -> poseRight
         }
@@ -236,7 +244,7 @@ class Hololens: TrackerInput, Display, Hubable {
             return null
         }
 
-        if(formatSupported < 0) {
+        if (formatSupported < 0) {
             logger.error("Something else went wrong: $formatSupported")
         }
 
@@ -251,7 +259,7 @@ class Hololens: TrackerInput, Display, Hubable {
             return null
         }
 
-        if(handleType and extProperties.compatibleHandleTypes() == 0) {
+        if (handleType and extProperties.compatibleHandleTypes() == 0) {
             logger.error("Requested import type not available! ${extProperties.compatibleHandleTypes()}")
             return null
         }
@@ -296,14 +304,13 @@ class Hololens: TrackerInput, Display, Hubable {
         var memoryHandle: Long = -1L
         val img = t.createImage(hololensDisplaySize.x().toInt(), hololensDisplaySize.y().toInt(), 1,
             VK_FORMAT_R8G8B8A8_UNORM, VK_IMAGE_USAGE_SAMPLED_BIT,
-            VK_IMAGE_TILING_OPTIMAL, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, 1,
+            VK_IMAGE_TILING_OPTIMAL, VkMemoryProperty.DEVICE_LOCAL_BIT.i, 1,
             imageCreateInfo = imageCreateInfo,
             customAllocator = { memoryRequirements, allocatedImage ->
                 logger.debug("Using custom image allocation for external handle ...")
-                val memoryTypeIndex = device.getMemoryType(memoryRequirements.memoryTypeBits(),
-                    VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT)
+                val memoryTypeIndex = device.getMemoryType(memoryRequirements.memoryTypeBits(), VkMemoryProperty.DEVICE_LOCAL_BIT.i)
 
-                if(memoryTypeIndex.isEmpty()) {
+                if (memoryTypeIndex.isEmpty()) {
                     logger.error("Could not find suitable memory type")
                 } else {
                     logger.debug("Got memory types ${memoryTypeIndex.joinToString(", ")}")
@@ -365,11 +372,11 @@ class Hololens: TrackerInput, Display, Hubable {
      * @param[image] The Vulkan texture image to be presented to the compositor
      */
     override fun submitToCompositorVulkan(width: Int, height: Int, format: Int, instance: VkInstance, device: VulkanDevice, queue: VkQueue, image: Long) {
-        if(hololensCommandPool == -1L) {
+        if (hololensCommandPool == -1L) {
             hololensCommandPool = device.createCommandPool(device.queueIndices.graphicsQueue)
         }
 
-        if(leftProjection == null) {
+        if (leftProjection == null) {
             zmqSocket.send("LeftPR")
             val matrixData = zmqSocket.recv()
             assert(matrixData.size == 64)
@@ -379,7 +386,7 @@ class Hololens: TrackerInput, Display, Hubable {
             logger.info("Hololens left projection: $leftProjection")
         }
 
-        if(rightProjection == null) {
+        if (rightProjection == null) {
             zmqSocket.send("RightPR")
             val matrixData = zmqSocket.recv()
             assert(matrixData.size == 64)
@@ -389,12 +396,12 @@ class Hololens: TrackerInput, Display, Hubable {
             logger.info("Hololens right projection: $rightProjection")
         }
 
-        if(d3dImages.isEmpty()) {
+        if (d3dImages.isEmpty()) {
             logger.info("Trying to register shared handles")
             zmqSocket.send("RegPid${SceneryBase.getProcessID()}/3")
             val reply = zmqSocket.recvStr()
 
-            if(reply.startsWith("NotReady")) {
+            if (reply.startsWith("NotReady")) {
                 return
             }
 
@@ -403,12 +410,12 @@ class Hololens: TrackerInput, Display, Hubable {
 
             d3dImages = handles.mapNotNull { handle ->
                 getSharedHandleVulkanTexture(handle,
-                        hololensDisplaySize.x().toInt(),
-                        hololensDisplaySize.y().toInt(),
-                        textureFormat,
-                        device,
-                        queue,
-                        hololensCommandPool)
+                    hololensDisplaySize.x().toInt(),
+                    hololensDisplaySize.y().toInt(),
+                    textureFormat,
+                    device,
+                    queue,
+                    hololensCommandPool)
             }
 
             commandBuffers = d3dImages.map { CommandBufferWithStatus(VulkanCommandBuffer(device, null, false), false) }.toMutableList()
@@ -417,7 +424,7 @@ class Hololens: TrackerInput, Display, Hubable {
 
             subscribe("transforms.ViewTransforms")
 
-            if(d3dImages.isEmpty() || commandBuffers.size == 0) {
+            if (d3dImages.isEmpty() || commandBuffers.size == 0) {
                 logger.error("Did not get any Vulkan render targets back!")
                 return
             }
@@ -428,7 +435,7 @@ class Hololens: TrackerInput, Display, Hubable {
         var currentCommandBuffer = commandBuffers[currentImageIndex]
 
         // blit into D3D image
-        if(!currentCommandBuffer.current) {
+        if (!currentCommandBuffer.current) {
             logger.info("Recording command buffer for image index $currentImageIndex")
             currentCommandBuffer = commandBuffers[currentImageIndex]
 
@@ -522,7 +529,7 @@ class Hololens: TrackerInput, Display, Hubable {
             .pReleaseSyncs(memoryHandleBuffer)
 
         currentCommandBuffer.commandBuffer.commandBuffer?.submit(queue, submitInfoPNext = keyedMutex)
-        currentImageIndex = (currentImageIndex+1) % d3dImages.size
+        currentImageIndex = (currentImageIndex + 1) % d3dImages.size
     }
 
     /**
@@ -566,7 +573,7 @@ class Hololens: TrackerInput, Display, Hubable {
     }
 
     private fun subscribe(topic: String) {
-        if(!subscriberSockets.containsKey(topic)) {
+        if (!subscriberSockets.containsKey(topic)) {
 
             val job = GlobalScope.launch {
                 val socket = zmqContext.createSocket(ZMQ.SUB)
@@ -574,18 +581,18 @@ class Hololens: TrackerInput, Display, Hubable {
                 poller.register(socket, ZMQ.Poller.POLLIN)
 
                 try {
-                    socket.connect("tcp://localhost:${defaultPort+1}")
+                    socket.connect("tcp://localhost:${defaultPort + 1}")
                     socket.subscribe(topic)
                     logger.info("Subscribed to topic $topic")
 
                     while (isActive) {
                         poller.poll(1)
 
-                        if(poller.isReadable(socket)) {
+                        if (poller.isReadable(socket)) {
                             val msg = ZMsg.recvMsg(socket)
                             val msgType = msg.popString()
 
-                            when(msgType) {
+                            when (msgType) {
                                 "transforms.ViewTransforms" -> {
                                     val matrixData = msg.pop().data
                                     assert(matrixData.size == 128)

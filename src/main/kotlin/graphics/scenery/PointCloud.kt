@@ -42,7 +42,7 @@ open class PointCloud(var pointRadius: Float = 0.1f, override var name: String =
      * Sets up normal and texcoord buffers from the vertex buffers.
      */
     fun setupPointCloud() {
-        if( this.texcoords.limit() == 0 ) {// Only preinitialize if texcoords has not been preinialized
+        if (this.texcoords.limit() == 0) {// Only preinitialize if texcoords has not been preinialized
             this.texcoords = memAlloc(vertices.limit() * texcoordSize * 4).order(ByteOrder.nativeOrder()).asFloatBuffer()
             var i = 0
             while (i < this.texcoords.limit() - 1) {
@@ -51,8 +51,8 @@ open class PointCloud(var pointRadius: Float = 0.1f, override var name: String =
                 i += 3
             }
         }
-        if( this.normals.limit() == 0 ) {// Only preinitialize if need be
-            this.normals = BufferUtils.allocateFloatAndPut( FloatArray(vertices.limit()*2/3, {1.0f} ) )
+        if (this.normals.limit() == 0) {// Only preinitialize if need be
+            this.normals = BufferUtils.allocateFloatAndPut(FloatArray(vertices.limit() * 2 / 3, { 1.0f }))
         }
     }
 
@@ -66,18 +66,18 @@ open class PointCloud(var pointRadius: Float = 0.1f, override var name: String =
     fun readFromPALM(filename: String) {
 
         val count = Files.lines(FileSystems.getDefault().getPath(filename)).count()
-        this.vertices = BufferUtils.allocateFloat(count.toInt()*3)
-        this.normals = BufferUtils.allocateFloat(count.toInt()*3)
-        this.texcoords = BufferUtils.allocateFloat(count.toInt()*2)
+        this.vertices = BufferUtils.allocateFloat(count.toInt() * 3)
+        this.normals = BufferUtils.allocateFloat(count.toInt() * 3)
+        this.texcoords = BufferUtils.allocateFloat(count.toInt() * 2)
 
-        logger.info("Reading ${count/3} locations from $filename...")
+        logger.info("Reading ${count / 3} locations from $filename...")
 
         val boundingBoxCoords = floatArrayOf(0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f)
         var separator = ""
 
         Files.lines(FileSystems.getDefault().getPath(filename)).forEach {
             // try to figure out separator char
-            if(separator == "") {
+            if (separator == "") {
                 separator = when {
                     it.split(",").size >= 6 -> ","
                     it.split("\t").size >= 6 -> "\t"
@@ -111,7 +111,7 @@ open class PointCloud(var pointRadius: Float = 0.1f, override var name: String =
             }
         }
 
-        logger.info("Finished reading. Found ${vertices.capacity()/3} locations.")
+        logger.info("Finished reading. Found ${vertices.capacity() / 3} locations.")
 
         this.vertices.flip()
         this.normals.flip()

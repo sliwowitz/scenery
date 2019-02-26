@@ -9,7 +9,7 @@ import java.util.*
  * the element, and advance the write position. Running one of these two operations
  * again will then affect the next element of the ring buffer.
  */
-open class RingBuffer<T: Any>(var size: Int, default: ((Int) -> T)? = null) {
+open class RingBuffer<T : Any>(var size: Int, default: ((Int) -> T)? = null) {
 
     protected var backingStore: ArrayList<T> = ArrayList(size)
 
@@ -33,7 +33,7 @@ open class RingBuffer<T: Any>(var size: Int, default: ((Int) -> T)? = null) {
      * write position.
      */
     fun put(element: T) {
-        if(backingStore.size <= size) {
+        if (backingStore.size <= size) {
             backingStore.add(element)
         } else {
             currentWritePosition = currentWritePosition.rem(backingStore.size)

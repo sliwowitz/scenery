@@ -29,12 +29,12 @@ open class JavaFXMouseAndKeyHandler(protected var hub: Hub?, protected var panel
             "unknown"
         }
 
-        scrollSpeedMultiplier = when(os) {
+        scrollSpeedMultiplier = when (os) {
             "mac" -> 1.0f
             "windows" -> 1.0f
             else -> 3.0f
         }
-        
+
         val scene = panel.scene
         scene.addEventHandler(DragEvent.ANY, this)
         scene.addEventHandler(MouseEvent.ANY, this)
@@ -98,7 +98,7 @@ open class JavaFXMouseAndKeyHandler(protected var hub: Hub?, protected var panel
             logger.warn("Windows key not supported")
         }
 
-        if(e is ScrollEvent && e.eventType == ScrollEvent.SCROLL) {
+        if (e is ScrollEvent && e.eventType == ScrollEvent.SCROLL) {
             mask = mask or InputTrigger.SCROLL_MASK
             mask = mask and (1 shl 10).inv()
         }
@@ -227,7 +227,7 @@ open class JavaFXMouseAndKeyHandler(protected var hub: Hub?, protected var panel
 
         // branching needed here, as JavaFX on Windows interprets
         // shift+scroll as horizontal scroll, which we do not want
-        val wheelRotation = if(shiftPressed && os == "windows") {
+        val wheelRotation = if (shiftPressed && os == "windows") {
             e.deltaY to e.deltaX
         } else {
             e.deltaX to e.deltaY

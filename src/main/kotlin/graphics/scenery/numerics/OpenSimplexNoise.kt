@@ -22,7 +22,7 @@ package graphics.scenery.numerics
  *   @param[seed] Seed to use
  */
 @Suppress("UNUSED_VALUE")
-class OpenSimplexNoise(seed: Long = 0L): ProceduralNoise {
+class OpenSimplexNoise(seed: Long = 0L) : ProceduralNoise {
     private val STRETCH_CONSTANT_2D = -0.211324865405187    //(1/Math.sqrt(2+1)-1)/2;
     private val SQUISH_CONSTANT_2D = 0.366025403784439      //(Math.sqrt(2+1)-1)/2;
     private val STRETCH_CONSTANT_3D = -1.0 / 6              //(1/Math.sqrt(3+1)-1)/3;
@@ -412,7 +412,7 @@ class OpenSimplexNoise(seed: Long = 0L): ProceduralNoise {
             if (wins < aScore || wins < bScore) { //(1,1,1) is one of the closest two tetrahedral vertices.
                 val c = if (bScore < aScore) bPoint else aPoint //Our other closest vertex is the closest out of a and b.
 
-                if (c and 0x01  != 0.toByte().toByte()) {
+                if (c and 0x01 != 0.toByte().toByte()) {
                     xsv_ext0 = xsb + 2
                     xsv_ext1 = xsb + 1
                     dx_ext0 = dx0 - 2 - 3 * SQUISH_CONSTANT_3D
@@ -424,12 +424,12 @@ class OpenSimplexNoise(seed: Long = 0L): ProceduralNoise {
                     dx_ext0 = dx_ext1
                 }
 
-                if (c and 0x02  != 0.toByte().toByte()) {
+                if (c and 0x02 != 0.toByte().toByte()) {
                     ysv_ext1 = ysb + 1
                     ysv_ext0 = ysv_ext1
                     dy_ext1 = dy0 - 1 - 3 * SQUISH_CONSTANT_3D
                     dy_ext0 = dy_ext1
-                    if (c and 0x01  != 0.toByte().toByte()) {
+                    if (c and 0x01 != 0.toByte().toByte()) {
                         ysv_ext1 += 1
                         dy_ext1 -= 1.0
                     } else {
@@ -443,7 +443,7 @@ class OpenSimplexNoise(seed: Long = 0L): ProceduralNoise {
                     dy_ext0 = dy_ext1
                 }
 
-                if (c and 0x04  != 0.toByte().toByte()) {
+                if (c and 0x04 != 0.toByte().toByte()) {
                     zsv_ext0 = zsb + 1
                     zsv_ext1 = zsb + 2
                     dz_ext0 = dz0 - 1 - 3 * SQUISH_CONSTANT_3D
@@ -457,7 +457,7 @@ class OpenSimplexNoise(seed: Long = 0L): ProceduralNoise {
             } else { //(1,1,1) is not one of the closest two tetrahedral vertices.
                 val c = (aPoint and bPoint).toByte() //Our two extra vertices are determined by the closest two.
 
-                if (c and 0x01  != 0.toByte().toByte()) {
+                if (c and 0x01 != 0.toByte().toByte()) {
                     xsv_ext0 = xsb + 1
                     xsv_ext1 = xsb + 2
                     dx_ext0 = dx0 - 1 - SQUISH_CONSTANT_3D
@@ -469,7 +469,7 @@ class OpenSimplexNoise(seed: Long = 0L): ProceduralNoise {
                     dx_ext1 = dx0 - 2 * SQUISH_CONSTANT_3D
                 }
 
-                if (c and 0x02  != 0.toByte().toByte()) {
+                if (c and 0x02 != 0.toByte().toByte()) {
                     ysv_ext0 = ysb + 1
                     ysv_ext1 = ysb + 2
                     dy_ext0 = dy0 - 1 - SQUISH_CONSTANT_3D
@@ -481,7 +481,7 @@ class OpenSimplexNoise(seed: Long = 0L): ProceduralNoise {
                     dy_ext1 = dy0 - 2 * SQUISH_CONSTANT_3D
                 }
 
-                if (c and 0x04  != 0.toByte().toByte()) {
+                if (c and 0x04 != 0.toByte().toByte()) {
                     zsv_ext0 = zsb + 1
                     zsv_ext1 = zsb + 2
                     dz_ext0 = dz0 - 1 - SQUISH_CONSTANT_3D
@@ -602,7 +602,7 @@ class OpenSimplexNoise(seed: Long = 0L): ProceduralNoise {
 
                     //Other extra point is based on the shared axis.
                     val c = (aPoint and bPoint).toByte()
-                    if (c and 0x01  != 0.toByte()) {
+                    if (c and 0x01 != 0.toByte()) {
                         dx_ext1 = dx0 - 2 - 2 * SQUISH_CONSTANT_3D
                         dy_ext1 = dy0 - 2 * SQUISH_CONSTANT_3D
                         dz_ext1 = dz0 - 2 * SQUISH_CONSTANT_3D
@@ -881,7 +881,7 @@ class OpenSimplexNoise(seed: Long = 0L): ProceduralNoise {
             val uins = 1 - inSum
             if (uins > aScore || uins > bScore) { //(0,0,0,0) is one of the closest two pentachoron vertices.
                 val c = if (bScore > aScore) bPoint else aPoint //Our other closest vertex is the closest out of a and b.
-                if (c and 0x01  == 0.toByte()) {
+                if (c and 0x01 == 0.toByte()) {
                     xsv_ext0 = xsb - 1
                     xsv_ext2 = xsb
                     xsv_ext1 = xsv_ext2
@@ -897,14 +897,14 @@ class OpenSimplexNoise(seed: Long = 0L): ProceduralNoise {
                     dx_ext0 = dx_ext1
                 }
 
-                if (c and 0x02  == 0.toByte()) {
+                if (c and 0x02 == 0.toByte()) {
                     ysv_ext2 = ysb
                     ysv_ext1 = ysv_ext2
                     ysv_ext0 = ysv_ext1
                     dy_ext2 = dy0
                     dy_ext1 = dy_ext2
                     dy_ext0 = dy_ext1
-                    if (c and 0x01  == 0x01.toByte()) {
+                    if (c and 0x01 == 0x01.toByte()) {
                         ysv_ext0 -= 1
                         dy_ext0 += 1.0
                     } else {
@@ -920,15 +920,15 @@ class OpenSimplexNoise(seed: Long = 0L): ProceduralNoise {
                     dy_ext0 = dy_ext1
                 }
 
-                if (c and 0x04  == 0.toByte()) {
+                if (c and 0x04 == 0.toByte()) {
                     zsv_ext2 = zsb
                     zsv_ext1 = zsv_ext2
                     zsv_ext0 = zsv_ext1
                     dz_ext2 = dz0
                     dz_ext1 = dz_ext2
                     dz_ext0 = dz_ext1
-                    if (c and 0x03  != 0.toByte().toByte()) {
-                        if (c and 0x03  == 0x03.toByte()) {
+                    if (c and 0x03 != 0.toByte().toByte()) {
+                        if (c and 0x03 == 0x03.toByte()) {
                             zsv_ext0 -= 1
                             dz_ext0 += 1.0
                         } else {
@@ -948,7 +948,7 @@ class OpenSimplexNoise(seed: Long = 0L): ProceduralNoise {
                     dz_ext0 = dz_ext1
                 }
 
-                if (c and 0x08  == 0.toByte()) {
+                if (c and 0x08 == 0.toByte()) {
                     wsv_ext1 = wsb
                     wsv_ext0 = wsv_ext1
                     wsv_ext2 = wsb - 1
@@ -966,7 +966,7 @@ class OpenSimplexNoise(seed: Long = 0L): ProceduralNoise {
             } else { //(0,0,0,0) is not one of the closest two pentachoron vertices.
                 val c = aPoint or bPoint //Our three extra vertices are determined by the closest two.
 
-                if (c and 0x01  == 0.toByte()) {
+                if (c and 0x01 == 0.toByte()) {
                     xsv_ext2 = xsb
                     xsv_ext0 = xsv_ext2
                     xsv_ext1 = xsb - 1
@@ -982,14 +982,14 @@ class OpenSimplexNoise(seed: Long = 0L): ProceduralNoise {
                     dx_ext1 = dx_ext2
                 }
 
-                if (c and 0x02  == 0.toByte()) {
+                if (c and 0x02 == 0.toByte()) {
                     ysv_ext2 = ysb
                     ysv_ext1 = ysv_ext2
                     ysv_ext0 = ysv_ext1
                     dy_ext0 = dy0 - 2 * SQUISH_CONSTANT_4D
                     dy_ext2 = dy0 - SQUISH_CONSTANT_4D
                     dy_ext1 = dy_ext2
-                    if (c and 0x01  == 0x01.toByte()) {
+                    if (c and 0x01 == 0x01.toByte()) {
                         ysv_ext1 -= 1
                         dy_ext1 += 1.0
                     } else {
@@ -1005,14 +1005,14 @@ class OpenSimplexNoise(seed: Long = 0L): ProceduralNoise {
                     dy_ext1 = dy_ext2
                 }
 
-                if (c and 0x04  == 0.toByte()) {
+                if (c and 0x04 == 0.toByte()) {
                     zsv_ext2 = zsb
                     zsv_ext1 = zsv_ext2
                     zsv_ext0 = zsv_ext1
                     dz_ext0 = dz0 - 2 * SQUISH_CONSTANT_4D
                     dz_ext2 = dz0 - SQUISH_CONSTANT_4D
                     dz_ext1 = dz_ext2
-                    if (c and 0x03  == 0x03.toByte()) {
+                    if (c and 0x03 == 0x03.toByte()) {
                         zsv_ext1 -= 1
                         dz_ext1 += 1.0
                     } else {
@@ -1028,7 +1028,7 @@ class OpenSimplexNoise(seed: Long = 0L): ProceduralNoise {
                     dz_ext1 = dz_ext2
                 }
 
-                if (c and 0x08  == 0.toByte()) {
+                if (c and 0x08 == 0.toByte()) {
                     wsv_ext1 = wsb
                     wsv_ext0 = wsv_ext1
                     wsv_ext2 = wsb - 1
@@ -1114,7 +1114,7 @@ class OpenSimplexNoise(seed: Long = 0L): ProceduralNoise {
             if (uins < aScore || uins < bScore) { //(1,1,1,1) is one of the closest two pentachoron vertices.
                 val c = if (bScore < aScore) bPoint else aPoint //Our other closest vertex is the closest out of a and b.
 
-                if (c and 0x01  != 0.toByte()) {
+                if (c and 0x01 != 0.toByte()) {
                     xsv_ext0 = xsb + 2
                     xsv_ext2 = xsb + 1
                     xsv_ext1 = xsv_ext2
@@ -1130,14 +1130,14 @@ class OpenSimplexNoise(seed: Long = 0L): ProceduralNoise {
                     dx_ext0 = dx_ext1
                 }
 
-                if (c and 0x02  != 0.toByte()) {
+                if (c and 0x02 != 0.toByte()) {
                     ysv_ext2 = ysb + 1
                     ysv_ext1 = ysv_ext2
                     ysv_ext0 = ysv_ext1
                     dy_ext2 = dy0 - 1 - 4 * SQUISH_CONSTANT_4D
                     dy_ext1 = dy_ext2
                     dy_ext0 = dy_ext1
-                    if (c and 0x01  != 0.toByte()) {
+                    if (c and 0x01 != 0.toByte()) {
                         ysv_ext1 += 1
                         dy_ext1 -= 1.0
                     } else {
@@ -1153,15 +1153,15 @@ class OpenSimplexNoise(seed: Long = 0L): ProceduralNoise {
                     dy_ext0 = dy_ext1
                 }
 
-                if (c and 0x04  != 0.toByte()) {
+                if (c and 0x04 != 0.toByte()) {
                     zsv_ext2 = zsb + 1
                     zsv_ext1 = zsv_ext2
                     zsv_ext0 = zsv_ext1
                     dz_ext2 = dz0 - 1 - 4 * SQUISH_CONSTANT_4D
                     dz_ext1 = dz_ext2
                     dz_ext0 = dz_ext1
-                    if (c and 0x03  != 0x03.toByte()) {
-                        if (c and 0x03  == 0.toByte()) {
+                    if (c and 0x03 != 0x03.toByte()) {
+                        if (c and 0x03 == 0.toByte()) {
                             zsv_ext0 += 1
                             dz_ext0 -= 1.0
                         } else {
@@ -1181,7 +1181,7 @@ class OpenSimplexNoise(seed: Long = 0L): ProceduralNoise {
                     dz_ext0 = dz_ext1
                 }
 
-                if (c and 0x08  != 0.toByte()) {
+                if (c and 0x08 != 0.toByte()) {
                     wsv_ext1 = wsb + 1
                     wsv_ext0 = wsv_ext1
                     wsv_ext2 = wsb + 2
@@ -1199,7 +1199,7 @@ class OpenSimplexNoise(seed: Long = 0L): ProceduralNoise {
             } else { //(1,1,1,1) is not one of the closest two pentachoron vertices.
                 val c = aPoint and bPoint //Our three extra vertices are determined by the closest two.
 
-                if (c and 0x01  != 0.toByte()) {
+                if (c and 0x01 != 0.toByte()) {
                     xsv_ext2 = xsb + 1
                     xsv_ext0 = xsv_ext2
                     xsv_ext1 = xsb + 2
@@ -1215,14 +1215,14 @@ class OpenSimplexNoise(seed: Long = 0L): ProceduralNoise {
                     dx_ext1 = dx_ext2
                 }
 
-                if (c and 0x02  != 0.toByte()) {
+                if (c and 0x02 != 0.toByte()) {
                     ysv_ext2 = ysb + 1
                     ysv_ext1 = ysv_ext2
                     ysv_ext0 = ysv_ext1
                     dy_ext0 = dy0 - 1 - 2 * SQUISH_CONSTANT_4D
                     dy_ext2 = dy0 - 1 - 3 * SQUISH_CONSTANT_4D
                     dy_ext1 = dy_ext2
-                    if (c and 0x01  != 0.toByte()) {
+                    if (c and 0x01 != 0.toByte()) {
                         ysv_ext2 += 1
                         dy_ext2 -= 1.0
                     } else {
@@ -1238,14 +1238,14 @@ class OpenSimplexNoise(seed: Long = 0L): ProceduralNoise {
                     dy_ext1 = dy_ext2
                 }
 
-                if (c and 0x04  != 0.toByte()) {
+                if (c and 0x04 != 0.toByte()) {
                     zsv_ext2 = zsb + 1
                     zsv_ext1 = zsv_ext2
                     zsv_ext0 = zsv_ext1
                     dz_ext0 = dz0 - 1 - 2 * SQUISH_CONSTANT_4D
                     dz_ext2 = dz0 - 1 - 3 * SQUISH_CONSTANT_4D
                     dz_ext1 = dz_ext2
-                    if (c and 0x03  != 0.toByte()) {
+                    if (c and 0x03 != 0.toByte()) {
                         zsv_ext2 += 1
                         dz_ext2 -= 1.0
                     } else {
@@ -1261,7 +1261,7 @@ class OpenSimplexNoise(seed: Long = 0L): ProceduralNoise {
                     dz_ext1 = dz_ext2
                 }
 
-                if (c and 0x08  != 0.toByte()) {
+                if (c and 0x08 != 0.toByte()) {
                     wsv_ext1 = wsb + 1
                     wsv_ext0 = wsv_ext1
                     wsv_ext2 = wsb + 2
@@ -1424,7 +1424,7 @@ class OpenSimplexNoise(seed: Long = 0L): ProceduralNoise {
                 if (aIsBiggerSide) { //Both closest points on the bigger side
                     val c1 = aPoint or bPoint
                     val c2 = aPoint and bPoint
-                    if (c1 and 0x01  == 0.toByte()) {
+                    if (c1 and 0x01 == 0.toByte()) {
                         xsv_ext0 = xsb
                         xsv_ext1 = xsb - 1
                         dx_ext0 = dx0 - 3 * SQUISH_CONSTANT_4D
@@ -1436,7 +1436,7 @@ class OpenSimplexNoise(seed: Long = 0L): ProceduralNoise {
                         dx_ext1 = dx0 - 1 - 2 * SQUISH_CONSTANT_4D
                     }
 
-                    if (c1 and 0x02  == 0.toByte()) {
+                    if (c1 and 0x02 == 0.toByte()) {
                         ysv_ext0 = ysb
                         ysv_ext1 = ysb - 1
                         dy_ext0 = dy0 - 3 * SQUISH_CONSTANT_4D
@@ -1448,7 +1448,7 @@ class OpenSimplexNoise(seed: Long = 0L): ProceduralNoise {
                         dy_ext1 = dy0 - 1 - 2 * SQUISH_CONSTANT_4D
                     }
 
-                    if (c1 and 0x04  == 0.toByte()) {
+                    if (c1 and 0x04 == 0.toByte()) {
                         zsv_ext0 = zsb
                         zsv_ext1 = zsb - 1
                         dz_ext0 = dz0 - 3 * SQUISH_CONSTANT_4D
@@ -1460,7 +1460,7 @@ class OpenSimplexNoise(seed: Long = 0L): ProceduralNoise {
                         dz_ext1 = dz0 - 1 - 2 * SQUISH_CONSTANT_4D
                     }
 
-                    if (c1 and 0x08  == 0.toByte()) {
+                    if (c1 and 0x08 == 0.toByte()) {
                         wsv_ext0 = wsb
                         wsv_ext1 = wsb - 1
                         dw_ext0 = dw0 - 3 * SQUISH_CONSTANT_4D
@@ -1481,13 +1481,13 @@ class OpenSimplexNoise(seed: Long = 0L): ProceduralNoise {
                     dy_ext2 = dy0 - 2 * SQUISH_CONSTANT_4D
                     dz_ext2 = dz0 - 2 * SQUISH_CONSTANT_4D
                     dw_ext2 = dw0 - 2 * SQUISH_CONSTANT_4D
-                    if (c2 and 0x01  != 0.toByte()) {
+                    if (c2 and 0x01 != 0.toByte()) {
                         xsv_ext2 += 2
                         dx_ext2 -= 2.0
-                    } else if (c2 and 0x02  != 0.toByte()) {
+                    } else if (c2 and 0x02 != 0.toByte()) {
                         ysv_ext2 += 2
                         dy_ext2 -= 2.0
-                    } else if (c2 and 0x04  != 0.toByte()) {
+                    } else if (c2 and 0x04 != 0.toByte()) {
                         zsv_ext2 += 2
                         dz_ext2 -= 2.0
                     } else {
@@ -1509,7 +1509,7 @@ class OpenSimplexNoise(seed: Long = 0L): ProceduralNoise {
                     //Other two points are based on the omitted axes.
                     val c = aPoint or bPoint
 
-                    if (c and 0x01  == 0.toByte()) {
+                    if (c and 0x01 == 0.toByte()) {
                         xsv_ext0 = xsb - 1
                         xsv_ext1 = xsb
                         dx_ext0 = dx0 + 1 - SQUISH_CONSTANT_4D
@@ -1521,12 +1521,12 @@ class OpenSimplexNoise(seed: Long = 0L): ProceduralNoise {
                         dx_ext0 = dx_ext1
                     }
 
-                    if (c and 0x02  == 0.toByte()) {
+                    if (c and 0x02 == 0.toByte()) {
                         ysv_ext1 = ysb
                         ysv_ext0 = ysv_ext1
                         dy_ext1 = dy0 - SQUISH_CONSTANT_4D
                         dy_ext0 = dy_ext1
-                        if (c and 0x01  == 0x01.toByte()) {
+                        if (c and 0x01 == 0x01.toByte()) {
                             ysv_ext0 -= 1
                             dy_ext0 += 1.0
                         } else {
@@ -1540,12 +1540,12 @@ class OpenSimplexNoise(seed: Long = 0L): ProceduralNoise {
                         dy_ext0 = dy_ext1
                     }
 
-                    if (c and 0x04  == 0.toByte()) {
+                    if (c and 0x04 == 0.toByte()) {
                         zsv_ext1 = zsb
                         zsv_ext0 = zsv_ext1
                         dz_ext1 = dz0 - SQUISH_CONSTANT_4D
                         dz_ext0 = dz_ext1
-                        if (c and 0x03  == 0x03.toByte()) {
+                        if (c and 0x03 == 0x03.toByte()) {
                             zsv_ext0 -= 1
                             dz_ext0 += 1.0
                         } else {
@@ -1559,7 +1559,7 @@ class OpenSimplexNoise(seed: Long = 0L): ProceduralNoise {
                         dz_ext0 = dz_ext1
                     }
 
-                    if (c and 0x08  == 0.toByte()) {
+                    if (c and 0x08 == 0.toByte()) {
                         wsv_ext0 = wsb
                         wsv_ext1 = wsb - 1
                         dw_ext0 = dw0 - SQUISH_CONSTANT_4D
@@ -1584,7 +1584,7 @@ class OpenSimplexNoise(seed: Long = 0L): ProceduralNoise {
                 }
 
                 //Two contributions are the bigger-sided point with each 0 replaced with -1.
-                if (c1 and 0x01  == 0.toByte()) {
+                if (c1 and 0x01 == 0.toByte()) {
                     xsv_ext0 = xsb - 1
                     xsv_ext1 = xsb
                     dx_ext0 = dx0 + 1 - SQUISH_CONSTANT_4D
@@ -1596,12 +1596,12 @@ class OpenSimplexNoise(seed: Long = 0L): ProceduralNoise {
                     dx_ext0 = dx_ext1
                 }
 
-                if (c1 and 0x02  == 0.toByte()) {
+                if (c1 and 0x02 == 0.toByte()) {
                     ysv_ext1 = ysb
                     ysv_ext0 = ysv_ext1
                     dy_ext1 = dy0 - SQUISH_CONSTANT_4D
                     dy_ext0 = dy_ext1
-                    if (c1 and 0x01  == 0x01.toByte()) {
+                    if (c1 and 0x01 == 0x01.toByte()) {
                         ysv_ext0 -= 1
                         dy_ext0 += 1.0
                     } else {
@@ -1615,12 +1615,12 @@ class OpenSimplexNoise(seed: Long = 0L): ProceduralNoise {
                     dy_ext0 = dy_ext1
                 }
 
-                if (c1 and 0x04  == 0.toByte()) {
+                if (c1 and 0x04 == 0.toByte()) {
                     zsv_ext1 = zsb
                     zsv_ext0 = zsv_ext1
                     dz_ext1 = dz0 - SQUISH_CONSTANT_4D
                     dz_ext0 = dz_ext1
-                    if (c1 and 0x03  == 0x03.toByte()) {
+                    if (c1 and 0x03 == 0x03.toByte()) {
                         zsv_ext0 -= 1
                         dz_ext0 += 1.0
                     } else {
@@ -1634,7 +1634,7 @@ class OpenSimplexNoise(seed: Long = 0L): ProceduralNoise {
                     dz_ext0 = dz_ext1
                 }
 
-                if (c1 and 0x08  == 0.toByte()) {
+                if (c1 and 0x08 == 0.toByte()) {
                     wsv_ext0 = wsb
                     wsv_ext1 = wsb - 1
                     dw_ext0 = dw0 - SQUISH_CONSTANT_4D
@@ -1655,13 +1655,13 @@ class OpenSimplexNoise(seed: Long = 0L): ProceduralNoise {
                 dy_ext2 = dy0 - 2 * SQUISH_CONSTANT_4D
                 dz_ext2 = dz0 - 2 * SQUISH_CONSTANT_4D
                 dw_ext2 = dw0 - 2 * SQUISH_CONSTANT_4D
-                if (c2 and 0x01  != 0.toByte()) {
+                if (c2 and 0x01 != 0.toByte()) {
                     xsv_ext2 += 2
                     dx_ext2 -= 2.0
-                } else if (c2 and 0x02  != 0.toByte()) {
+                } else if (c2 and 0x02 != 0.toByte()) {
                     ysv_ext2 += 2
                     dy_ext2 -= 2.0
-                } else if (c2 and 0x04  != 0.toByte()) {
+                } else if (c2 and 0x04 != 0.toByte()) {
                     zsv_ext2 += 2
                     dz_ext2 -= 2.0
                 } else {
@@ -1889,17 +1889,17 @@ class OpenSimplexNoise(seed: Long = 0L): ProceduralNoise {
                     dy_ext1 = dy0 - 2 * SQUISH_CONSTANT_4D
                     dz_ext1 = dz0 - 2 * SQUISH_CONSTANT_4D
                     dw_ext1 = dw0 - 2 * SQUISH_CONSTANT_4D
-                    if (c1 and 0x01  != 0.toByte()) {
+                    if (c1 and 0x01 != 0.toByte()) {
                         xsv_ext0 += 1
                         dx_ext0 -= 1.0
                         xsv_ext1 += 2
                         dx_ext1 -= 2.0
-                    } else if (c1 and 0x02  != 0.toByte()) {
+                    } else if (c1 and 0x02 != 0.toByte()) {
                         ysv_ext0 += 1
                         dy_ext0 -= 1.0
                         ysv_ext1 += 2
                         dy_ext1 -= 2.0
-                    } else if (c1 and 0x04  != 0.toByte()) {
+                    } else if (c1 and 0x04 != 0.toByte()) {
                         zsv_ext0 += 1
                         dz_ext0 -= 1.0
                         zsv_ext1 += 2
@@ -1920,13 +1920,13 @@ class OpenSimplexNoise(seed: Long = 0L): ProceduralNoise {
                     dy_ext2 = dy0 - 1 - 2 * SQUISH_CONSTANT_4D
                     dz_ext2 = dz0 - 1 - 2 * SQUISH_CONSTANT_4D
                     dw_ext2 = dw0 - 1 - 2 * SQUISH_CONSTANT_4D
-                    if (c2 and 0x01  == 0.toByte()) {
+                    if (c2 and 0x01 == 0.toByte()) {
                         xsv_ext2 -= 2
                         dx_ext2 += 2.0
-                    } else if (c2 and 0x02  == 0.toByte()) {
+                    } else if (c2 and 0x02 == 0.toByte()) {
                         ysv_ext2 -= 2
                         dy_ext2 += 2.0
-                    } else if (c2 and 0x04  == 0.toByte()) {
+                    } else if (c2 and 0x04 == 0.toByte()) {
                         zsv_ext2 -= 2
                         dz_ext2 += 2.0
                     } else {
@@ -1947,7 +1947,7 @@ class OpenSimplexNoise(seed: Long = 0L): ProceduralNoise {
                     //Other two points are based on the shared axes.
                     val c = aPoint and bPoint
 
-                    if (c and 0x01  != 0.toByte()) {
+                    if (c and 0x01 != 0.toByte()) {
                         xsv_ext0 = xsb + 2
                         xsv_ext1 = xsb + 1
                         dx_ext0 = dx0 - 2 - 3 * SQUISH_CONSTANT_4D
@@ -1959,12 +1959,12 @@ class OpenSimplexNoise(seed: Long = 0L): ProceduralNoise {
                         dx_ext0 = dx_ext1
                     }
 
-                    if (c and 0x02  != 0.toByte()) {
+                    if (c and 0x02 != 0.toByte()) {
                         ysv_ext1 = ysb + 1
                         ysv_ext0 = ysv_ext1
                         dy_ext1 = dy0 - 1 - 3 * SQUISH_CONSTANT_4D
                         dy_ext0 = dy_ext1
-                        if (c and 0x01  == 0.toByte()) {
+                        if (c and 0x01 == 0.toByte()) {
                             ysv_ext0 += 1
                             dy_ext0 -= 1.0
                         } else {
@@ -1978,12 +1978,12 @@ class OpenSimplexNoise(seed: Long = 0L): ProceduralNoise {
                         dy_ext0 = dy_ext1
                     }
 
-                    if (c and 0x04  != 0.toByte()) {
+                    if (c and 0x04 != 0.toByte()) {
                         zsv_ext1 = zsb + 1
                         zsv_ext0 = zsv_ext1
                         dz_ext1 = dz0 - 1 - 3 * SQUISH_CONSTANT_4D
                         dz_ext0 = dz_ext1
-                        if (c and 0x03  == 0.toByte()) {
+                        if (c and 0x03 == 0.toByte()) {
                             zsv_ext0 += 1
                             dz_ext0 -= 1.0
                         } else {
@@ -1997,7 +1997,7 @@ class OpenSimplexNoise(seed: Long = 0L): ProceduralNoise {
                         dz_ext0 = dz_ext1
                     }
 
-                    if (c and 0x08  != 0.toByte()) {
+                    if (c and 0x08 != 0.toByte()) {
                         wsv_ext0 = wsb + 1
                         wsv_ext1 = wsb + 2
                         dw_ext0 = dw0 - 1 - 3 * SQUISH_CONSTANT_4D
@@ -2021,7 +2021,7 @@ class OpenSimplexNoise(seed: Long = 0L): ProceduralNoise {
                 }
 
                 //Two contributions are the bigger-sided point with each 1 replaced with 2.
-                if (c1 and 0x01  != 0.toByte()) {
+                if (c1 and 0x01 != 0.toByte()) {
                     xsv_ext0 = xsb + 2
                     xsv_ext1 = xsb + 1
                     dx_ext0 = dx0 - 2 - 3 * SQUISH_CONSTANT_4D
@@ -2033,12 +2033,12 @@ class OpenSimplexNoise(seed: Long = 0L): ProceduralNoise {
                     dx_ext0 = dx_ext1
                 }
 
-                if (c1 and 0x02  != 0.toByte()) {
+                if (c1 and 0x02 != 0.toByte()) {
                     ysv_ext1 = ysb + 1
                     ysv_ext0 = ysv_ext1
                     dy_ext1 = dy0 - 1 - 3 * SQUISH_CONSTANT_4D
                     dy_ext0 = dy_ext1
-                    if (c1 and 0x01  == 0.toByte()) {
+                    if (c1 and 0x01 == 0.toByte()) {
                         ysv_ext0 += 1
                         dy_ext0 -= 1.0
                     } else {
@@ -2052,12 +2052,12 @@ class OpenSimplexNoise(seed: Long = 0L): ProceduralNoise {
                     dy_ext0 = dy_ext1
                 }
 
-                if (c1 and 0x04  != 0.toByte()) {
+                if (c1 and 0x04 != 0.toByte()) {
                     zsv_ext1 = zsb + 1
                     zsv_ext0 = zsv_ext1
                     dz_ext1 = dz0 - 1 - 3 * SQUISH_CONSTANT_4D
                     dz_ext0 = dz_ext1
-                    if (c1 and 0x03  == 0.toByte()) {
+                    if (c1 and 0x03 == 0.toByte()) {
                         zsv_ext0 += 1
                         dz_ext0 -= 1.0
                     } else {
@@ -2071,7 +2071,7 @@ class OpenSimplexNoise(seed: Long = 0L): ProceduralNoise {
                     dz_ext0 = dz_ext1
                 }
 
-                if (c1 and 0x08  != 0.toByte()) {
+                if (c1 and 0x08 != 0.toByte()) {
                     wsv_ext0 = wsb + 1
                     wsv_ext1 = wsb + 2
                     dw_ext0 = dw0 - 1 - 3 * SQUISH_CONSTANT_4D
@@ -2092,13 +2092,13 @@ class OpenSimplexNoise(seed: Long = 0L): ProceduralNoise {
                 dy_ext2 = dy0 - 1 - 2 * SQUISH_CONSTANT_4D
                 dz_ext2 = dz0 - 1 - 2 * SQUISH_CONSTANT_4D
                 dw_ext2 = dw0 - 1 - 2 * SQUISH_CONSTANT_4D
-                if (c2 and 0x01  == 0.toByte()) {
+                if (c2 and 0x01 == 0.toByte()) {
                     xsv_ext2 -= 2
                     dx_ext2 += 2.0
-                } else if (c2 and 0x02  == 0.toByte()) {
+                } else if (c2 and 0x02 == 0.toByte()) {
                     ysv_ext2 -= 2
                     dy_ext2 += 2.0
-                } else if (c2 and 0x04  == 0.toByte()) {
+                } else if (c2 and 0x04 == 0.toByte()) {
                     zsv_ext2 -= 2
                     dz_ext2 += 2.0
                 } else {
@@ -2271,10 +2271,10 @@ class OpenSimplexNoise(seed: Long = 0L): ProceduralNoise {
         //Gradients for 2D. They approximate the directions to the
         //vertices of an octagon from the center.
         private val gradients2D = byteArrayOf(
-            5,  2,    2,  5,
-            -5,  2,   -2,  5,
-            5, -2,    2, -5,
-            -5, -2,   -2, -5
+            5, 2, 2, 5,
+            -5, 2, -2, 5,
+            5, -2, 2, -5,
+            -5, -2, -2, -5
         )
 
         //Gradients for 3D. They approximate the directions to the
@@ -2282,14 +2282,14 @@ class OpenSimplexNoise(seed: Long = 0L): ProceduralNoise {
         //that the triangular and square facets can be inscribed inside
         //circles of the same radius.
         private val gradients3D = byteArrayOf(
-            -11,  4,  4,     -4,  11,  4,    -4,  4,  11,
-            11,  4,  4,      4,  11,  4,     4,  4,  11,
-            -11, -4,  4,     -4, -11,  4,    -4, -4,  11,
-            11, -4,  4,      4, -11,  4,     4, -4,  11,
-            -11,  4, -4,     -4,  11, -4,    -4,  4, -11,
-            11,  4, -4,      4,  11, -4,     4,  4, -11,
-            -11, -4, -4,     -4, -11, -4,    -4, -4, -11,
-            11, -4, -4,      4, -11, -4,     4, -4, -11
+            -11, 4, 4, -4, 11, 4, -4, 4, 11,
+            11, 4, 4, 4, 11, 4, 4, 4, 11,
+            -11, -4, 4, -4, -11, 4, -4, -4, 11,
+            11, -4, 4, 4, -11, 4, 4, -4, 11,
+            -11, 4, -4, -4, 11, -4, -4, 4, -11,
+            11, 4, -4, 4, 11, -4, 4, 4, -11,
+            -11, -4, -4, -4, -11, -4, -4, -4, -11,
+            11, -4, -4, 4, -11, -4, 4, -4, -11
         )
 
         //Gradients for 4D. They approximate the directions to the
@@ -2297,22 +2297,22 @@ class OpenSimplexNoise(seed: Long = 0L): ProceduralNoise {
         //skewed so that the tetrahedral and cubic facets can be inscribed inside
         //spheres of the same radius.
         private val gradients4D = byteArrayOf(
-            3,  1,  1,  1,      1,  3,  1,  1,      1,  1,  3,  1,      1,  1,  1,  3,
-            -3,  1,  1,  1,     -1,  3,  1,  1,     -1,  1,  3,  1,     -1,  1,  1,  3,
-            3, -1,  1,  1,      1, -3,  1,  1,      1, -1,  3,  1,      1, -1,  1,  3,
-            -3, -1,  1,  1,     -1, -3,  1,  1,     -1, -1,  3,  1,     -1, -1,  1,  3,
-            3,  1, -1,  1,      1,  3, -1,  1,      1,  1, -3,  1,      1,  1, -1,  3,
-            -3,  1, -1,  1,     -1,  3, -1,  1,     -1,  1, -3,  1,     -1,  1, -1,  3,
-            3, -1, -1,  1,      1, -3, -1,  1,      1, -1, -3,  1,      1, -1, -1,  3,
-            -3, -1, -1,  1,     -1, -3, -1,  1,     -1, -1, -3,  1,     -1, -1, -1,  3,
-            3,  1,  1, -1,      1,  3,  1, -1,      1,  1,  3, -1,      1,  1,  1, -3,
-            -3,  1,  1, -1,     -1,  3,  1, -1,     -1,  1,  3, -1,     -1,  1,  1, -3,
-            3, -1,  1, -1,      1, -3,  1, -1,      1, -1,  3, -1,      1, -1,  1, -3,
-            -3, -1,  1, -1,     -1, -3,  1, -1,     -1, -1,  3, -1,     -1, -1,  1, -3,
-            3,  1, -1, -1,      1,  3, -1, -1,      1,  1, -3, -1,      1,  1, -1, -3,
-            -3,  1, -1, -1,     -1,  3, -1, -1,     -1,  1, -3, -1,     -1,  1, -1, -3,
-            3, -1, -1, -1,      1, -3, -1, -1,      1, -1, -3, -1,      1, -1, -1, -3,
-            -3, -1, -1, -1,     -1, -3, -1, -1,     -1, -1, -3, -1,     -1, -1, -1, -3
-            )
+            3, 1, 1, 1, 1, 3, 1, 1, 1, 1, 3, 1, 1, 1, 1, 3,
+            -3, 1, 1, 1, -1, 3, 1, 1, -1, 1, 3, 1, -1, 1, 1, 3,
+            3, -1, 1, 1, 1, -3, 1, 1, 1, -1, 3, 1, 1, -1, 1, 3,
+            -3, -1, 1, 1, -1, -3, 1, 1, -1, -1, 3, 1, -1, -1, 1, 3,
+            3, 1, -1, 1, 1, 3, -1, 1, 1, 1, -3, 1, 1, 1, -1, 3,
+            -3, 1, -1, 1, -1, 3, -1, 1, -1, 1, -3, 1, -1, 1, -1, 3,
+            3, -1, -1, 1, 1, -3, -1, 1, 1, -1, -3, 1, 1, -1, -1, 3,
+            -3, -1, -1, 1, -1, -3, -1, 1, -1, -1, -3, 1, -1, -1, -1, 3,
+            3, 1, 1, -1, 1, 3, 1, -1, 1, 1, 3, -1, 1, 1, 1, -3,
+            -3, 1, 1, -1, -1, 3, 1, -1, -1, 1, 3, -1, -1, 1, 1, -3,
+            3, -1, 1, -1, 1, -3, 1, -1, 1, -1, 3, -1, 1, -1, 1, -3,
+            -3, -1, 1, -1, -1, -3, 1, -1, -1, -1, 3, -1, -1, -1, 1, -3,
+            3, 1, -1, -1, 1, 3, -1, -1, 1, 1, -3, -1, 1, 1, -1, -3,
+            -3, 1, -1, -1, -1, 3, -1, -1, -1, 1, -3, -1, -1, 1, -1, -3,
+            3, -1, -1, -1, 1, -3, -1, -1, 1, -1, -3, -1, 1, -1, -1, -3,
+            -3, -1, -1, -1, -1, -3, -1, -1, -1, -1, -3, -1, -1, -1, -1, -3
+        )
     }
 }

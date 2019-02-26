@@ -92,7 +92,7 @@ interface HasGeometry : Serializable {
         var currentMaterial: Material? = Material()
 
         fun addTexture(material: Material?, slot: String, file: String) {
-            if(material == null) {
+            if (material == null) {
                 logger.warn("No current material, but trying to set texture $slot to $file. Broken material file?")
             } else {
                 material.textures[slot] = file
@@ -103,8 +103,7 @@ interface HasGeometry : Serializable {
         // The MTL file is read line-by-line and tokenized, based on spaces.
         // The first non-whitespace token encountered will be evaluated as command to
         // set up the properties of the [Material], which include e.g. textures and colors.
-        lines.forEach {
-            line ->
+        lines.forEach { line ->
             val tokens = line.trim().trimEnd().split(" ").filter(String::isNotEmpty)
             if (tokens.isNotEmpty()) {
                 when (tokens[0]) {
@@ -222,7 +221,11 @@ interface HasGeometry : Serializable {
         var faceCount = 0
 
         var materials = HashMap<String, Material>()
-        val normalSign = if(flipNormals) { -1.0f } else { 1.0f }
+        val normalSign = if (flipNormals) {
+            -1.0f
+        } else {
+            1.0f
+        }
 
         /**
          * Recalculates normals, assuming CCW winding order.
@@ -289,8 +292,7 @@ interface HasGeometry : Serializable {
 
         val preparseStart = System.nanoTime()
         logger.info("Starting preparse")
-        lines.forEach {
-            line ->
+        lines.forEach { line ->
             val tokens = line.trim().trimEnd()
             if (tokens.isNotEmpty()) {
                 when (tokens[0]) {
@@ -327,13 +329,14 @@ interface HasGeometry : Serializable {
 
         vertexCountMap.forEach { objectName, objectVertexCount ->
             vertexBuffers[objectName] = Triple(
-                    memAlloc(objectVertexCount * vertexSize * 4).order(ByteOrder.nativeOrder()).asFloatBuffer(),
-                    memAlloc(objectVertexCount * vertexSize * 4).order(ByteOrder.nativeOrder()).asFloatBuffer(),
-                    memAlloc(objectVertexCount * texcoordSize * 4).order(ByteOrder.nativeOrder()).asFloatBuffer()
+                memAlloc(objectVertexCount * vertexSize * 4).order(ByteOrder.nativeOrder()).asFloatBuffer(),
+                memAlloc(objectVertexCount * vertexSize * 4).order(ByteOrder.nativeOrder()).asFloatBuffer(),
+                memAlloc(objectVertexCount * texcoordSize * 4).order(ByteOrder.nativeOrder()).asFloatBuffer()
             )
 
             indexBuffers[objectName] = ArrayList<Int>(objectVertexCount)
-            faceBuffers[objectName] = TIndexedHashSet<Vertex>(((faceCountMap[objectName] ?: throw IllegalStateException("Face count map does not contain $objectName")) * 1.5).toInt())
+            faceBuffers[objectName] = TIndexedHashSet<Vertex>(((faceCountMap[objectName]
+                ?: throw IllegalStateException("Face count map does not contain $objectName")) * 1.5).toInt())
         }
 
         val tmpV = ArrayList<Float>(vertexCountMap.values.sum() * vertexSize)
@@ -349,8 +352,7 @@ interface HasGeometry : Serializable {
 
         boundingBox = floatArrayOf(0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f)
 
-        lines.forEach {
-            line ->
+        lines.forEach { line ->
             val tokens = line.trim().trimEnd()
             if (tokens.isNotEmpty()) {
                 when (tokens[0]) {
@@ -380,14 +382,14 @@ interface HasGeometry : Serializable {
                                 tmpV.add(elements[3].toFloat())
                             }
 
-                        // normal coords are specified as vn x y z
+                            // normal coords are specified as vn x y z
                             'n' -> {
                                 tmpN.add(elements[1].toFloat() * normalSign)
                                 tmpN.add(elements[2].toFloat() * normalSign)
                                 tmpN.add(elements[3].toFloat() * normalSign)
                             }
 
-                        // UV coords maybe vt t1 t2 0.0 or vt t1 t2
+                            // UV coords maybe vt t1 t2 0.0 or vt t1 t2
                             't' -> {
                                 tmpUV.add(elements[1].toFloat())
                                 tmpUV.add(elements[2].toFloat())
@@ -409,8 +411,16 @@ interface HasGeometry : Serializable {
                         elements.subList(1, elements.size).forEach { elem ->
                             val tri = elem.fastSplit("/")
                             vertices.add(tri[0].toInt())
-                            tri.getOrNull(1)?.let { if(it.isNotEmpty()) { uvs.add(it.toInt()) } }
-                            tri.getOrNull(2)?.let { if(it.isNotEmpty()) { normals.add(it.toInt()) } }
+                            tri.getOrNull(1)?.let {
+                                if (it.isNotEmpty()) {
+                                    uvs.add(it.toInt())
+                                }
+                            }
+                            tri.getOrNull(2)?.let {
+                                if (it.isNotEmpty()) {
+                                    normals.add(it.toInt())
+                                }
+                            }
                         }
 
                         val range = if (vertices.size == 3) {
@@ -421,8 +431,10 @@ interface HasGeometry : Serializable {
                             quintIndices
                         }
 
-                        val faces: TIndexedHashSet<Vertex> = faceBuffers[name] ?: throw IllegalStateException("Face buffer does not contain $name, broken file?")
-                        val ib = indexBuffers[name] ?: throw IllegalStateException("Index buffer does not contain $name, broken file?")
+                        val faces: TIndexedHashSet<Vertex> = faceBuffers[name]
+                            ?: throw IllegalStateException("Face buffer does not contain $name, broken file?")
+                        val ib = indexBuffers[name]
+                            ?: throw IllegalStateException("Index buffer does not contain $name, broken file?")
                         val indices = vertices.mapIndexed { i, _ ->
                             val face = Vertex(vertices[i], normals.getOrElse(i, { -1 }), uvs.getOrElse(i, { -1 }))
                             val present = !faces.add(face)
@@ -433,7 +445,8 @@ interface HasGeometry : Serializable {
                                 vertex[1] = tmpV[base + 1]
                                 vertex[2] = tmpV[base + 2]
 
-                                val vb = vertexBuffers[name] ?: throw IllegalStateException("Vertex buffer map does not contain $name, broken file?")
+                                val vb = vertexBuffers[name]
+                                    ?: throw IllegalStateException("Vertex buffer map does not contain $name, broken file?")
 
                                 vb.first.put(vertex[0])
                                 vb.first.put(vertex[1])
@@ -483,8 +496,10 @@ interface HasGeometry : Serializable {
                     }
 
                     'g', 'o' -> {
-                        val vb = vertexBuffers[name] ?: throw IllegalStateException("Vertex buffer map does not contain $name, broken file?")
-                        val ib = indexBuffers[name] ?: throw IllegalStateException("Index buffer map does not contain $name, broken file?")
+                        val vb = vertexBuffers[name]
+                            ?: throw IllegalStateException("Vertex buffer map does not contain $name, broken file?")
+                        val ib = indexBuffers[name]
+                            ?: throw IllegalStateException("Index buffer map does not contain $name, broken file?")
 
                         if (vb.second.position() == 0) {
                             calculateNormals(vb.first, vb.second)
@@ -546,8 +561,10 @@ interface HasGeometry : Serializable {
 
         val end = System.nanoTime()
 
-        val vb = vertexBuffers[name] ?: throw IllegalStateException("Vertex buffer map does not contain $name, broken file?")
-        val ib = indexBuffers[name] ?: throw IllegalStateException("Index buffer map does not contain $name, broken file?")
+        val vb = vertexBuffers[name]
+            ?: throw IllegalStateException("Vertex buffer map does not contain $name, broken file?")
+        val ib = indexBuffers[name]
+            ?: throw IllegalStateException("Index buffer map does not contain $name, broken file?")
 
         // recalculate normals if model did not supply them
         if (vb.second.position() == 0) {
@@ -570,9 +587,9 @@ interface HasGeometry : Serializable {
         indexCount += targetObject.indices.limit()
 
         if (this is Mesh) {
-           (targetObject as? Mesh)?.boundingBox = OrientedBoundingBox(boundingBox)
+            (targetObject as? Mesh)?.boundingBox = OrientedBoundingBox(boundingBox)
         } else if (this is PointCloud) {
-           (targetObject as? PointCloud)?.boundingBox = OrientedBoundingBox(boundingBox)
+            (targetObject as? PointCloud)?.boundingBox = OrientedBoundingBox(boundingBox)
         }
 
         logger.info("Read ${vertexCount / vertexSize}/${normalCount / vertexSize}/${uvCount / texcoordSize}/$indexCount v/n/uv/i of model $name in ${(end - start) / 1e6} ms")
@@ -662,8 +679,7 @@ interface HasGeometry : Serializable {
         // This lambda is used in case the STL file is stored in ASCII format
         val readFromAscii = {
             logger.info("Importing geometry from ASCII STL file $filename")
-            lines.forEach {
-                line ->
+            lines.forEach { line ->
                 val tokens = line.trim().trimEnd().split(" ")
                 when (tokens[0]) {
                     "solid" -> name = tokens.drop(1).joinToString(" ")
@@ -690,8 +706,10 @@ interface HasGeometry : Serializable {
                     }
                     "facet" -> tokens.drop(2).forEach { nbuffer.add(it.toFloat()) }
                     "outer" -> {
-                        for(i in 1..2) {
-                            for(it in (nbuffer.size - 3)..(nbuffer.size - 1)) { nbuffer.add(nbuffer[it]) }
+                        for (i in 1..2) {
+                            for (it in (nbuffer.size - 3)..(nbuffer.size - 1)) {
+                                nbuffer.add(nbuffer[it])
+                            }
                         }
                     }
                     "end" -> {
