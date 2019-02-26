@@ -10,6 +10,7 @@ import org.lwjgl.system.MemoryUtil.*
 import org.lwjgl.vulkan.*
 import org.lwjgl.vulkan.VK10.*
 import org.lwjgl.vulkan.VkImageCreateInfo
+import vkk.VkBufferUsage
 import java.awt.Color
 import java.awt.color.ColorSpace
 import java.awt.geom.AffineTransform
@@ -363,7 +364,7 @@ open class VulkanTexture(val device: VulkanDevice,
 
                     buffer = VulkanBuffer(this@VulkanTexture.device,
                         requiredCapacity,
-                        VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
+                        VkBufferUsage.TRANSFER_SRC_BIT.i,
                         VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT or VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
                         wantAligned = false)
 
@@ -408,7 +409,7 @@ open class VulkanTexture(val device: VulkanDevice,
         } else {
             val buffer = VulkanBuffer(device,
                 sourceBuffer.limit().toLong(),
-                VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
+                VkBufferUsage.TRANSFER_SRC_BIT.i,
                 VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT,
                 wantAligned = false)
 

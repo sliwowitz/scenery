@@ -425,12 +425,23 @@
             <artifactId>lwjgl3-awt</artifactId>
             <version>0.1.1</version>
         </dependency>
+
+        <dependency>
+            <groupId>com.github.kotlin-graphics</groupId>
+            <artifactId>vkk</artifactId>
+            <version>1a86547838</version>
+        </dependency>
+
     </dependencies>
 
     <repositories>
         <repository>
             <id>imagej.public</id>
             <url>http://maven.imagej.net/content/groups/public</url>
+        </repository>
+        <repository>
+            <id>jitpack.io</id>
+            <url>https://jitpack.io</url>
         </repository>
     </repositories>
 

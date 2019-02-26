@@ -4,6 +4,7 @@ import graphics.scenery.Node
 import graphics.scenery.backends.UBO
 import org.lwjgl.system.MemoryUtil.*
 import org.lwjgl.vulkan.VK10.*
+import vkk.VkBufferUsage
 import java.nio.ByteBuffer
 import java.nio.IntBuffer
 
@@ -120,7 +121,7 @@ open class VulkanUBO(val device: VulkanDevice, var backingBuffer: VulkanBuffer? 
 
         ownedBackingBuffer = VulkanBuffer(device,
             this.getSize() * 1L,
-            VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT,
+            VkBufferUsage.UNIFORM_BUFFER_BIT.i,
             VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT,
             wantAligned = true)
 

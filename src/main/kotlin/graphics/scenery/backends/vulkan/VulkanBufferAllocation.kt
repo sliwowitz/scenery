@@ -1,8 +1,8 @@
 package graphics.scenery.backends.vulkan
 
 import graphics.scenery.utils.LazyLogger
+import vkk.VkBufferUsageFlags
 
-typealias VulkanBufferUsage = Int
 /**
  * Zips consecutive items of an Iterable, with the end items signalled by null.
  */
@@ -24,7 +24,7 @@ inline fun <T, R> Iterable<T>.zipWithNextNullable(transform: (a: T?, b: T?) -> R
  * Represents an allocation in a [VulkanBufferPool]'s backing store. This class does most
  * of the work, such as keeping track of all [VulkanBufferPool]'s [VulkanSuballocation]s.
  */
-class VulkanBufferAllocation(val usage: VulkanBufferUsage,
+class VulkanBufferAllocation(val usage: VkBufferUsageFlags,
                              val size: Long,
                              val buffer: VulkanBuffer,
                              val alignment: Int,

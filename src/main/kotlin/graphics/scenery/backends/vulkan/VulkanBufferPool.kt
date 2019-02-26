@@ -2,6 +2,9 @@ package graphics.scenery.backends.vulkan
 
 import graphics.scenery.utils.LazyLogger
 import org.lwjgl.vulkan.VK10
+import vkk.VkBufferUsage
+import vkk.VkBufferUsageFlags
+import vkk.or
 import java.util.concurrent.CopyOnWriteArrayList
 
 
@@ -14,7 +17,7 @@ const val basicBufferSize: Long = 1024*1024*32
  * or texture storage.
  */
 class VulkanBufferPool(val device: VulkanDevice,
-                       val usage: Int = VK10.VK_BUFFER_USAGE_VERTEX_BUFFER_BIT or VK10.VK_BUFFER_USAGE_INDEX_BUFFER_BIT or VK10.VK_BUFFER_USAGE_TRANSFER_DST_BIT,
+                       val usage: VkBufferUsageFlags = VkBufferUsage.VERTEX_BUFFER_BIT or VkBufferUsage.INDEX_BUFFER_BIT or VkBufferUsage.TRANSFER_DST_BIT,
                        val bufferSize: Long = basicBufferSize) {
 
     private val logger by LazyLogger()

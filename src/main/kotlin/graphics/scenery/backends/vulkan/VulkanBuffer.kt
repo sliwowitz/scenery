@@ -9,6 +9,7 @@ import org.lwjgl.vulkan.VK10.*
 import org.lwjgl.vulkan.VkBufferCreateInfo
 import org.lwjgl.vulkan.VkMemoryAllocateInfo
 import org.lwjgl.vulkan.VkMemoryRequirements
+import vkk.VkBufferUsageFlags
 import java.nio.ByteBuffer
 import kotlin.math.roundToInt
 
@@ -21,7 +22,7 @@ import kotlin.math.roundToInt
  * @param[wantAligned] - whether the buffer should be aligned
  */
 open class VulkanBuffer(val device: VulkanDevice, var size: Long,
-                   val usage: Int, val requestedMemoryProperties: Int = VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT,
+                   val usage: VkBufferUsageFlags, val requestedMemoryProperties: Int = VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT,
                    val wantAligned: Boolean = true, var suballocation: VulkanSuballocation? = null): AutoCloseable {
     private val logger by LazyLogger()
     private var currentPosition = 0L

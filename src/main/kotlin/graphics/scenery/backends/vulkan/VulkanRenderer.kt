@@ -26,6 +26,7 @@ import org.lwjgl.vulkan.KHRWin32Surface.VK_KHR_WIN32_SURFACE_EXTENSION_NAME
 import org.lwjgl.vulkan.KHRXlibSurface.VK_KHR_XLIB_SURFACE_EXTENSION_NAME
 import org.lwjgl.vulkan.MVKMacosSurface.VK_MVK_MACOS_SURFACE_EXTENSION_NAME
 import org.lwjgl.vulkan.VK10.*
+import vkk.VkBufferUsage
 import java.awt.image.BufferedImage
 import java.awt.image.DataBufferByte
 import java.io.File
@@ -1685,7 +1686,7 @@ open class VulkanRenderer(hub: Hub,
             if(screenshotBuffer == null || screenshotBuffer?.size != imageByteSize) {
                 logger.debug("Reallocating screenshot buffer")
                 screenshotBuffer = VulkanBuffer(device, imageByteSize,
-                    VK_BUFFER_USAGE_TRANSFER_DST_BIT,
+                    VkBufferUsage.TRANSFER_DST_BIT.i,
                     VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT,
                     wantAligned = true)
             }
@@ -2198,7 +2199,7 @@ open class VulkanRenderer(hub: Hub,
 
         val stagingBuffer = VulkanBuffer(device,
             fullAllocationBytes * 1L,
-            VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
+            VkBufferUsage.TRANSFER_SRC_BIT.i,
             VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT,
             wantAligned = false)
 
@@ -2265,7 +2266,7 @@ open class VulkanRenderer(hub: Hub,
             logger.debug("Creating new staging buffer")
             val buffer = VulkanBuffer(device,
                 instanceBufferSize * 1L,
-                VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
+                VkBufferUsage.TRANSFER_SRC_BIT.i,
                 VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT,
                 wantAligned = true)
 
@@ -2303,7 +2304,7 @@ open class VulkanRenderer(hub: Hub,
 
             val buffer = VulkanBuffer(device,
                 instanceBufferSize * 1L,
-                VK_BUFFER_USAGE_VERTEX_BUFFER_BIT or VK_BUFFER_USAGE_TRANSFER_DST_BIT,
+                VkBufferUsage.VERTEX_BUFFER_BIT or VkBufferUsage.TRANSFER_DST_BIT,
                 VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT,
                 wantAligned = true)
 
@@ -2370,28 +2371,28 @@ open class VulkanRenderer(hub: Hub,
 
         bufferStorage["UBOBuffer"] = VulkanBuffer(device,
             512 * 1024 * 10,
-            VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT,
+            VkBufferUsage.UNIFORM_BUFFER_BIT.i,
             VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT or VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
             wantAligned = true)
         logger.debug("Created UBO buffer")
 
         bufferStorage["LightParametersBuffer"] = VulkanBuffer(device,
             512 * 1024 * 10,
-            VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT,
+            VkBufferUsage.UNIFORM_BUFFER_BIT.i,
             VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT or VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
             wantAligned = true)
         logger.debug("Created light buffer")
 
         bufferStorage["VRParametersBuffer"] = VulkanBuffer(device,
             256 * 10,
-            VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT,
+            VkBufferUsage.UNIFORM_BUFFER_BIT.i,
             VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT or VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
             wantAligned = true)
         logger.debug("Created VRP buffer")
 
         bufferStorage["ShaderPropertyBuffer"] = VulkanBuffer(device,
             1024 * 1024,
-            VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT,
+            VkBufferUsage.UNIFORM_BUFFER_BIT.i,
             VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT or VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
             wantAligned = true)
         logger.debug("Created all buffers")

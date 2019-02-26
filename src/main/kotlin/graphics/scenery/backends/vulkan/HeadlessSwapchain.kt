@@ -10,6 +10,7 @@ import graphics.scenery.Hub
 import graphics.scenery.utils.SceneryFXPanel
 import graphics.scenery.utils.SceneryPanel
 import org.lwjgl.system.MemoryStack
+import vkk.VkBufferUsage
 
 
 /**
@@ -140,7 +141,7 @@ open class HeadlessSwapchain(device: VulkanDevice,
         imageBuffer = MemoryUtil.memAlloc(imageByteSize.toInt())
         sharingBuffer = VulkanBuffer(device,
             imageByteSize,
-            VK10.VK_BUFFER_USAGE_TRANSFER_DST_BIT,
+            VkBufferUsage.TRANSFER_DST_BIT.i,
             VK10.VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT or VK10.VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
             wantAligned = true)
 
