@@ -199,7 +199,7 @@ open class VulkanRenderer(hub: Hub,
                         cam.perspectiveCamera(cam.fov, window.width.toFloat(), window.height.toFloat(), cam.nearPlaneDistance, cam.farPlaneDistance)
                     }
 
-                    logger.debug("Calling late resize initializers for ${lateResizeInitializers.keys.joinToString(", ")}")
+                    logger.debug("Calling late resize initializers for ${lateResizeInitializers.keys.joinToString()}")
                     lateResizeInitializers.map { it.value.invoke() }
 
                     if (timestampQueryPool != -1L) {
@@ -1412,7 +1412,7 @@ open class VulkanRenderer(hub: Hub,
         val framebuffers = ConcurrentHashMap<String, VulkanFramebuffer>()
 
         flow = renderConfig.createRenderpassFlow()
-        logger.debug("Renderpasses to be run: ${flow.joinToString(", ")}")
+        logger.debug("Renderpasses to be run: ${flow.joinToString()}")
 
         descriptorSetLayouts
             .filter { it.key.startsWith("outputs-") }
@@ -2069,7 +2069,7 @@ open class VulkanRenderer(hub: Hub,
             val additionalExts: List<String> = hub?.getWorkingHMDDisplay()?.getVulkanInstanceExtensions() ?: listOf()
             val utf8Exts = additionalExts.map { stack.UTF8(it) }
 
-            logger.debug("HMD required instance exts: ${additionalExts.joinToString(", ")} ${additionalExts.size}")
+            logger.debug("HMD required instance exts: ${additionalExts.joinToString()} ${additionalExts.size}")
 
             // allocate enough pointers for already pre-required extensions, plus HMD-required extensions, plus the debug extension
             val size = requiredExtensions?.remaining() ?: 0
@@ -2646,7 +2646,7 @@ open class VulkanRenderer(hub: Hub,
                 val pipeline = p.getPipelineForGeometryType((node as HasGeometry).geometryType)
                 val specs = p.orderedDescriptorSpecs()
 
-                logger.trace("node {} has: {} / pipeline needs: {}", node.name, s.UBOs.keys.joinToString(", "), specs.joinToString { it.key })
+                logger.trace("node {} has: {} / pipeline needs: {}", node.name, s.UBOs.keys.joinToString(), specs.joinToString { it.key })
 
                 pass.vulkanMetadata.descriptorSets.rewind()
                 pass.vulkanMetadata.uboOffsets.rewind()
@@ -2795,8 +2795,8 @@ open class VulkanRenderer(hub: Hub,
             (0..15).forEach { pass.vulkanMetadata.uboOffsets.put(it, 0) }
 
             if (logger.isDebugEnabled) {
-                logger.debug("${pass.name}: descriptor sets are {}", pass.descriptorSets.keys.joinToString(", "))
-                logger.debug("pipeline provides {}", pipeline.descriptorSpecs.keys.joinToString(", "))
+                logger.debug("${pass.name}: descriptor sets are {}", pass.descriptorSets.keys.joinToString())
+                logger.debug("pipeline provides {}", pipeline.descriptorSpecs.keys.joinToString())
             }
 
             // set the required descriptor sets for this render pass

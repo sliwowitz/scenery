@@ -844,7 +844,7 @@ interface HasGeometry : Serializable {
         indices = BufferUtils.allocateInt(0)
 
         if (this is Mesh) {
-            logger.info("Bounding box of $name is ${boundingBox.joinToString(",")}")
+            logger.info("Bounding box of $name is ${boundingBox.joinToString()}")
             this.boundingBox = OrientedBoundingBox(boundingBox)
         }
     }

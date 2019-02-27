@@ -389,7 +389,7 @@ open class BDVVolume(bdvXMLFile: String = "", val options: VolumeViewerOptions) 
             visibleSourceIndices = state.visibleSourceIndices
             currentTimepoint = state.currentTimepoint
 
-            logger.info("Visible: at t=$currentTimepoint: ${visibleSourceIndices.joinToString(", ")}")
+            logger.info("Visible: at t=$currentTimepoint: ${visibleSourceIndices.joinToString()}")
             renderStacks.clear()
             renderConverters.clear()
             for (i in visibleSourceIndices) {

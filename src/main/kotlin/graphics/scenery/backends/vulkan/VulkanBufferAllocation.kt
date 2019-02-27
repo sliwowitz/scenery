@@ -67,7 +67,7 @@ class VulkanBufferAllocation(val usage: VkBufferUsageFlags,
         candidates.sortBy { (it.getFreeSpace() - size).i }
 
         if (logger.isTraceEnabled) {
-            logger.trace("Allocation candidates: ${candidates.filter { it.getFreeSpace() >= size }.joinToString(", ") { "L=${it.left}/R=${it.right} free=${it.getFreeSpace()}" }}")
+            logger.trace("Allocation candidates: ${candidates.filter { it.getFreeSpace() >= size }.joinToString() { "L=${it.left}/R=${it.right} free=${it.getFreeSpace()}" }}")
         }
 
         return candidates.firstOrNull { it.getFreeSpace() > size && it.getFreeSpace() > alignment.i }

@@ -740,7 +740,7 @@ open class OpenVRHMD(val seated: Boolean = true, val useCompositor: Boolean = tr
             } else {
                 val extensions = VRCompositor_GetVulkanInstanceExtensionsRequired(count).split(" ")
 
-                logger.debug("Vulkan required instance extensions are: ${extensions.joinToString(", ")}")
+                logger.debug("Vulkan required instance extensions are: ${extensions.joinToString()}")
                 return extensions
             }
         }
@@ -762,7 +762,7 @@ open class OpenVRHMD(val seated: Boolean = true, val useCompositor: Boolean = tr
             } else {
                 val extensions = VRCompositor_GetVulkanDeviceExtensionsRequired(physicalDevice.address(), count).split(" ")
 
-                logger.debug("Vulkan required device extensions are: ${extensions.joinToString(", ")}")
+                logger.debug("Vulkan required device extensions are: ${extensions.joinToString()}")
                 return extensions
             }
         }

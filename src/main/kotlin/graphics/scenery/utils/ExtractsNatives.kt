@@ -73,7 +73,7 @@ interface ExtractsNatives {
 
         cleanTempFiles()
 
-        logger.debug("Got back ${paths.joinToString(", ")}")
+        logger.debug("Got back ${paths.joinToString()}")
         paths.filter { it.toLowerCase().endsWith("jar") }.forEach {
             logger.debug("Extracting $it...")
 

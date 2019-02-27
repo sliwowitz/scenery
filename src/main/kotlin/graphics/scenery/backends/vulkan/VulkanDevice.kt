@@ -116,7 +116,7 @@ open class VulkanDevice(val instance: VkInstance, val physicalDevice: VkPhysical
             }
 
             val extensionsRequested = extensionsQuery.invoke(physicalDevice)
-            logger.debug("Requested extensions: ${extensionsRequested.joinToString(", ")} ${extensionsRequested.size}")
+            logger.debug("Requested extensions: ${extensionsRequested.joinToString()} ${extensionsRequested.size}")
             val utf8Exts = extensionsRequested.map { stack.UTF8(it) }
 
             // allocate enough pointers for required extensions, plus the swapchain extension

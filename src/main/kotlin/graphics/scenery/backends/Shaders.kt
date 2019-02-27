@@ -50,7 +50,7 @@ sealed class Shaders {
          */
         override fun get(target: ShaderTarget, type: ShaderType): ShaderPackage {
             val shaderCodePath = shaders.find { it.endsWith(type.toExtension()) || it.endsWith(type.toExtension() + ".spv") }
-                ?: throw ShaderNotFoundException("Could not locate $type from ${shaders.joinToString(", ")}")
+                ?: throw ShaderNotFoundException("Could not locate $type from ${shaders.joinToString()}")
             val spirvPath: String
             val codePath: String
 
@@ -131,7 +131,7 @@ sealed class Shaders {
      * if the files cannot be located within the normal neighborhood of the resources in [classes].
      */
     protected fun safeFindBaseClass(classes: Array<Class<*>>, path: String): Pair<Class<*>, String>? {
-        logger.info("Looking for $path in ${classes.map { it.simpleName }.joinToString(", ")}")
+        logger.info("Looking for $path in ${classes.map { it.simpleName }.joinToString()}")
         val streams = classes.map { clazz ->
             clazz to clazz.getResourceAsStream(path)
         }.filter { it.second != null }.toMutableList()

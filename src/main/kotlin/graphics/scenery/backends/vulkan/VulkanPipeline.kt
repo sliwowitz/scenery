@@ -171,7 +171,7 @@ class VulkanPipeline(val device: VulkanDevice, val pipelineCache: Long? = null) 
         this.pipeline.put(GeometryType.TRIANGLES, vkp)
 //        descriptorSpecs.sortBy { spec -> spec.set }
 
-        logger.debug("Pipeline needs descriptor sets ${descriptorSpecs.keys.joinToString(", ")}")
+        logger.debug("Pipeline needs descriptor sets ${descriptorSpecs.keys.joinToString()}")
 
         if (onlyForTopology == null) {
             // create pipelines for other topologies as well
@@ -203,7 +203,7 @@ class VulkanPipeline(val device: VulkanDevice, val pipelineCache: Long? = null) 
         }
 
         logger.debug("Created $this for renderpass ${renderpass.name} ($vulkanRenderpass) with pipeline layout $layout (${if (onlyForTopology == null) {
-            "Derivatives:" + this.pipeline.keys.joinToString(", ")
+            "Derivatives:" + this.pipeline.keys.joinToString()
         } else {
             "no derivatives, only ${this.pipeline.keys.first()}"
         }})")
@@ -237,7 +237,7 @@ class VulkanPipeline(val device: VulkanDevice, val pipelineCache: Long? = null) 
     }
 
     override fun toString(): String {
-        return "VulkanPipeline (${pipeline.map { "${it.key.name} -> ${String.format("0x%X", it.value.pipeline)}" }.joinToString(", ")})"
+        return "VulkanPipeline (${pipeline.map { "${it.key.name} -> ${String.format("0x%X", it.value.pipeline)}" }.joinToString()})"
     }
 
     override fun close() {
