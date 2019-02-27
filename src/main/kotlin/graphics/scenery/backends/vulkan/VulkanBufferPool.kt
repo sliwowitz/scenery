@@ -4,6 +4,7 @@ import graphics.scenery.utils.LazyLogger
 import org.lwjgl.vulkan.VK10
 import vkk.VkBufferUsage
 import vkk.VkBufferUsageFlags
+import vkk.VkMemoryProperty
 import vkk.entities.VkDeviceSize
 import vkk.or
 import java.util.concurrent.CopyOnWriteArrayList
@@ -45,7 +46,7 @@ class VulkanBufferPool(val device: VulkanDevice,
                 bufferSize *= 4
             }
 
-            val vb = VulkanBuffer(device, bufferSize, usage, VK10.VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, true)
+            val vb = VulkanBuffer(device, bufferSize, usage, VkMemoryProperty.DEVICE_LOCAL_BIT.i, true)
             val alloc = VulkanBufferAllocation(usage, vb.allocatedSize, vb, vb.alignment)
             backingStore.add(alloc)
             logger.trace("Added new buffer of size {} to backing store", bufferSize)
