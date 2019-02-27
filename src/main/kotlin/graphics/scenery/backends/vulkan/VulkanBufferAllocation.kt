@@ -70,7 +70,7 @@ class VulkanBufferAllocation(val usage: VkBufferUsageFlags,
             logger.trace("Allocation candidates: ${candidates.filter { it.getFreeSpace() >= size }.joinToString() { "L=${it.left}/R=${it.right} free=${it.getFreeSpace()}" }}")
         }
 
-        return candidates.firstOrNull { it.getFreeSpace() > size && it.getFreeSpace() > alignment.i }
+        return candidates.firstOrNull { it.getFreeSpace() > size && it.getFreeSpace() > alignment }
     }
 
     /**
@@ -103,7 +103,7 @@ class VulkanBufferAllocation(val usage: VkBufferUsageFlags,
         }
 
         // check if offset + size of the new suballocation would exceed the buffer size
-        if (offset + sizeWithSlack >= buffer.allocatedSize.L) { // TODO arithm
+        if (offset + sizeWithSlack >= buffer.allocatedSize) {
             logger.trace("Allocation at {} of {} would not fit buffer of size {}", offset, sizeWithSlack, buffer.allocatedSize)
             return null
         }
