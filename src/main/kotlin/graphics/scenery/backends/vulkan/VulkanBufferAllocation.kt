@@ -2,6 +2,7 @@ package graphics.scenery.backends.vulkan
 
 import graphics.scenery.utils.LazyLogger
 import vkk.VkBufferUsageFlags
+import vkk.entities.VkDeviceSize
 
 /**
  * Zips consecutive items of an Iterable, with the end items signalled by null.
@@ -25,10 +26,10 @@ inline fun <T, R> Iterable<T>.zipWithNextNullable(transform: (a: T?, b: T?) -> R
  * of the work, such as keeping track of all [VulkanBufferPool]'s [VulkanSuballocation]s.
  */
 class VulkanBufferAllocation(val usage: VkBufferUsageFlags,
-                             val size: Long,
+                             val size: VkDeviceSize,
                              val buffer: VulkanBuffer,
-                             val alignment: Int,
-                             private val suballocations: ArrayList<VulkanSuballocation> = ArrayList<VulkanSuballocation>()) {
+                             val alignment: VkDeviceSize,
+                             private val suballocations: ArrayList<VulkanSuballocation> = ArrayList()) {
     private val logger by LazyLogger()
 
     /**
@@ -46,30 +47,30 @@ class VulkanBufferAllocation(val usage: VkBufferUsageFlags,
     /** Data class to contain free space regions between two [VulkanSuballocation]s */
     data class FreeSpace(val left: VulkanSuballocation?, val right: VulkanSuballocation?)
 
-    private fun FreeSpace.getFreeSpace(): Int {
+    private fun FreeSpace.getFreeSpace(): VkDeviceSize {
         return when {
             left == null && right != null -> right.offset
-            left != null && right != null -> right.offset - (left.offset + left.size.i)
-            left != null && right == null -> Int.MAX_VALUE
-            left == null && right == null -> Int.MAX_VALUE
+            left != null && right != null -> right.offset - (left.offset + left.size)
+            left != null && right == null -> VkDeviceSize(Int.MAX_VALUE)
+            left == null && right == null -> VkDeviceSize(Int.MAX_VALUE)
             else -> throw IllegalStateException("Can't calculate free space for $left/$right")
         }
     }
 
-    private fun findFreeSpaceCandidate(size: Int): FreeSpace? {
+    private fun findFreeSpaceCandidate(size: VkDeviceSize): FreeSpace? {
         val candidates: MutableList<FreeSpace> = when (suballocations.size) {
             0 -> mutableListOf()
             1 -> mutableListOf(FreeSpace(null, suballocations.first()))
             else -> mutableListOf()
         }
-        candidates.addAll(suballocations.sortedBy { it.offset }.zipWithNextNullable { left, right -> FreeSpace(left, right) })
-        candidates.sortBy { it.getFreeSpace() - size }
+        candidates.addAll(suballocations.sortedBy { it.offset.i }.zipWithNextNullable { left, right -> FreeSpace(left, right) })
+        candidates.sortBy { (it.getFreeSpace() - size).i }
 
         if (logger.isTraceEnabled) {
             logger.trace("Allocation candidates: ${candidates.filter { it.getFreeSpace() >= size }.joinToString(", ") { "L=${it.left}/R=${it.right} free=${it.getFreeSpace()}" }}")
         }
 
-        return candidates.firstOrNull { it.getFreeSpace() > size && it.getFreeSpace() > alignment }
+        return candidates.firstOrNull { it.getFreeSpace() > size && it.getFreeSpace() > alignment.i }
     }
 
     /**
@@ -80,7 +81,7 @@ class VulkanBufferAllocation(val usage: VkBufferUsageFlags,
         suballocations.removeAll { s -> s.free }
         logger.trace("Trying to fit {} with {} pre-existing suballocs", size, suballocations.size)
 
-        val sizeWithSlack = size + 512
+        val sizeWithSlack = VkDeviceSize(size + 512)
         val spot = findFreeSpaceCandidate(sizeWithSlack)
 
         if (spot == null) {
@@ -89,26 +90,26 @@ class VulkanBufferAllocation(val usage: VkBufferUsageFlags,
         }
 
         var offset = when {
-            spot.left == null && spot.right != null -> spot.right.offset + spot.right.size.i
-            spot.left != null && spot.right != null -> spot.left.offset + spot.left.size.i
-            spot.left != null && spot.right == null -> spot.left.offset + spot.left.size.i
-            spot.left == null && spot.right == null -> 0
+            spot.left == null && spot.right != null -> spot.right.offset + spot.right.size
+            spot.left != null && spot.right != null -> spot.left.offset + spot.left.size
+            spot.left != null && spot.right == null -> spot.left.offset + spot.left.size
+            spot.left == null && spot.right == null -> VkDeviceSize(0)
             else -> throw IllegalStateException("Can't calculate offset space for ${spot.left}/${spot.right}")
         }
 
         // shift offset in case it would be unaligned
-        if (offset.rem(alignment) != 0) {
-            offset = offset + alignment - (offset.rem(alignment))
+        if ((offset % alignment).i != 0) {
+            offset = offset + alignment - (offset % alignment)
         }
 
         // check if offset + size of the new suballocation would exceed the buffer size
-        if (offset + sizeWithSlack >= buffer.allocatedSize) {
+        if (offset + sizeWithSlack >= buffer.allocatedSize.L) { // TODO arithm
             logger.trace("Allocation at {} of {} would not fit buffer of size {}", offset, sizeWithSlack, buffer.allocatedSize)
             return null
         }
 
         logger.trace("New suballocation at {} between {} and {} with {} bytes", offset, spot.left, spot.right, size)
-        return VulkanSuballocation(offset, VkDeviceSize(sizeWithSlack), buffer)
+        return VulkanSuballocation(offset, sizeWithSlack, buffer)
     }
 
     /** Returns a string representation of this allocation, along with its [suballocations]. */

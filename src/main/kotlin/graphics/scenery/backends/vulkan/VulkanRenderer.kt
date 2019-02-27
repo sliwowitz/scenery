@@ -1757,7 +1757,7 @@ open class VulkanRenderer(hub: Hub,
                 }
 
                 if (recordMovie) {
-                    encoder?.encodeFrame(sb.mapIfUnmapped().getByteBuffer(imageByteSize.i))
+                    encoder?.encodeFrame(memByteBuffer(sb.mapIfUnmapped(), imageByteSize.i))
                 }
 
                 if (screenshotRequested && !recordMovie) {
@@ -2157,9 +2157,9 @@ open class VulkanRenderer(hub: Hub,
             }
         }
 
-        val vertexAllocationBytes: Long = 4L * (n.vertices.remaining() + n.normals.remaining() + n.texcoords.remaining())
-        val indexAllocationBytes: Long = 4L * n.indices.remaining()
-        val fullAllocationBytes = VkDeviceSize(vertexAllocationBytes + indexAllocationBytes)
+        val vertexAllocationBytes = VkDeviceSize(4L * (n.vertices.remaining() + n.normals.remaining() + n.texcoords.remaining()))
+        val indexAllocationBytes = VkDeviceSize(4L * n.indices.remaining())
+        val fullAllocationBytes = vertexAllocationBytes + indexAllocationBytes
 
         val stridedBuffer = je_malloc(fullAllocationBytes.L)
 
@@ -2192,7 +2192,7 @@ open class VulkanRenderer(hub: Hub,
         logger.trace("Adding {} bytes to strided buffer", n.indices.remaining() * 4)
         if (n.indices.remaining() > 0) {
             state.isIndexed = true
-            ib.position(vertexAllocationBytes.toInt() / 4)
+            ib.position(vertexAllocationBytes.i / 4)
 
             for (index in 0 until n.indices.remaining()) {
                 ib.put(n.indices.get())
@@ -2228,7 +2228,7 @@ open class VulkanRenderer(hub: Hub,
         logger.debug("Initiating copy with 0->${vertexBuffer.bufferOffset}, size=$fullAllocationBytes")
         val copyRegion = VkBufferCopy.calloc(1)
             .srcOffset(0)
-            .dstOffset(vertexBuffer.bufferOffset).apply {
+            .dstOffset(vertexBuffer.bufferOffset.L).apply {
                 this[0].size = fullAllocationBytes
             }
         with(VU.newCommandBuffer(device, commandPools.Standard, autostart = true)) {
@@ -2651,7 +2651,7 @@ open class VulkanRenderer(hub: Hub,
                 pass.vulkanMetadata.descriptorSets.rewind()
                 pass.vulkanMetadata.uboOffsets.rewind()
 
-                pass.vulkanMetadata.vertexBufferOffsets.put(0, vertexIndexBuffer.bufferOffset)
+                pass.vulkanMetadata.vertexBufferOffsets.put(0, vertexIndexBuffer.bufferOffset.L)
                 pass.vulkanMetadata.vertexBuffers.put(0, vertexIndexBuffer.vulkanBuffer.L)
 
                 pass.vulkanMetadata.vertexBufferOffsets.limit(1)
@@ -2736,7 +2736,7 @@ open class VulkanRenderer(hub: Hub,
                 logger.debug("${pass.name}: now drawing {}, {} DS bound, {} textures, {} vertices, {} indices, {} instances", node.name, pass.vulkanMetadata.descriptorSets.limit(), s.textures.count(), s.vertexCount, s.indexCount, s.instanceCount)
 
                 if (s.isIndexed) {
-                    vkCmdBindIndexBuffer(this, pass.vulkanMetadata.vertexBuffers.get(0), s.indexOffset, VK_INDEX_TYPE_UINT32)
+                    vkCmdBindIndexBuffer(this, pass.vulkanMetadata.vertexBuffers.get(0), s.indexOffset.L, VK_INDEX_TYPE_UINT32)
                     vkCmdDrawIndexed(this, s.indexCount, s.instanceCount, 0, 0, 0)
                 } else {
                     vkCmdDraw(this, s.vertexCount, s.instanceCount, 0, 0)

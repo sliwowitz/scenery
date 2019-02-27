@@ -6,7 +6,7 @@ import java.nio.ByteBuffer
 /**
  * Represents a suballocation of a VulkanBuffer [buffer], with [size] and [offset].
  */
-class VulkanSuballocation(var offset: Int, var size: VkDeviceSize, var buffer: VulkanBuffer) {
+class VulkanSuballocation(var offset: VkDeviceSize, var size: VkDeviceSize, var buffer: VulkanBuffer) {
     /** Mark this suballocation for garbage collection, can only be set true once. */
     var free: Boolean = false
         set(value) {
@@ -24,8 +24,8 @@ class VulkanSuballocation(var offset: Int, var size: VkDeviceSize, var buffer: V
     @Suppress("unused")
     fun getBuffer(): ByteBuffer {
         val b = buffer.stagingBuffer.duplicate()
-        b.position(offset)
-        b.limit(offset + size.i)
+        b.position(offset.i)
+        b.limit((offset + size).i)
 
         return b
     }

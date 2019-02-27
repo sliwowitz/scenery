@@ -46,7 +46,7 @@ class VulkanBufferPool(val device: VulkanDevice,
             }
 
             val vb = VulkanBuffer(device, bufferSize, usage, VK10.VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, true)
-            val alloc = VulkanBufferAllocation(usage, vb.allocatedSize, vb, vb.alignment.toInt())
+            val alloc = VulkanBufferAllocation(usage, vb.allocatedSize, vb, vb.alignment)
             backingStore.add(alloc)
             logger.trace("Added new buffer of size {} to backing store", bufferSize)
 

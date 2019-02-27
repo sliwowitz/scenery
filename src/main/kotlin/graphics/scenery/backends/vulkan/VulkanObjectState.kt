@@ -8,6 +8,7 @@ import org.lwjgl.vulkan.VK10
 import org.lwjgl.vulkan.VkDescriptorImageInfo
 import org.lwjgl.vulkan.VkDescriptorSetAllocateInfo
 import org.lwjgl.vulkan.VkWriteDescriptorSet
+import vkk.entities.VkDeviceSize.Companion
 import java.util.*
 import java.util.concurrent.ConcurrentHashMap
 
@@ -27,7 +28,7 @@ open class VulkanObjectState : NodeMetadata {
     /** Indicates whether the mesh is using indexed vertex storage. */
     var isIndexed = false
     /** Indicates the offset to the indices in the vertex buffer in bytes. */
-    var indexOffset = 0L
+    var indexOffset = VkDeviceSize(0)
     /** The number of indices stored. */
     var indexCount = 0
     /** The number of vertices stored. */

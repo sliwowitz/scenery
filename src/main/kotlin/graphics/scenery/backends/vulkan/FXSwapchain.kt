@@ -20,6 +20,7 @@ import javafx.scene.text.TextAlignment
 import javafx.stage.Stage
 import javafx.stage.Window
 import org.lwjgl.system.MemoryUtil
+import org.lwjgl.system.MemoryUtil.memByteBuffer
 import org.lwjgl.vulkan.VkQueue
 import java.awt.event.ComponentAdapter
 import java.awt.event.ComponentEvent
@@ -195,7 +196,7 @@ class FXSwapchain(device: VulkanDevice,
         Platform.runLater {
             if (lock.tryLock() && !vulkanSwapchainRecreator.mustRecreate && sharingBuffer.initialized()) {
                 val imageByteSize = window.width * window.height * 4
-                val buffer = sharingBuffer.mapIfUnmapped().getByteBuffer(imageByteSize)
+                val buffer = memByteBuffer(sharingBuffer.mapIfUnmapped(), imageByteSize)
 
                 logger.trace("Updating with {}x{}", window.width, window.height)
                 imagePanel?.update(buffer)

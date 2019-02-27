@@ -71,10 +71,10 @@ open class VulkanUBO(val device: VulkanDevice, var backingBuffer: VulkanBuffer? 
             val sizeRequired = if (sizeCached <= 0) {
                 buffer.alignment
             } else {
-                sizeCached + buffer.alignment
+                VkDeviceSize(sizeCached) + buffer.alignment // TODO sizeCached -> VkDeviceSize?
             }
 
-            if (buffer.stagingBuffer.remaining() < sizeRequired) {
+            if (buffer.stagingBuffer.remaining() < sizeRequired.i) {
                 logger.debug("Resizing $buffer from ${buffer.size} to ${buffer.size.L * 1.5}")
                 buffer.resize()
             }
