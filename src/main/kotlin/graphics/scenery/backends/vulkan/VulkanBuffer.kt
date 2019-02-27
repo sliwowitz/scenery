@@ -314,19 +314,4 @@ open class VulkanBuffer(val device: VulkanDevice, var size: VkDeviceSize,
         vkDev.destroyBuffer(vulkanBuffer)
         vulkanBuffer = VkBuffer.NULL
     }
-
-    /**
-     * Factory methods for [VulkanBuffer].
-     */
-    companion object {
-        /**
-         * Creates a new VulkanBuffer of [size] that has it's memory managed by a [VulkanBufferPool]
-         * given by [pool].
-         */
-        fun fromPool(pool: VulkanBufferPool, size: Long): VulkanBuffer {
-            val suballocation = pool.create(size.toInt())
-            return VulkanBuffer(pool.device, suballocation.size,
-                usage = pool.usage, suballocation = suballocation)
-        }
-    }
 }

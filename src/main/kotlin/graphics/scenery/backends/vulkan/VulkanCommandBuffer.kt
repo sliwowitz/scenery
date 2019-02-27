@@ -1,9 +1,14 @@
 package graphics.scenery.backends.vulkan
 
+import kool.set
 import org.lwjgl.system.MemoryUtil.*
 import org.lwjgl.vulkan.VK10.*
 import org.lwjgl.vulkan.VkCommandBuffer
 import org.lwjgl.vulkan.VkFenceCreateInfo
+import vkk.*
+import vkk.entities.VkFence
+import vkk.extensionFunctions.begin
+import vkk.extensionFunctions.reset
 import java.nio.LongBuffer
 
 /**
@@ -18,10 +23,12 @@ class VulkanCommandBuffer(val device: VulkanDevice, var commandBuffer: VkCommand
     var stale: Boolean = true
 
     private var fenceInitialized: Boolean = false
-    private var fence: LongBuffer = memAllocLong(1)
+    private var fence = VkFence()
 
     /** Whether this command buffer has already been submitted to a queue. */
     var submitted = false
+
+    val vkDev get() = device.vulkanDevice
 
     init {
         if (fenced) {
@@ -33,15 +40,7 @@ class VulkanCommandBuffer(val device: VulkanDevice, var commandBuffer: VkCommand
      * Adds a fence to this command buffer for synchronisation.
      */
     fun addFence() {
-        val fc = VkFenceCreateInfo.calloc()
-            .sType(VK_STRUCTURE_TYPE_FENCE_CREATE_INFO)
-            .pNext(NULL)
-
-        val f = VU.getLong("Creating fence",
-            { vkCreateFence(device.vulkanDevice, fc, null, this) },
-            { fc.free() })
-
-        fence.put(0, f)
+        fence = vkDev.createFence(vk.FenceCreateInfo())
         fenceInitialized = true
     }
 
@@ -50,30 +49,25 @@ class VulkanCommandBuffer(val device: VulkanDevice, var commandBuffer: VkCommand
      * waiting for [timeout] milliseconds.
      */
     fun waitForFence(timeout: Long? = null) {
-        if (fenced && fenceInitialized) {
-            VU.getLong("Waiting for fence",
-                { vkWaitForFences(device.vulkanDevice, fence, true, timeout ?: -1L) }, {})
-        }
+        if (fenced && fenceInitialized)
+            vkDev.waitForFence(fence, true, timeout ?: -1L)
     }
 
     /**
      * Resets this command buffer's fence.
      */
     fun resetFence() {
-        if (fenced && fenceInitialized) {
-            VU.getLong("Resetting fence",
-                { vkResetFences(device.vulkanDevice, fence) }, {})
-        }
+        if (fenced && fenceInitialized)
+            vkDev.resetFence(fence)
     }
 
     /**
      * Returns a reference to the fence, or null if the command buffer is not [fenced].
      */
-    fun getFence(): Long {
-        return if (fenced) {
-            fence.get(0)
-        } else {
-            return NULL
+    fun getFence(): VkFence {
+        return when {
+            fenced -> fence
+            else -> return VkFence.NULL
         }
     }
 
@@ -82,10 +76,8 @@ class VulkanCommandBuffer(val device: VulkanDevice, var commandBuffer: VkCommand
      */
     override fun close() {
         if (fenced && fenceInitialized) {
-            vkDestroyFence(device.vulkanDevice, fence.get(0), null)
+            vkDev.destroyFence(fence)
         }
-
-        memFree(fence)
     }
 
     /**
@@ -98,11 +90,9 @@ class VulkanCommandBuffer(val device: VulkanDevice, var commandBuffer: VkCommand
             commandBuffer = VU.newCommandBuffer(device, pool, autostart = true)
         }
 
-        val cmd = commandBuffer ?: throw IllegalStateException("Command buffer cannot be null for recording")
-
-        vkResetCommandBuffer(cmd, 0)
-        VU.beginCommandBuffer(cmd)
-
-        return cmd
+        return commandBuffer!!.apply {
+            reset()
+            begin(VkCommandBufferUsage.SIMULTANEOUS_USE_BIT.i)
+        }
     }
 }

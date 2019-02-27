@@ -15,6 +15,8 @@ import org.lwjgl.vulkan.KHRSurface.VK_ERROR_SURFACE_LOST_KHR
 import org.lwjgl.vulkan.KHRSwapchain.*
 import org.lwjgl.vulkan.VK10.*
 import org.slf4j.LoggerFactory
+import vkk.VkCommandBufferUsage
+import vkk.extensionFunctions.begin
 import java.math.BigInteger
 import java.nio.IntBuffer
 import java.nio.LongBuffer
@@ -530,25 +532,10 @@ class VU {
             val cmdBuf = newCommandBuffer(device, commandPool, level)
 
             if (autostart) {
-                beginCommandBuffer(cmdBuf)
+                cmdBuf.begin(VkCommandBufferUsage.SIMULTANEOUS_USE_BIT.i)
             }
 
             return cmdBuf
-        }
-
-        /**
-         * Starts recording of [commandBuffer]. Usually called from [newCommandBuffer]. Additional [flags] may be set,
-         * e.g. for creating resettable or simultaneous use buffer.
-         */
-        fun beginCommandBuffer(commandBuffer: VkCommandBuffer, flags: Int = VK_COMMAND_BUFFER_USAGE_SIMULTANEOUS_USE_BIT) {
-            stackPush().use { stack ->
-                val cmdBufInfo = VkCommandBufferBeginInfo.callocStack(stack)
-                    .sType(VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO)
-                    .pNext(NULL)
-                    .flags(flags)
-
-                VU.run("Beginning command buffer", { vkBeginCommandBuffer(commandBuffer, cmdBufInfo) }, {})
-            }
         }
 
         /**

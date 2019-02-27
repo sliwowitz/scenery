@@ -1670,7 +1670,7 @@ open class VulkanRenderer(hub: Hub,
             .pSignalSemaphores(present.signalSemaphore)
 
         // Submit to the graphics queue
-        VU.run("Submit viewport render queue", { vkQueueSubmit(queue, present.submitInfo, commandBuffer.getFence()) })
+        VU.run("Submit viewport render queue", { vkQueueSubmit(queue, present.submitInfo, commandBuffer.getFence().L) })
 
         val startPresent = System.nanoTime()
         commandBuffer.submitted = true
@@ -1999,7 +1999,7 @@ open class VulkanRenderer(hub: Hub,
                 .pSignalSemaphores(target.signalSemaphores)
                 .pWaitSemaphores(target.waitSemaphores)
 
-            VU.run("Submit pass $t render queue", { vkQueueSubmit(queue, si, commandBuffer.getFence()) })
+            VU.run("Submit pass $t render queue", { vkQueueSubmit(queue, si, commandBuffer.getFence().L) })
 
             commandBuffer.submitted = true
             firstWaitSemaphore.put(0, target.semaphore)

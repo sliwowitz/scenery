@@ -67,7 +67,8 @@ class VulkanBufferPool(val device: VulkanDevice,
      * Creates a new [VulkanBuffer] of [size], backed by this [VulkanBufferPool].
      */
     fun createBuffer(size: Int): VulkanBuffer {
-        return VulkanBuffer.fromPool(this, size.toLong())
+        val suballocation = create(size)
+        return VulkanBuffer(device, suballocation.size, usage, suballocation = suballocation)
     }
 
     /**
