@@ -373,7 +373,7 @@ class Hololens : TrackerInput, Display, Hubable {
      */
     override fun submitToCompositorVulkan(width: Int, height: Int, format: Int, instance: VkInstance, device: VulkanDevice, queue: VkQueue, image: Long) {
         if (hololensCommandPool == -1L) {
-            hololensCommandPool = device.createCommandPool(device.queueIndices.graphicsQueue)
+            hololensCommandPool = device.createCommandPool(device.queueIndices.graphicsQueue).L // TODO vk
         }
 
         if (leftProjection == null) {
@@ -547,8 +547,8 @@ class Hololens : TrackerInput, Display, Hubable {
             "VK_KHR_get_physical_device_properties2")
     }
 
-    override fun getVulkanDeviceExtensions(physicalDevice: VkPhysicalDevice): List<String> {
-        return listOf("VK_NV_dedicated_allocation",
+    override fun getVulkanDeviceExtensions(physicalDevice: VkPhysicalDevice): ArrayList<String> {
+        return arrayListOf("VK_NV_dedicated_allocation",
             "VK_NV_external_memory",
             "VK_NV_external_memory_win32",
             "VK_NV_win32_keyed_mutex")

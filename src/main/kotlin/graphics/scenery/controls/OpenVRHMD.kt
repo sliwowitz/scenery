@@ -33,6 +33,7 @@ import java.nio.charset.Charset
 import java.util.*
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.TimeUnit
+import kotlin.collections.ArrayList
 import kotlin.math.absoluteValue
 
 /**
@@ -639,7 +640,7 @@ open class OpenVRHMD(val seated: Boolean = true, val useCompositor: Boolean = tr
             readyForSubmission = false
 
             if (commandPool == -1L) {
-                commandPool = device.createCommandPool(device.queueIndices.graphicsQueue)
+                commandPool = device.createCommandPool(device.queueIndices.graphicsQueue).L // TODO vk
             }
 
             val subresourceRange = VkImageSubresourceRange.callocStack(stack)
@@ -751,19 +752,19 @@ open class OpenVRHMD(val seated: Boolean = true, val useCompositor: Boolean = tr
      *
      * @return [List] of strings containing the required device extensions
      */
-    override fun getVulkanDeviceExtensions(physicalDevice: VkPhysicalDevice): List<String> {
+    override fun getVulkanDeviceExtensions(physicalDevice: VkPhysicalDevice): ArrayList<String> {
         stackPush().use { stack ->
             val buffer = stack.calloc(1024)
             val count = VRCompositor_GetVulkanDeviceExtensionsRequired(physicalDevice.address(), buffer)
 
             logger.debug("Querying required vulkan device extensions...")
             return if (count == 0) {
-                listOf()
+                arrayListOf()
             } else {
                 val extensions = VRCompositor_GetVulkanDeviceExtensionsRequired(physicalDevice.address(), count).split(" ")
 
                 logger.debug("Vulkan required device extensions are: ${extensions.joinToString()}")
-                return extensions
+                return extensions.toCollection(arrayListOf())
             }
         }
     }

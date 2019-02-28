@@ -27,6 +27,8 @@ import org.lwjgl.vulkan.KHRXlibSurface.VK_KHR_XLIB_SURFACE_EXTENSION_NAME
 import org.lwjgl.vulkan.MVKMacosSurface.VK_MVK_MACOS_SURFACE_EXTENSION_NAME
 import org.lwjgl.vulkan.VK10.*
 import vkk.VkBufferUsage
+import vkk.VkVendor
+import vkk.entities.VkCommandPool
 import vkk.entities.VkDeviceSize
 import vkk.size
 import vkk.vk
@@ -304,7 +306,7 @@ open class VulkanRenderer(hub: Hub,
     protected var validation = java.lang.Boolean.parseBoolean(System.getProperty("scenery.VulkanRenderer.EnableValidations", "false"))
     protected val strictValidation = getStrictValidation()
     protected val wantsOpenGLSwapchain = java.lang.Boolean.parseBoolean(System.getProperty("scenery.VulkanRenderer.UseOpenGLSwapchain", "false"))
-    protected val defaultValidationLayers = arrayOf("VK_LAYER_LUNARG_standard_validation")
+    protected val defaultValidationLayers = listOf("VK_LAYER_LUNARG_standard_validation")
 
     protected var instance: VkInstance
     protected var device: VulkanDevice
@@ -479,12 +481,12 @@ open class VulkanRenderer(hub: Hub,
         val requestedValidationLayers = if (validation) {
             if (wantsOpenGLSwapchain) {
                 logger.warn("Requested OpenGL swapchain, validation layers disabled.")
-                emptyArray()
+                emptyList()
             } else {
                 defaultValidationLayers
             }
         } else {
-            emptyArray()
+            emptyList()
         }
 
         val headless = embedIn is SceneryFXPanel || System.getProperty("scenery.Headless", "false").toBoolean()
@@ -492,14 +494,14 @@ open class VulkanRenderer(hub: Hub,
         device = VulkanDevice.fromPhysicalDevice(instance,
             physicalDeviceFilter = { _, device -> device.name.contains(System.getProperty("scenery.Renderer.Device", "DOES_NOT_EXIST")) },
             additionalExtensions = { physicalDevice ->
-                hub.getWorkingHMDDisplay()?.getVulkanDeviceExtensions(physicalDevice)?.toTypedArray() ?: arrayOf()
+                hub.getWorkingHMDDisplay()?.getVulkanDeviceExtensions(physicalDevice) ?: arrayListOf()
             },
             validationLayers = requestedValidationLayers,
             headless = headless)
 
         logger.debug("Device creation done")
 
-        if (device.deviceData.vendor.toLowerCase().contains("nvidia") && ExtractsNatives.getPlatform() == ExtractsNatives.Platform.WINDOWS) {
+        if (device.deviceData.vendor == VkVendor.Nvidia && ExtractsNatives.getPlatform() == ExtractsNatives.Platform.WINDOWS) {
             try {
                 gpuStats = NvidiaGPUStats()
             } catch (e: NullPointerException) {
@@ -512,10 +514,10 @@ open class VulkanRenderer(hub: Hub,
         transferQueue = VU.createDeviceQueue(device, device.queueIndices.transferQueue)
 
         with(commandPools) {
-            Render = device.createCommandPool(device.queueIndices.graphicsQueue)
-            Standard = device.createCommandPool(device.queueIndices.graphicsQueue)
-            Compute = device.createCommandPool(device.queueIndices.computeQueue)
-            Transfer = device.createCommandPool(device.queueIndices.transferQueue)
+            Render = device.createCommandPool(device.queueIndices.graphicsQueue).L
+            Standard = device.createCommandPool(device.queueIndices.graphicsQueue).L
+            Compute = device.createCommandPool(device.queueIndices.computeQueue).L
+            Transfer = device.createCommandPool(device.queueIndices.transferQueue).L
         }
         logger.debug("Creating command pools done")
 
@@ -3121,9 +3123,9 @@ open class VulkanRenderer(hub: Hub,
 
         logger.debug("Closing command pools...")
         with(commandPools) {
-            device.destroyCommandPool(Render)
-            device.destroyCommandPool(Compute)
-            device.destroyCommandPool(Standard)
+            device.destroyCommandPool(VkCommandPool(Render))
+            device.destroyCommandPool(VkCommandPool(Compute))
+            device.destroyCommandPool(VkCommandPool(Standard))
         }
 
         vkDestroyPipelineCache(device.vulkanDevice, pipelineCache, null)
