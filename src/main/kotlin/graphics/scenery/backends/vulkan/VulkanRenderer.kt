@@ -29,6 +29,7 @@ import org.lwjgl.vulkan.VK10.*
 import vkk.VkBufferUsage
 import vkk.VkVendor
 import vkk.entities.VkCommandPool
+import vkk.entities.VkDescriptorSet
 import vkk.entities.VkDeviceSize
 import vkk.size
 import vkk.vk
@@ -1509,8 +1510,8 @@ open class VulkanRenderer(hub: Hub,
                         }
 
                         framebuffer.createRenderpassAndFramebuffer()
-                        framebuffer.outputDescriptorSet = VU.createRenderTargetDescriptorSet(this@VulkanRenderer.device,
-                            descriptorPool, descriptorSetLayouts["outputs-${rt.key}"]!!, rt.value.attachments, framebuffer)
+                        framebuffer.outputDescriptorSet = VkDescriptorSet(VU.createRenderTargetDescriptorSet(this@VulkanRenderer.device,
+                            descriptorPool, descriptorSetLayouts["outputs-${rt.key}"]!!, rt.value.attachments, framebuffer))
 
                         pass.output[rt.key] = framebuffer
                         framebuffers.put(rt.key, framebuffer)
@@ -2418,8 +2419,8 @@ open class VulkanRenderer(hub: Hub,
         pass.vulkanMetadata.renderPassBeginInfo
             .sType(VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO)
             .pNext(NULL)
-            .renderPass(target.renderPass.get(0))
-            .framebuffer(target.framebuffer.get(0))
+            .renderPass(target.renderPass.L)
+            .framebuffer(target.framebuffer.L)
             .renderArea(pass.vulkanMetadata.renderArea)
             .pClearValues(pass.vulkanMetadata.clearValues)
 
@@ -2554,7 +2555,7 @@ open class VulkanRenderer(hub: Hub,
                                 .layerCount(1)
 
                             // transition source attachment
-                            VulkanTexture.transitionLayout(inputAttachment.image,
+                            VulkanTexture.transitionLayout(inputAttachment.image.L,
                                 VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL,
                                 VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL,
                                 subresourceRange = subresourceRange,
@@ -2564,7 +2565,7 @@ open class VulkanRenderer(hub: Hub,
                             )
 
                             // transition destination attachment
-                            VulkanTexture.transitionLayout(outputAttachment.image,
+                            VulkanTexture.transitionLayout(outputAttachment.image.L,
                                 inputAspectType,
                                 VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
                                 subresourceRange = subresourceRange,
@@ -2574,13 +2575,13 @@ open class VulkanRenderer(hub: Hub,
                             )
 
                             vkCmdBlitImage(this@with,
-                                inputAttachment.image, VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL,
-                                outputAttachment.image, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
+                                inputAttachment.image.L, VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL,
+                                outputAttachment.image.L, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
                                 imageBlit, VK_FILTER_NEAREST
                             )
 
                             // transition destination attachment back to attachment
-                            VulkanTexture.transitionLayout(outputAttachment.image,
+                            VulkanTexture.transitionLayout(outputAttachment.image.L,
                                 VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
                                 outputAspectDstType,
                                 subresourceRange = subresourceRange,
@@ -2590,7 +2591,7 @@ open class VulkanRenderer(hub: Hub,
                             )
 
                             // transition source attachment back to shader read-only
-                            VulkanTexture.transitionLayout(inputAttachment.image,
+                            VulkanTexture.transitionLayout(inputAttachment.image.L,
                                 VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL,
                                 outputAspectSrcType,
                                 subresourceRange = subresourceRange,
@@ -2764,8 +2765,8 @@ open class VulkanRenderer(hub: Hub,
         pass.vulkanMetadata.renderPassBeginInfo
             .sType(VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO)
             .pNext(NULL)
-            .renderPass(target.renderPass.get(0))
-            .framebuffer(target.framebuffer.get(0))
+            .renderPass(target.renderPass.L)
+            .framebuffer(target.framebuffer.L)
             .renderArea(pass.vulkanMetadata.renderArea)
             .pClearValues(pass.vulkanMetadata.clearValues)
 

@@ -224,7 +224,7 @@ open class VulkanRenderpass(val name: String, var config: RenderConfigReader.Ren
                     rendertarget.attachments,
                     inputFramebuffer.value, attachmentName)
             } else {
-                inputFramebuffer.value.outputDescriptorSet
+                inputFramebuffer.value.outputDescriptorSet.L
             }
 
             val searchKeys = if (inputFramebuffer.key.contains(".")) {
@@ -463,7 +463,7 @@ open class VulkanRenderpass(val name: String, var config: RenderConfigReader.Ren
                 p.rasterizationState.cullMode(VK_CULL_MODE_FRONT_BIT)
                 p.rasterizationState.frontFace(VK_FRONT_FACE_COUNTER_CLOCKWISE)
 
-                p.createPipelines(this, framebuffer.renderPass.get(0),
+                p.createPipelines(this, framebuffer.renderPass.L,
                     vertexDescriptors[VulkanRenderer.VertexDataKinds.None]!!.state,
                     descriptorSetLayouts = reqDescriptorLayouts,
                     onlyForTopology = GeometryType.TRIANGLES)
@@ -471,7 +471,7 @@ open class VulkanRenderpass(val name: String, var config: RenderConfigReader.Ren
 
             RenderConfigReader.RenderpassType.geometry,
             RenderConfigReader.RenderpassType.lights -> {
-                p.createPipelines(this, framebuffer.renderPass.get(0),
+                p.createPipelines(this, framebuffer.renderPass.L,
                     vertexInputType.state,
                     descriptorSetLayouts = reqDescriptorLayouts)
             }

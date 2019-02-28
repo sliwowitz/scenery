@@ -16,6 +16,9 @@ import org.lwjgl.vulkan.KHRSwapchain.*
 import org.lwjgl.vulkan.VK10.*
 import org.slf4j.LoggerFactory
 import vkk.VkCommandBufferUsage
+import vkk.VkImageAspect
+import vkk.VkImageLayout
+import vkk.entities.VkImage
 import vkk.extensionFunctions.begin
 import java.math.BigInteger
 import java.nio.IntBuffer
@@ -482,15 +485,15 @@ class VU {
          * [VkImageSubresourceRange] is constructed based on the image size, and only uses the base MIP level and array layer.
          * This function can only be run within a [commandBuffer].
          */
-        fun setImageLayout(commandBuffer: VkCommandBuffer, image: Long, aspectMask: Int, oldImageLayout: Int, newImageLayout: Int) {
+        fun setImageLayout(commandBuffer: VkCommandBuffer, image: VkImage, aspectMask: VkImageAspect, oldImageLayout: VkImageLayout, newImageLayout: VkImageLayout) {
             stackPush().use { stack ->
                 val range = VkImageSubresourceRange.callocStack(stack)
-                    .aspectMask(aspectMask)
+                    .aspectMask(aspectMask.i)
                     .baseMipLevel(0)
                     .levelCount(1)
                     .layerCount(1)
 
-                setImageLayout(commandBuffer, image, oldImageLayout, newImageLayout, range)
+                setImageLayout(commandBuffer, image.L, oldImageLayout.i, newImageLayout.i, range)
             }
         }
 
@@ -752,8 +755,8 @@ class VU {
                         val d = VkDescriptorImageInfo.callocStack(1, stack)
 
                         d
-                            .imageView(attachment.imageView.get(0))
-                            .sampler(target.framebufferSampler.get(0))
+                            .imageView(attachment.imageView.L)
+                            .sampler(target.framebufferSampler.L)
                             .imageLayout(VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL)
 
                         writeDescriptorSet[i]
@@ -774,8 +777,8 @@ class VU {
                         val d = VkDescriptorImageInfo.callocStack(1, stack)
 
                         d
-                            .imageView(attachment.imageView.get(0))
-                            .sampler(target.framebufferSampler.get(0))
+                            .imageView(attachment.imageView.L)
+                            .sampler(target.framebufferSampler.L)
                             .imageLayout(VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL)
 
                         writeDescriptorSet[0]
