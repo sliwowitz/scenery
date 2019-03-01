@@ -25,3 +25,7 @@ inline fun VkImageViewBuffer.use(block: (VkImageViewBuffer) -> Unit) {
     block(this)
     buffer.free()
 }
+
+inline class NanoSecond(val L: Long) {
+    operator fun compareTo(other: NanoSecond) = L.compareTo(other.L)
+}

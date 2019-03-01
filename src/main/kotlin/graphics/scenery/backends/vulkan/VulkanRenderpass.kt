@@ -14,6 +14,7 @@ import org.lwjgl.system.MemoryUtil
 import org.lwjgl.system.MemoryUtil.*
 import org.lwjgl.vulkan.*
 import org.lwjgl.vulkan.VK10.*
+import vkk.entities.VkDescriptorSetLayout
 import java.nio.IntBuffer
 import java.nio.LongBuffer
 import java.util.*
@@ -50,7 +51,7 @@ open class VulkanRenderpass(val name: String, var config: RenderConfigReader.Ren
     var descriptorSets = ConcurrentHashMap<String, Long>()
         protected set
     /** Descriptor set layouts needed */
-    var descriptorSetLayouts = LinkedHashMap<String, Long>()
+    var descriptorSetLayouts = LinkedHashMap<String, VkDescriptorSetLayout>()
         protected set
     protected var oldDescriptorSetLayouts = LinkedHashMap<String, Long>()
 
@@ -111,7 +112,7 @@ open class VulkanRenderpass(val name: String, var config: RenderConfigReader.Ren
         }
 
     /** Timestamp of the renderpass recreation */
-    var recreated: Long = 0
+    var recreated = NanoSecond(0)
         protected set
 
     private var currentPosition = 0
@@ -164,14 +165,14 @@ open class VulkanRenderpass(val name: String, var config: RenderConfigReader.Ren
             descriptorNum = 3,
             descriptorCount = 1)
 
-        descriptorSetLayouts.put("default", default)
+        descriptorSetLayouts.put("default", VkDescriptorSetLayout(default))
 
         val lightParameters = VU.createDescriptorSetLayout(
             device,
             listOf(Pair(VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, 1)),
             binding = 0, shaderStages = VK_SHADER_STAGE_ALL)
 
-        descriptorSetLayouts.put("LightParameters", lightParameters)
+        descriptorSetLayouts.put("LightParameters", VkDescriptorSetLayout(lightParameters))
 
         val dslObjectTextures = VU.createDescriptorSetLayout(
             device,
@@ -179,16 +180,16 @@ open class VulkanRenderpass(val name: String, var config: RenderConfigReader.Ren
                 Pair(VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, 1)),
             binding = 0, shaderStages = VK_SHADER_STAGE_ALL)
 
-        descriptorSetLayouts.put("ObjectTextures", dslObjectTextures)
+        descriptorSetLayouts.put("ObjectTextures", VkDescriptorSetLayout(dslObjectTextures))
 
         val dslVRParameters = VU.createDescriptorSetLayout(
             device,
             listOf(Pair(VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, 1)),
             binding = 0, shaderStages = VK_SHADER_STAGE_ALL)
 
-        descriptorSetLayouts.put("VRParameters", dslVRParameters)
+        descriptorSetLayouts.put("VRParameters", VkDescriptorSetLayout(dslVRParameters))
 
-        recreated = System.nanoTime()
+        recreated = NanoSecond(System.nanoTime())
     }
 
     /**
@@ -246,7 +247,7 @@ open class VulkanRenderpass(val name: String, var config: RenderConfigReader.Ren
                 val inputKey = "input-${this.name}-${spec.value.set}"
 
                 logger.debug("${this.name}: Creating input descriptor set for ${inputFramebuffer.key}, $inputKey")
-                descriptorSetLayouts.put(inputKey, dsl)?.let { oldDSL -> vkDestroyDescriptorSetLayout(device.vulkanDevice, oldDSL, null) }
+                descriptorSetLayouts.put(inputKey, VkDescriptorSetLayout(dsl))?.let { oldDSL -> vkDestroyDescriptorSetLayout(device.vulkanDevice, oldDSL.L, null) }
                 descriptorSets.put(inputKey, ds)
                 input++
             } else {
@@ -316,7 +317,7 @@ open class VulkanRenderpass(val name: String, var config: RenderConfigReader.Ren
             descriptorSets.put("ShaderParameters-$name", ds)
 
             logger.debug("Created DSL $dsl for $name, VulkanUBO has ${params.count()} members")
-            descriptorSetLayouts.putIfAbsent("ShaderParameters-$name", dsl)
+            descriptorSetLayouts.putIfAbsent("ShaderParameters-$name", VkDescriptorSetLayout(dsl))
         }
     }
 
@@ -335,12 +336,11 @@ open class VulkanRenderpass(val name: String, var config: RenderConfigReader.Ren
                 binding = 0, shaderStages = VK_SHADER_STAGE_ALL)
 
             logger.debug("Created Shader Property DSL ${dsl.toHexString()} for $name")
-            descriptorSetLayouts.putIfAbsent("ShaderProperties-$name", dsl)
+            descriptorSetLayouts.putIfAbsent("ShaderProperties-$name", VkDescriptorSetLayout(dsl))
             dsl
         } else {
-            descriptorSetLayouts.getOrElse("ShaderProperties-$name") {
-                throw IllegalStateException("ShaderProperties-$name does not exist in descriptor set layouts for $this.")
-            }
+            descriptorSetLayouts["ShaderProperties-$name"]?.L
+                ?: throw IllegalStateException("ShaderProperties-$name does not exist in descriptor set layouts for $this.")
         }
 
         // returns a ordered list of the members of the ShaderProperties struct
@@ -508,9 +508,9 @@ open class VulkanRenderpass(val name: String, var config: RenderConfigReader.Ren
         val dsl = VU.createDescriptorSetLayout(device, contents, 0, shaderStages = VK_SHADER_STAGE_ALL)
         // destroy descriptor set layout if there was a previously associated one,
         // and add the new one
-        descriptorSetLayouts.put(specs.first().value.name, dsl)?.let { dslOld ->
+        descriptorSetLayouts.put(specs.first().value.name, VkDescriptorSetLayout(dsl))?.let { dslOld ->
             // TODO: Figure out whether they should actually be deleted, or just marked for garbage collection
-            oldDescriptorSetLayouts.put(specs.first().value.name, dslOld)
+            oldDescriptorSetLayouts.put(specs.first().value.name, dslOld.L)
         }
 
         return dsl
@@ -561,7 +561,7 @@ open class VulkanRenderpass(val name: String, var config: RenderConfigReader.Ren
         output.forEach { it.value.close() }
         pipelines.forEach { it.value.close() }
         UBOs.forEach { it.value.close() }
-        descriptorSetLayouts.forEach { vkDestroyDescriptorSetLayout(device.vulkanDevice, it.value, null) }
+        descriptorSetLayouts.forEach { vkDestroyDescriptorSetLayout(device.vulkanDevice, it.value.L, null) }
         descriptorSetLayouts.clear()
         oldDescriptorSetLayouts.forEach { vkDestroyDescriptorSetLayout(device.vulkanDevice, it.value, null) }
         oldDescriptorSetLayouts.clear()

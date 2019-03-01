@@ -29,6 +29,7 @@ import org.lwjgl.vulkan.VK10.*
 import vkk.VkBufferUsage
 import vkk.VkVendor
 import vkk.entities.VkCommandPool
+import vkk.entities.VkDescriptorPool
 import vkk.entities.VkDescriptorSet
 import vkk.entities.VkDeviceSize
 import vkk.size
@@ -804,7 +805,7 @@ open class VulkanRenderer(hub: Hub,
             createUniformBuffer()
             sceneUBOs.add(node)
 
-            s.UBOs.put(name, matricesDescriptorSet to this)
+            s.UBOs.put(name, VkDescriptorSet(matricesDescriptorSet) to this)
         }
 
         try {
@@ -834,7 +835,7 @@ open class VulkanRenderer(hub: Hub,
             add("Opacity", { node.material.blending.opacity })
 
             createUniformBuffer()
-            s.UBOs.put("MaterialProperties", materialPropertiesDescriptorSet to this)
+            s.UBOs.put("MaterialProperties", VkDescriptorSet(materialPropertiesDescriptorSet) to this)
         }
 
         s.initialized = true
@@ -878,7 +879,7 @@ open class VulkanRenderer(hub: Hub,
                 val descriptorSet = VU.createDescriptorSetDynamic(device, descriptorPool, dsl,
                     1, buffers["ShaderPropertyBuffer"]!!)
 
-                s.requiredDescriptorSets["ShaderProperties"] = descriptorSet
+                s.requiredDescriptorSets["ShaderProperties"] = VkDescriptorSet(descriptorSet)
                 true
             } else {
                 false
@@ -1136,7 +1137,7 @@ open class VulkanRenderer(hub: Hub,
 
         s.texturesToDescriptorSets(device,
             renderpasses.filter { it.value.passConfig.type != RenderConfigReader.RenderpassType.quad },
-            descriptorPool)
+            VkDescriptorPool(descriptorPool))
 
         node.lock.unlock()
 
@@ -2689,11 +2690,11 @@ open class VulkanRenderer(hub: Hub,
                         else -> {
                             when {
                                 s.UBOs.containsKey(name) ->
-                                    DescriptorSet.DynamicSet(s.UBOs[name]!!.first, offset = s.UBOs[name]!!.second.offsets.get(0), setName = name)
+                                    DescriptorSet.DynamicSet(s.UBOs[name]!!.first.L, offset = s.UBOs[name]!!.second.offsets.get(0), setName = name)
                                 s.UBOs.containsKey("${pass.name}-$name") ->
-                                    DescriptorSet.DynamicSet(s.UBOs["${pass.name}-$name"]!!.first, offset = s.UBOs["${pass.name}-$name"]!!.second.offsets.get(0), setName = name)
+                                    DescriptorSet.DynamicSet(s.UBOs["${pass.name}-$name"]!!.first.L, offset = s.UBOs["${pass.name}-$name"]!!.second.offsets.get(0), setName = name)
                                 s.getTextureDescriptorSet(pass.name, name) != null ->
-                                    DescriptorSet.setOrNull(s.getTextureDescriptorSet(pass.name, name), name)
+                                    DescriptorSet.setOrNull(s.getTextureDescriptorSet(pass.name, name)?.L, name)
                                 else -> DescriptorSet.None
                             }
                         }
