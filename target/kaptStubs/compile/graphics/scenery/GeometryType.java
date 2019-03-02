@@ -1,5 +1,7 @@
 package graphics.scenery;
 
+import java.lang.System;
+
 /**
  * * Enum class storing the geometry type, e.g. of a [Node]
  * *
@@ -18,7 +20,7 @@ public enum GeometryType {
     /*public static final*/ LINE /* = new LINE() */,
     /*public static final*/ LINES_ADJACENCY /* = new LINES_ADJACENCY() */,
     /*public static final*/ LINE_STRIP_ADJACENCY /* = new LINE_STRIP_ADJACENCY() */;
-
+    
     GeometryType() {
     }
 }

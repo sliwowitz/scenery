@@ -1,5 +1,7 @@
 package graphics.scenery.backends;
 
+import java.lang.System;
+
 /**
  * * Data class to contain packages of shader source code and SPIRV byte code.
  * * [type] indicates the shader type. [priority] is set upon initialisation,
@@ -24,22 +26,11 @@ public final class ShaderPackage {
     private final java.lang.String code = null;
     @org.jetbrains.annotations.NotNull()
     private graphics.scenery.backends.SourceSPIRVPriority priority;
-
-    public ShaderPackage(@org.jetbrains.annotations.NotNull()
-                             java.lang.Class<?> baseClass, @org.jetbrains.annotations.NotNull()
-                             graphics.scenery.backends.ShaderType type, @org.jetbrains.annotations.Nullable()
-                             java.lang.String spirvPath, @org.jetbrains.annotations.Nullable()
-                             java.lang.String codePath, @org.jetbrains.annotations.Nullable()
-                             byte[] spirv, @org.jetbrains.annotations.Nullable()
-                             java.lang.String code, @org.jetbrains.annotations.NotNull()
-                             graphics.scenery.backends.SourceSPIRVPriority priority) {
-        super();
-    }
-
+    
     private final org.slf4j.Logger getLogger() {
         return null;
     }
-
+    
     /**
      * * Returns the glslang-digestible SPIRV bytecode from this package.
      */
@@ -47,7 +38,7 @@ public final class ShaderPackage {
     public final graphics.scenery.spirvcrossj.IntVec getSPIRVBytecode() {
         return null;
     }
-
+    
     /**
      * * Returns a short string representation of this package.
      */
@@ -55,81 +46,92 @@ public final class ShaderPackage {
     public final java.lang.String toShortString() {
         return null;
     }
-
+    
     @org.jetbrains.annotations.NotNull()
     public final java.lang.Class<?> getBaseClass() {
         return null;
     }
-
+    
     @org.jetbrains.annotations.NotNull()
     public final graphics.scenery.backends.ShaderType getType() {
         return null;
     }
-
+    
     @org.jetbrains.annotations.Nullable()
     public final java.lang.String getSpirvPath() {
         return null;
     }
-
+    
     @org.jetbrains.annotations.Nullable()
     public final java.lang.String getCodePath() {
         return null;
     }
-
+    
     @org.jetbrains.annotations.Nullable()
     public final byte[] getSpirv() {
         return null;
     }
-
+    
     @org.jetbrains.annotations.Nullable()
     public final java.lang.String getCode() {
         return null;
     }
-
+    
     @org.jetbrains.annotations.NotNull()
     public final graphics.scenery.backends.SourceSPIRVPriority getPriority() {
         return null;
     }
-
+    
     public final void setPriority(@org.jetbrains.annotations.NotNull()
-                                      graphics.scenery.backends.SourceSPIRVPriority p0) {
+    graphics.scenery.backends.SourceSPIRVPriority p0) {
     }
-
+    
+    public ShaderPackage(@org.jetbrains.annotations.NotNull()
+    java.lang.Class<?> baseClass, @org.jetbrains.annotations.NotNull()
+    graphics.scenery.backends.ShaderType type, @org.jetbrains.annotations.Nullable()
+    java.lang.String spirvPath, @org.jetbrains.annotations.Nullable()
+    java.lang.String codePath, @org.jetbrains.annotations.Nullable()
+    byte[] spirv, @org.jetbrains.annotations.Nullable()
+    java.lang.String code, @org.jetbrains.annotations.NotNull()
+    graphics.scenery.backends.SourceSPIRVPriority priority) {
+        super();
+    }
+    
     @org.jetbrains.annotations.NotNull()
     public final java.lang.Class<?> component1() {
         return null;
     }
-
+    
     @org.jetbrains.annotations.NotNull()
     public final graphics.scenery.backends.ShaderType component2() {
         return null;
     }
-
+    
     @org.jetbrains.annotations.Nullable()
     public final java.lang.String component3() {
         return null;
     }
-
+    
     @org.jetbrains.annotations.Nullable()
     public final java.lang.String component4() {
         return null;
     }
-
+    
     @org.jetbrains.annotations.Nullable()
     public final byte[] component5() {
         return null;
     }
-
+    
     @org.jetbrains.annotations.Nullable()
     public final java.lang.String component6() {
         return null;
     }
-
+    
     @org.jetbrains.annotations.NotNull()
     public final graphics.scenery.backends.SourceSPIRVPriority component7() {
         return null;
     }
-
+    
     /**
      * * Data class to contain packages of shader source code and SPIRV byte code.
      * * [type] indicates the shader type. [priority] is set upon initialisation,
@@ -139,30 +141,30 @@ public final class ShaderPackage {
      */
     @org.jetbrains.annotations.NotNull()
     public final graphics.scenery.backends.ShaderPackage copy(@org.jetbrains.annotations.NotNull()
-                                                                  java.lang.Class<?> baseClass, @org.jetbrains.annotations.NotNull()
-                                                                  graphics.scenery.backends.ShaderType type, @org.jetbrains.annotations.Nullable()
-                                                                  java.lang.String spirvPath, @org.jetbrains.annotations.Nullable()
-                                                                  java.lang.String codePath, @org.jetbrains.annotations.Nullable()
-                                                                  byte[] spirv, @org.jetbrains.annotations.Nullable()
-                                                                  java.lang.String code, @org.jetbrains.annotations.NotNull()
-                                                                  graphics.scenery.backends.SourceSPIRVPriority priority) {
+    java.lang.Class<?> baseClass, @org.jetbrains.annotations.NotNull()
+    graphics.scenery.backends.ShaderType type, @org.jetbrains.annotations.Nullable()
+    java.lang.String spirvPath, @org.jetbrains.annotations.Nullable()
+    java.lang.String codePath, @org.jetbrains.annotations.Nullable()
+    byte[] spirv, @org.jetbrains.annotations.Nullable()
+    java.lang.String code, @org.jetbrains.annotations.NotNull()
+    graphics.scenery.backends.SourceSPIRVPriority priority) {
         return null;
     }
-
+    
     @org.jetbrains.annotations.NotNull()
     @java.lang.Override()
     public java.lang.String toString() {
         return null;
     }
-
+    
     @java.lang.Override()
     public int hashCode() {
         return 0;
     }
-
+    
     @java.lang.Override()
     public boolean equals(@org.jetbrains.annotations.Nullable()
-                              java.lang.Object p0) {
+    java.lang.Object p0) {
         return false;
     }
 }

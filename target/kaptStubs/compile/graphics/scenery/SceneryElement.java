@@ -1,5 +1,7 @@
 package graphics.scenery;
 
+import java.lang.System;
+
 /**
  * * SceneryElement enum class, enumerates the elements that may be put in a [Hub]
  * *
@@ -17,7 +19,7 @@ public enum SceneryElement {
     /*public static final*/ Settings /* = new Settings() */,
     /*public static final*/ NodeSubscriber /* = new NodeSubscriber() */,
     /*public static final*/ NodePublisher /* = new NodePublisher() */;
-
+    
     SceneryElement() {
     }
 }

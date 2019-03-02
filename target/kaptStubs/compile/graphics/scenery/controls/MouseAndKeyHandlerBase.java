@@ -1,5 +1,7 @@
 package graphics.scenery.controls;
 
+import java.lang.System;
+
 /**
  * * Base class for MouseAndKeyHandlers
  * *
@@ -9,6 +11,36 @@ package graphics.scenery.controls;
 public class MouseAndKeyHandlerBase implements net.java.games.input.ControllerListener, graphics.scenery.utils.ExtractsNatives {
     @org.jetbrains.annotations.NotNull()
     private final kotlin.Lazy logger$delegate = null;
+    
+    /**
+     * ui-behaviour input trigger map 
+     */
+    @org.jetbrains.annotations.NotNull()
+    protected org.scijava.ui.behaviour.InputTriggerMap inputTriggerMap;
+    
+    /**
+     * ui-behaviour behaviour map 
+     */
+    @org.jetbrains.annotations.NotNull()
+    protected org.scijava.ui.behaviour.BehaviourMap behaviours;
+    
+    /**
+     * expected modifier count 
+     */
+    private int inputMapExpectedModCount;
+    
+    /**
+     * behaviour expected modifier count 
+     */
+    private int behaviourMapExpectedModCount;
+    
+    /**
+     * handle to the active controller 
+     */
+    @org.jetbrains.annotations.Nullable()
+    private net.java.games.input.Controller controller;
+    private java.lang.Thread controllerThread;
+    private java.util.concurrent.ConcurrentHashMap<net.java.games.input.Component.Identifier, java.lang.Float> controllerAxisDown;
     private final java.util.ArrayList<graphics.scenery.controls.MouseAndKeyHandlerBase.BehaviourEntry<graphics.scenery.controls.behaviours.GamepadBehaviour>> gamepads = null;
     private final long CONTROLLER_HEARTBEAT = 5L;
     private final float CONTROLLER_DOWN_THRESHOLD = 0.95F;
@@ -22,333 +54,318 @@ public class MouseAndKeyHandlerBase implements net.java.games.input.ControllerLi
     private final java.util.ArrayList<graphics.scenery.controls.MouseAndKeyHandlerBase.BehaviourEntry<org.scijava.ui.behaviour.ClickBehaviour>> keyClicks = null;
     @org.jetbrains.annotations.NotNull()
     private final java.util.ArrayList<graphics.scenery.controls.MouseAndKeyHandlerBase.BehaviourEntry<org.scijava.ui.behaviour.ScrollBehaviour>> scrolls = null;
+    
     /**
      * * Which keys are currently pressed. This does not include modifier keys
-     * * Control, Shift, Alt, AltGr, Meta.
+     *     * Control, Shift, Alt, AltGr, Meta.
      */
     @org.jetbrains.annotations.NotNull()
     private final gnu.trove.set.hash.TIntHashSet pressedKeys = null;
+    
     /**
      * * When keys where pressed
      */
     @org.jetbrains.annotations.NotNull()
     private final gnu.trove.map.hash.TIntLongHashMap keyPressTimes = null;
+    
+    /**
+     * * Whether the SHIFT key is currently pressed. We need this, because for
+     *     * mouse-wheel AWT uses the SHIFT_DOWN_MASK to indicate horizontal
+     *     * scrolling. We keep track of whether the SHIFT key was actually pressed
+     *     * for disambiguation.
+     */
+    private boolean shiftPressed;
+    
+    /**
+     * * Whether the META key is currently pressed. We need this, because on OS X
+     *     * AWT sets the META_DOWN_MASK to for right clicks. We keep track of whether
+     *     * the META key was actually pressed for disambiguation.
+     */
+    private boolean metaPressed;
+    
+    /**
+     * * Whether the WINDOWS key is currently pressed.
+     */
+    private boolean winPressed;
+    
+    /**
+     * * The current mouse coordinates, updated through [.mouseMoved].
+     */
+    private int mouseX;
+    
+    /**
+     * * The current mouse coordinates, updated through [.mouseMoved].
+     */
+    private int mouseY;
+    
     /**
      * * Active [DragBehaviour]s initiated by mouse button press.
      */
     @org.jetbrains.annotations.NotNull()
     private final java.util.ArrayList<graphics.scenery.controls.MouseAndKeyHandlerBase.BehaviourEntry<org.scijava.ui.behaviour.DragBehaviour>> activeButtonDrags = null;
+    
     /**
      * * Active [DragBehaviour]s initiated by key press.
      */
     @org.jetbrains.annotations.NotNull()
     private final java.util.ArrayList<graphics.scenery.controls.MouseAndKeyHandlerBase.BehaviourEntry<org.scijava.ui.behaviour.DragBehaviour>> activeKeyDrags = null;
+    
     /**
-     * the windowing system's set double click interval
+     * the windowing system's set double click interval 
      */
     private final int DOUBLE_CLICK_INTERVAL = 0;
-    /**
-     * ui-behaviour input trigger map
-     */
-    @org.jetbrains.annotations.NotNull()
-    protected org.scijava.ui.behaviour.InputTriggerMap inputTriggerMap;
-    /**
-     * ui-behaviour behaviour map
-     */
-    @org.jetbrains.annotations.NotNull()
-    protected org.scijava.ui.behaviour.BehaviourMap behaviours;
-    /**
-     * expected modifier count
-     */
-    private int inputMapExpectedModCount;
-    /**
-     * behaviour expected modifier count
-     */
-    private int behaviourMapExpectedModCount;
-    /**
-     * handle to the active controller
-     */
-    @org.jetbrains.annotations.Nullable()
-    private net.java.games.input.Controller controller;
-    private java.lang.Thread controllerThread;
-    private java.util.concurrent.ConcurrentHashMap<net.java.games.input.Component.Identifier, java.lang.Float> controllerAxisDown;
-    /**
-     * * Whether the SHIFT key is currently pressed. We need this, because for
-     * * mouse-wheel AWT uses the SHIFT_DOWN_MASK to indicate horizontal
-     * * scrolling. We keep track of whether the SHIFT key was actually pressed
-     * * for disambiguation.
-     */
-    private boolean shiftPressed;
-    /**
-     * * Whether the META key is currently pressed. We need this, because on OS X
-     * * AWT sets the META_DOWN_MASK to for right clicks. We keep track of whether
-     * * the META key was actually pressed for disambiguation.
-     */
-    private boolean metaPressed;
-    /**
-     * * Whether the WINDOWS key is currently pressed.
-     */
-    private boolean winPressed;
-    /**
-     * * The current mouse coordinates, updated through [.mouseMoved].
-     */
-    private int mouseX;
-    /**
-     * * The current mouse coordinates, updated through [.mouseMoved].
-     */
-    private int mouseY;
-
-    public MouseAndKeyHandlerBase() {
-        super();
-    }
-
+    
     @org.jetbrains.annotations.NotNull()
     protected final org.slf4j.Logger getLogger() {
         return null;
     }
-
+    
     @org.jetbrains.annotations.NotNull()
     protected final org.scijava.ui.behaviour.InputTriggerMap getInputTriggerMap() {
         return null;
     }
-
+    
     protected final void setInputTriggerMap(@org.jetbrains.annotations.NotNull()
-                                                org.scijava.ui.behaviour.InputTriggerMap p0) {
+    org.scijava.ui.behaviour.InputTriggerMap p0) {
     }
-
+    
     @org.jetbrains.annotations.NotNull()
     protected final org.scijava.ui.behaviour.BehaviourMap getBehaviours() {
         return null;
     }
-
+    
     protected final void setBehaviours(@org.jetbrains.annotations.NotNull()
-                                           org.scijava.ui.behaviour.BehaviourMap p0) {
+    org.scijava.ui.behaviour.BehaviourMap p0) {
     }
-
+    
     protected final int getInputMapExpectedModCount() {
         return 0;
     }
-
+    
     protected final void setInputMapExpectedModCount(int p0) {
     }
-
+    
     protected final int getBehaviourMapExpectedModCount() {
         return 0;
     }
-
+    
     protected final void setBehaviourMapExpectedModCount(int p0) {
     }
-
+    
     @org.jetbrains.annotations.Nullable()
     protected final net.java.games.input.Controller getController() {
         return null;
     }
-
+    
     protected final void setController(@org.jetbrains.annotations.Nullable()
-                                           net.java.games.input.Controller p0) {
+    net.java.games.input.Controller p0) {
     }
-
+    
     @org.jetbrains.annotations.NotNull()
     protected final java.util.ArrayList<graphics.scenery.controls.MouseAndKeyHandlerBase.BehaviourEntry<org.scijava.ui.behaviour.DragBehaviour>> getButtonDrags() {
         return null;
     }
-
+    
     @org.jetbrains.annotations.NotNull()
     protected final java.util.ArrayList<graphics.scenery.controls.MouseAndKeyHandlerBase.BehaviourEntry<org.scijava.ui.behaviour.DragBehaviour>> getKeyDrags() {
         return null;
     }
-
+    
     @org.jetbrains.annotations.NotNull()
     protected final java.util.ArrayList<graphics.scenery.controls.MouseAndKeyHandlerBase.BehaviourEntry<org.scijava.ui.behaviour.ClickBehaviour>> getButtonClicks() {
         return null;
     }
-
+    
     @org.jetbrains.annotations.NotNull()
     protected final java.util.ArrayList<graphics.scenery.controls.MouseAndKeyHandlerBase.BehaviourEntry<org.scijava.ui.behaviour.ClickBehaviour>> getKeyClicks() {
         return null;
     }
-
+    
     @org.jetbrains.annotations.NotNull()
     protected final java.util.ArrayList<graphics.scenery.controls.MouseAndKeyHandlerBase.BehaviourEntry<org.scijava.ui.behaviour.ScrollBehaviour>> getScrolls() {
         return null;
     }
-
+    
     @org.jetbrains.annotations.NotNull()
     protected final gnu.trove.set.hash.TIntHashSet getPressedKeys() {
         return null;
     }
-
+    
     @org.jetbrains.annotations.NotNull()
     protected final gnu.trove.map.hash.TIntLongHashMap getKeyPressTimes() {
         return null;
     }
-
+    
     protected final boolean getShiftPressed() {
         return false;
     }
-
+    
     protected final void setShiftPressed(boolean p0) {
     }
-
+    
     protected final boolean getMetaPressed() {
         return false;
     }
-
+    
     protected final void setMetaPressed(boolean p0) {
     }
-
+    
     protected final boolean getWinPressed() {
         return false;
     }
-
+    
     protected final void setWinPressed(boolean p0) {
     }
-
+    
     protected final int getMouseX() {
         return 0;
     }
-
+    
     protected final void setMouseX(int p0) {
     }
-
+    
     protected final int getMouseY() {
         return 0;
     }
-
+    
     protected final void setMouseY(int p0) {
     }
-
+    
     @org.jetbrains.annotations.NotNull()
     protected final java.util.ArrayList<graphics.scenery.controls.MouseAndKeyHandlerBase.BehaviourEntry<org.scijava.ui.behaviour.DragBehaviour>> getActiveButtonDrags() {
         return null;
     }
-
+    
     @org.jetbrains.annotations.NotNull()
     protected final java.util.ArrayList<graphics.scenery.controls.MouseAndKeyHandlerBase.BehaviourEntry<org.scijava.ui.behaviour.DragBehaviour>> getActiveKeyDrags() {
         return null;
     }
-
+    
     protected int getDOUBLE_CLICK_INTERVAL() {
         return 0;
     }
-
+    
     /**
      * * Queries the windowing system for the current double click interval
-     * *
-     * * @return The double click interval in ms
+     *     *
+     *     * @return The double click interval in ms
      */
     public int getDoubleClickInterval$scenery() {
         return 0;
     }
-
+    
     /**
      * * Sets the input trigger map to the given map
-     * *
-     * * @param[inputMap] The input map to set
+     *     *
+     *     * @param[inputMap] The input map to set
      */
     public final void setInputMap(@org.jetbrains.annotations.NotNull()
-                                      org.scijava.ui.behaviour.InputTriggerMap inputMap) {
+    org.scijava.ui.behaviour.InputTriggerMap inputMap) {
     }
-
+    
     /**
      * * Sets the behaviour trigger map to the given map
-     * *
-     * * @param[behaviourMap] The behaviour map to set
+     *     *
+     *     * @param[behaviourMap] The behaviour map to set
      */
     public final void setBehaviourMap(@org.jetbrains.annotations.NotNull()
-                                          org.scijava.ui.behaviour.BehaviourMap behaviourMap) {
+    org.scijava.ui.behaviour.BehaviourMap behaviourMap) {
     }
-
+    
     /**
      * * Make sure that the internal behaviour lists are up to date. For this, we
-     * * keep track the modification count of [.inputMap] and
-     * * [.behaviourMap]. If expected mod counts are not matched, call
-     * * [.updateInternalMaps] to rebuild the internal behaviour lists.
+     *     * keep track the modification count of [.inputMap] and
+     *     * [.behaviourMap]. If expected mod counts are not matched, call
+     *     * [.updateInternalMaps] to rebuild the internal behaviour lists.
      */
     protected final synchronized void update() {
     }
-
+    
     /**
      * * Build internal lists buttonDrag, keyDrags, etc from BehaviourMap(?) and
-     * * InputMap(?). The internal lists only contain entries for Behaviours that
-     * * can be actually triggered with the current InputMap, grouped by Behaviour
-     * * type, such that hopefully lookup from the event handlers is fast.
+     *     * InputMap(?). The internal lists only contain entries for Behaviours that
+     *     * can be actually triggered with the current InputMap, grouped by Behaviour
+     *     * type, such that hopefully lookup from the event handlers is fast.
      */
     private final void updateInternalMaps() {
     }
-
+    
     /**
      * * Called when a new controller is added
-     * *
-     * * @param[event] The incoming controller event
+     *     *
+     *     * @param[event] The incoming controller event
      */
     @java.lang.Override()
     public void controllerAdded(@org.jetbrains.annotations.Nullable()
-                                    net.java.games.input.ControllerEvent event) {
+    net.java.games.input.ControllerEvent event) {
     }
-
+    
     /**
      * * Called when a controller is removed
-     * *
-     * * @param[event] The incoming controller event
+     *     *
+     *     * @param[event] The incoming controller event
      */
     @java.lang.Override()
     public void controllerRemoved(@org.jetbrains.annotations.Nullable()
-                                      net.java.games.input.ControllerEvent event) {
+    net.java.games.input.ControllerEvent event) {
     }
-
+    
     /**
      * * Called when a controller event is fired. This will update the currently down
-     * * buttons/axis on the controller.
-     * *
-     * * @param[event] The incoming controller event
+     *     * buttons/axis on the controller.
+     *     *
+     *     * @param[event] The incoming controller event
      */
     public final void controllerEvent(@org.jetbrains.annotations.NotNull()
-                                          net.java.games.input.Event event) {
+    net.java.games.input.Event event) {
     }
-
+    
+    public MouseAndKeyHandlerBase() {
+        super();
+    }
+    
     /**
      * * Cleans old temporary native libraries, e.g. all directories in the temporary directory,
-     * * which have "scenery-natives-tmp" in their name, and do not have a lock file present.
+     *     * which have "scenery-natives-tmp" in their name, and do not have a lock file present.
      */
     public void cleanTempFiles() {
     }
-
+    
     /**
      * * Utility function to extract native libraries from a given JAR, store them in a
-     * * temporary directory and modify the JRE's library path such that it can find
-     * * these libraries.
-     * *
-     * * @param[paths] A list of JAR paths to extract natives from.
-     * * @param[replace] Whether or not the java.library.path should be replaced.
+     *     * temporary directory and modify the JRE's library path such that it can find
+     *     * these libraries.
+     *     *
+     *     * @param[paths] A list of JAR paths to extract natives from.
+     *     * @param[replace] Whether or not the java.library.path should be replaced.
      */
     public void extractLibrariesFromJar(@org.jetbrains.annotations.NotNull()
-                                            java.util.List<java.lang.String> paths, boolean replace) {
+    java.util.List<java.lang.String> paths, boolean replace) {
     }
-
+    
     /**
      * * Utility function to search the current class path for JARs with native libraries
-     * *
-     * * @param[searchName] The string to match the JAR's name against
-     * * @param[hint] A file name to look for, for the ImageJ classpath hack
-     * * @return A list of JARs matching [searchName]
+     *     *
+     *     * @param[searchName] The string to match the JAR's name against
+     *     * @param[hint] A file name to look for, for the ImageJ classpath hack
+     *     * @return A list of JARs matching [searchName]
      */
     @org.jetbrains.annotations.NotNull()
     public java.util.List<java.lang.String> getNativeJars(@org.jetbrains.annotations.NotNull()
-                                                              java.lang.String searchName, @org.jetbrains.annotations.NotNull()
-                                                              java.lang.String hint) {
+    java.lang.String searchName, @org.jetbrains.annotations.NotNull()
+    java.lang.String hint) {
         return null;
     }
-
+    
     /**
      * * Managing internal behaviour lists.
-     * *
-     * * The internal lists only contain entries for Behaviours that can be
-     * * actually triggered with the current InputMap, grouped by Behaviour type,
-     * * such that hopefully lookup from the event handlers is fast,
-     * *
-     * * @property[buttons] Buttons triggering the input
-     * * @property[behaviour] Behaviour triggered by these buttons
+     *     *
+     *     * The internal lists only contain entries for Behaviours that can be
+     *     * actually triggered with the current InputMap, grouped by Behaviour type,
+     *     * such that hopefully lookup from the event handlers is fast,
+     *     *
+     *     * @property[buttons] Buttons triggering the input
+     *     * @property[behaviour] Behaviour triggered by these buttons
      */
     @kotlin.Metadata(mv = {1, 1, 13}, bv = {1, 0, 3}, k = 1, d1 = {"\u0000\u0018\n\u0002\u0018\u0002\n\u0000\n\u0002\u0018\u0002\n\u0002\u0010\u0000\n\u0000\n\u0002\u0018\u0002\n\u0002\b\b\u0018\u0000*\n\b\u0000\u0010\u0001 \u0001*\u00020\u00022\u00020\u0003B\u0015\u0012\u0006\u0010\u0004\u001a\u00020\u0005\u0012\u0006\u0010\u0006\u001a\u00028\u0000\u00a2\u0006\u0002\u0010\u0007R\u0013\u0010\u0006\u001a\u00028\u0000\u00a2\u0006\n\n\u0002\u0010\n\u001a\u0004\b\b\u0010\tR\u0011\u0010\u0004\u001a\u00020\u0005\u00a2\u0006\b\n\u0000\u001a\u0004\b\u000b\u0010\f\u00a8\u0006\r"}, d2 = {"Lgraphics/scenery/controls/MouseAndKeyHandlerBase$BehaviourEntry;", "T", "Lorg/scijava/ui/behaviour/Behaviour;", "", "buttons", "Lorg/scijava/ui/behaviour/InputTrigger;", "behaviour", "(Lorg/scijava/ui/behaviour/InputTrigger;Lorg/scijava/ui/behaviour/Behaviour;)V", "getBehaviour", "()Lorg/scijava/ui/behaviour/Behaviour;", "Lorg/scijava/ui/behaviour/Behaviour;", "getButtons", "()Lorg/scijava/ui/behaviour/InputTrigger;", "scenery"})
     public static final class BehaviourEntry<T extends org.scijava.ui.behaviour.Behaviour> {
@@ -356,21 +373,21 @@ public class MouseAndKeyHandlerBase implements net.java.games.input.ControllerLi
         private final org.scijava.ui.behaviour.InputTrigger buttons = null;
         @org.jetbrains.annotations.NotNull()
         private final T behaviour = null;
-
-        public BehaviourEntry(@org.jetbrains.annotations.NotNull()
-                                  org.scijava.ui.behaviour.InputTrigger buttons, @org.jetbrains.annotations.NotNull()
-                                  T behaviour) {
-            super();
-        }
-
+        
         @org.jetbrains.annotations.NotNull()
         public final org.scijava.ui.behaviour.InputTrigger getButtons() {
             return null;
         }
-
+        
         @org.jetbrains.annotations.NotNull()
         public final T getBehaviour() {
             return null;
+        }
+        
+        public BehaviourEntry(@org.jetbrains.annotations.NotNull()
+        org.scijava.ui.behaviour.InputTrigger buttons, @org.jetbrains.annotations.NotNull()
+        T behaviour) {
+            super();
         }
     }
 }

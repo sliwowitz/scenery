@@ -1,5 +1,7 @@
 package graphics.scenery.backends;
 
+import java.lang.System;
+
 /**
  * * Enums to indicate whether the source code or SPIRV bytecode in a [ShaderPackage]
  * * should take precedence.
@@ -10,7 +12,7 @@ package graphics.scenery.backends;
 public enum SourceSPIRVPriority {
     /*public static final*/ SourcePriority /* = new SourcePriority() */,
     /*public static final*/ SPIRVPriority /* = new SPIRVPriority() */;
-
+    
     SourceSPIRVPriority() {
     }
 }

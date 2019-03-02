@@ -1,5 +1,7 @@
 package graphics.scenery.controls.behaviours;
 
+import java.lang.System;
+
 /**
  * * Raycasting-based selection command. Needs to be given a
  * * [scene] to act upon, plus a lambda returning current camera information ([camera]).
@@ -32,132 +34,132 @@ public class SelectCommand implements org.scijava.ui.behaviour.ClickBehaviour {
     private java.util.List<? extends java.lang.Class<?>> ignoredObjects;
     @org.jetbrains.annotations.NotNull()
     private kotlin.jvm.functions.Function1<? super java.util.List<graphics.scenery.Scene.RaycastResult>, kotlin.Unit> action;
-
-    public SelectCommand(@org.jetbrains.annotations.NotNull()
-                             java.lang.String name, @org.jetbrains.annotations.NotNull()
-                             graphics.scenery.backends.Renderer renderer, @org.jetbrains.annotations.NotNull()
-                             graphics.scenery.Scene scene, @org.jetbrains.annotations.NotNull()
-                             kotlin.jvm.functions.Function0<? extends graphics.scenery.Camera> camera, boolean debugRaycast, @org.jetbrains.annotations.NotNull()
-                             java.util.List<? extends java.lang.Class<?>> ignoredObjects, @org.jetbrains.annotations.NotNull()
-                             kotlin.jvm.functions.Function1<? super java.util.List<graphics.scenery.Scene.RaycastResult>, kotlin.Unit> action) {
-        super();
-    }
-
-    public SelectCommand(@org.jetbrains.annotations.NotNull()
-                             java.lang.String name, @org.jetbrains.annotations.NotNull()
-                             graphics.scenery.backends.Renderer renderer, @org.jetbrains.annotations.NotNull()
-                             graphics.scenery.Scene scene, @org.jetbrains.annotations.NotNull()
-                             kotlin.jvm.functions.Function0<? extends graphics.scenery.Camera> camera, boolean debugRaycast, @org.jetbrains.annotations.NotNull()
-                             java.util.List<? extends java.lang.Class<?>> ignoredObjects) {
-        super();
-    }
-
-    public SelectCommand(@org.jetbrains.annotations.NotNull()
-                             java.lang.String name, @org.jetbrains.annotations.NotNull()
-                             graphics.scenery.backends.Renderer renderer, @org.jetbrains.annotations.NotNull()
-                             graphics.scenery.Scene scene, @org.jetbrains.annotations.NotNull()
-                             kotlin.jvm.functions.Function0<? extends graphics.scenery.Camera> camera, boolean debugRaycast) {
-        super();
-    }
-
-    public SelectCommand(@org.jetbrains.annotations.NotNull()
-                             java.lang.String name, @org.jetbrains.annotations.NotNull()
-                             graphics.scenery.backends.Renderer renderer, @org.jetbrains.annotations.NotNull()
-                             graphics.scenery.Scene scene, @org.jetbrains.annotations.NotNull()
-                             kotlin.jvm.functions.Function0<? extends graphics.scenery.Camera> camera) {
-        super();
-    }
-
+    
     @org.jetbrains.annotations.NotNull()
     protected final org.slf4j.Logger getLogger() {
         return null;
     }
-
+    
     @org.jetbrains.annotations.Nullable()
     protected final graphics.scenery.Camera getCam() {
         return null;
     }
-
+    
     /**
      * * This is the action executed upon triggering this action, with [x] and [y] being
-     * * the screen-space coordinates.
+     *     * the screen-space coordinates.
      */
     @java.lang.Override()
     public void click(int x, int y) {
     }
-
+    
     @org.jetbrains.annotations.NotNull()
     protected final java.lang.String getName() {
         return null;
     }
-
+    
     @org.jetbrains.annotations.NotNull()
     protected final graphics.scenery.backends.Renderer getRenderer() {
         return null;
     }
-
+    
     @org.jetbrains.annotations.NotNull()
     protected final graphics.scenery.Scene getScene() {
         return null;
     }
-
+    
     @org.jetbrains.annotations.NotNull()
     protected final kotlin.jvm.functions.Function0<graphics.scenery.Camera> getCamera() {
         return null;
     }
-
+    
     protected final boolean getDebugRaycast() {
         return false;
     }
-
+    
     protected final void setDebugRaycast(boolean p0) {
     }
-
+    
     @org.jetbrains.annotations.NotNull()
     public final java.util.List<java.lang.Class<?>> getIgnoredObjects() {
         return null;
     }
-
+    
     public final void setIgnoredObjects(@org.jetbrains.annotations.NotNull()
-                                            java.util.List<? extends java.lang.Class<?>> p0) {
+    java.util.List<? extends java.lang.Class<?>> p0) {
     }
-
+    
     @org.jetbrains.annotations.NotNull()
     protected final kotlin.jvm.functions.Function1<java.util.List<graphics.scenery.Scene.RaycastResult>, kotlin.Unit> getAction() {
         return null;
     }
-
+    
     protected final void setAction(@org.jetbrains.annotations.NotNull()
-                                       kotlin.jvm.functions.Function1<? super java.util.List<graphics.scenery.Scene.RaycastResult>, kotlin.Unit> p0) {
+    kotlin.jvm.functions.Function1<? super java.util.List<graphics.scenery.Scene.RaycastResult>, kotlin.Unit> p0) {
     }
-
+    
+    public SelectCommand(@org.jetbrains.annotations.NotNull()
+    java.lang.String name, @org.jetbrains.annotations.NotNull()
+    graphics.scenery.backends.Renderer renderer, @org.jetbrains.annotations.NotNull()
+    graphics.scenery.Scene scene, @org.jetbrains.annotations.NotNull()
+    kotlin.jvm.functions.Function0<? extends graphics.scenery.Camera> camera, boolean debugRaycast, @org.jetbrains.annotations.NotNull()
+    java.util.List<? extends java.lang.Class<?>> ignoredObjects, @org.jetbrains.annotations.NotNull()
+    kotlin.jvm.functions.Function1<? super java.util.List<graphics.scenery.Scene.RaycastResult>, kotlin.Unit> action) {
+        super();
+    }
+    
+    public SelectCommand(@org.jetbrains.annotations.NotNull()
+    java.lang.String name, @org.jetbrains.annotations.NotNull()
+    graphics.scenery.backends.Renderer renderer, @org.jetbrains.annotations.NotNull()
+    graphics.scenery.Scene scene, @org.jetbrains.annotations.NotNull()
+    kotlin.jvm.functions.Function0<? extends graphics.scenery.Camera> camera, boolean debugRaycast, @org.jetbrains.annotations.NotNull()
+    java.util.List<? extends java.lang.Class<?>> ignoredObjects) {
+        super();
+    }
+    
+    public SelectCommand(@org.jetbrains.annotations.NotNull()
+    java.lang.String name, @org.jetbrains.annotations.NotNull()
+    graphics.scenery.backends.Renderer renderer, @org.jetbrains.annotations.NotNull()
+    graphics.scenery.Scene scene, @org.jetbrains.annotations.NotNull()
+    kotlin.jvm.functions.Function0<? extends graphics.scenery.Camera> camera, boolean debugRaycast) {
+        super();
+    }
+    
+    public SelectCommand(@org.jetbrains.annotations.NotNull()
+    java.lang.String name, @org.jetbrains.annotations.NotNull()
+    graphics.scenery.backends.Renderer renderer, @org.jetbrains.annotations.NotNull()
+    graphics.scenery.Scene scene, @org.jetbrains.annotations.NotNull()
+    kotlin.jvm.functions.Function0<? extends graphics.scenery.Camera> camera) {
+        super();
+    }
+    
     /**
-     * Camera delegate class, converting lambdas to Cameras.
+     * Camera delegate class, converting lambdas to Cameras. 
      */
     @kotlin.Metadata(mv = {1, 1, 13}, bv = {1, 0, 3}, k = 1, d1 = {"\u0000\"\n\u0002\u0018\u0002\n\u0002\u0010\u0000\n\u0002\b\u0002\n\u0002\u0018\u0002\n\u0002\b\u0002\n\u0002\u0018\u0002\n\u0000\n\u0002\u0010\u0002\n\u0002\b\u0002\b\u0084\u0004\u0018\u00002\u00020\u0001B\u0005\u00a2\u0006\u0002\u0010\u0002J!\u0010\u0003\u001a\u0004\u0018\u00010\u00042\b\u0010\u0005\u001a\u0004\u0018\u00010\u00012\n\u0010\u0006\u001a\u0006\u0012\u0002\b\u00030\u0007H\u0086\u0002J)\u0010\b\u001a\u00020\t2\b\u0010\u0005\u001a\u0004\u0018\u00010\u00012\n\u0010\u0006\u001a\u0006\u0012\u0002\b\u00030\u00072\b\u0010\n\u001a\u0004\u0018\u00010\u0004H\u0086\u0002\u00a8\u0006\u000b"}, d2 = {"Lgraphics/scenery/controls/behaviours/SelectCommand$CameraDelegate;", "", "(Lgraphics/scenery/controls/behaviours/SelectCommand;)V", "getValue", "Lgraphics/scenery/Camera;", "thisRef", "property", "Lkotlin/reflect/KProperty;", "setValue", "", "value", "scenery"})
     public final class CameraDelegate {
-
-        public CameraDelegate() {
-            super();
-        }
-
+        
         /**
-         * Returns the [graphics.scenery.Camera] resulting from the evaluation of [camera]
+         * Returns the [graphics.scenery.Camera] resulting from the evaluation of [camera] 
          */
         @org.jetbrains.annotations.Nullable()
         public final graphics.scenery.Camera getValue(@org.jetbrains.annotations.Nullable()
-                                                          java.lang.Object thisRef, @org.jetbrains.annotations.NotNull()
-                                                          kotlin.reflect.KProperty<?> property) {
+        java.lang.Object thisRef, @org.jetbrains.annotations.NotNull()
+        kotlin.reflect.KProperty<?> property) {
             return null;
         }
-
+        
         /**
-         * Setting the value is not supported
+         * Setting the value is not supported 
          */
         public final void setValue(@org.jetbrains.annotations.Nullable()
-                                       java.lang.Object thisRef, @org.jetbrains.annotations.NotNull()
-                                       kotlin.reflect.KProperty<?> property, @org.jetbrains.annotations.Nullable()
-                                       graphics.scenery.Camera value) {
+        java.lang.Object thisRef, @org.jetbrains.annotations.NotNull()
+        kotlin.reflect.KProperty<?> property, @org.jetbrains.annotations.Nullable()
+        graphics.scenery.Camera value) {
+        }
+        
+        public CameraDelegate() {
+            super();
         }
     }
 }

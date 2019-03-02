@@ -1,5 +1,7 @@
 package graphics.scenery.utils;
 
+import java.lang.System;
+
 /**
  * * Ring buffer class. Creates a ring buffer of size [size], with all elements
  * * initialiased to a default value. Querying this ring buffer will return the current
@@ -11,73 +13,73 @@ package graphics.scenery.utils;
 public class RingBuffer<T extends java.lang.Object> {
     @org.jetbrains.annotations.NotNull()
     private java.util.ArrayList<T> backingStore;
-
+    
     /**
-     * The current read position of the ring buffer
+     * The current read position of the ring buffer 
      */
     private int currentReadPosition;
-
+    
     /**
-     * The current write position of the ring buffer
+     * The current write position of the ring buffer 
      */
     private int currentWritePosition;
     private int size;
-
-    public RingBuffer(int size, @org.jetbrains.annotations.Nullable()
-        kotlin.jvm.functions.Function1<? super java.lang.Integer, ? extends T> p1_772401952) {
-        super();
-    }
-
+    
     @org.jetbrains.annotations.NotNull()
     protected final java.util.ArrayList<T> getBackingStore() {
         return null;
     }
-
+    
     protected final void setBackingStore(@org.jetbrains.annotations.NotNull()
-                                             java.util.ArrayList<T> p0) {
+    java.util.ArrayList<T> p0) {
     }
-
+    
     public final int getCurrentReadPosition() {
         return 0;
     }
-
+    
     protected final void setCurrentReadPosition(int p0) {
     }
-
+    
     public final int getCurrentWritePosition() {
         return 0;
     }
-
+    
     protected final void setCurrentWritePosition(int p0) {
     }
-
+    
     /**
      * * Puts a new [element] into the ring buffer, advancing the
-     * * write position.
+     *     * write position.
      */
     public final void put(@org.jetbrains.annotations.NotNull()
-                              T element) {
+    T element) {
     }
-
+    
     /**
      * * Retrieves and returns the current element from the ring buffer, and advances
-     * * the current read position.
+     *     * the current read position.
      */
     @org.jetbrains.annotations.NotNull()
     public final T get() {
         return null;
     }
-
+    
     /**
      * * Resets the ring buffer, and clears its backing store.
      */
     public final void reset() {
     }
-
+    
     public final int getSize() {
         return 0;
     }
-
+    
     public final void setSize(int p0) {
+    }
+    
+    public RingBuffer(int size, @org.jetbrains.annotations.Nullable()
+    kotlin.jvm.functions.Function1<? super java.lang.Integer, ? extends T> p1_772401952) {
+        super();
     }
 }

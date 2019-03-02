@@ -1,5 +1,7 @@
 package graphics.scenery.controls;
 
+import java.lang.System;
+
 /**
  * * TrackerInput for handling VRPN-based devices
  * *
@@ -26,216 +28,216 @@ public final class VRPNTrackerInput implements graphics.scenery.controls.Tracker
     private java.util.Timer stats;
     private long vrpnMsgCount;
     private float positionScaling;
-
-    public VRPNTrackerInput(@org.jetbrains.annotations.NotNull()
-                                java.lang.String trackerAddress) {
-        super();
-    }
-
-    public VRPNTrackerInput() {
-        super();
-    }
-
+    
     private final org.slf4j.Logger getLogger() {
         return null;
     }
-
+    
     @org.jetbrains.annotations.Nullable()
     public final vrpn.TrackerRemote getTracker() {
         return null;
     }
-
+    
     public final void setTracker(@org.jetbrains.annotations.Nullable()
-                                     vrpn.TrackerRemote p0) {
+    vrpn.TrackerRemote p0) {
     }
-
+    
     @org.jetbrains.annotations.NotNull()
     public final java.lang.String getDeviceName() {
         return null;
     }
-
+    
     public final void setDeviceName(@org.jetbrains.annotations.NotNull()
-                                        java.lang.String p0) {
+    java.lang.String p0) {
     }
-
+    
     @org.jetbrains.annotations.NotNull()
     public final java.lang.String getTrackerLocation() {
         return null;
     }
-
+    
     public final void setTrackerLocation(@org.jetbrains.annotations.NotNull()
-                                             java.lang.String p0) {
+    java.lang.String p0) {
     }
-
+    
     @org.jetbrains.annotations.NotNull()
     public final java.lang.String getTrackerAddress() {
         return null;
     }
-
+    
     public final void setTrackerAddress(@org.jetbrains.annotations.NotNull()
-                                            java.lang.String value) {
+    java.lang.String value) {
     }
-
+    
     @org.jetbrains.annotations.Nullable()
     public final vrpn.TrackerRemoteListener getListener() {
         return null;
     }
-
+    
     public final void setListener(@org.jetbrains.annotations.Nullable()
-                                      vrpn.TrackerRemoteListener p0) {
+    vrpn.TrackerRemoteListener p0) {
     }
-
+    
     @org.jetbrains.annotations.NotNull()
     public final com.jogamp.opengl.math.Quaternion getCachedOrientation() {
         return null;
     }
-
+    
     public final void setCachedOrientation(@org.jetbrains.annotations.NotNull()
-                                               com.jogamp.opengl.math.Quaternion p0) {
+    com.jogamp.opengl.math.Quaternion p0) {
     }
-
+    
     @org.jetbrains.annotations.NotNull()
     public final cleargl.GLVector getCachedPosition() {
         return null;
     }
-
+    
     public final void setCachedPosition(@org.jetbrains.annotations.NotNull()
-                                            cleargl.GLVector p0) {
+    cleargl.GLVector p0) {
     }
-
+    
     @org.jetbrains.annotations.NotNull()
     public final java.util.Timer getStats() {
         return null;
     }
-
+    
     public final void setStats(@org.jetbrains.annotations.NotNull()
-                                   java.util.Timer p0) {
+    java.util.Timer p0) {
     }
-
+    
     public final long getVrpnMsgCount() {
         return 0L;
     }
-
+    
     public final void setVrpnMsgCount(long p0) {
     }
-
+    
     public final float getPositionScaling() {
         return 0.0F;
     }
-
+    
     public final void setPositionScaling(float p0) {
     }
-
+    
     private final vrpn.TrackerRemote initializeTracker(java.lang.String address) {
         return null;
     }
-
+    
     /**
      * * Returns the orientation of the HMD
-     * *
-     * * @returns GLMatrix with orientation
+     *     *
+     *     * @returns GLMatrix with orientation
      */
     @org.jetbrains.annotations.NotNull()
     @java.lang.Override()
     public com.jogamp.opengl.math.Quaternion getOrientation() {
         return null;
     }
-
+    
     /**
      * * Returns the orientation of the given device, or a unit quaternion if the device is not found.
-     * *
-     * * @returns GLMatrix with orientation
+     *     *
+     *     * @returns GLMatrix with orientation
      */
     @org.jetbrains.annotations.NotNull()
     @java.lang.Override()
     public com.jogamp.opengl.math.Quaternion getOrientation(@org.jetbrains.annotations.NotNull()
-                                                                java.lang.String id) {
+    java.lang.String id) {
         return null;
     }
-
+    
     /**
      * * Returns the absolute position as GLVector
-     * *
-     * * @return HMD position as GLVector
+     *     *
+     *     * @return HMD position as GLVector
      */
     @org.jetbrains.annotations.NotNull()
     @java.lang.Override()
     public cleargl.GLVector getPosition() {
         return null;
     }
-
+    
     /**
      * * Returns the HMD pose
-     * *
-     * * @return HMD pose as GLMatrix
+     *     *
+     *     * @return HMD pose as GLMatrix
      */
     @org.jetbrains.annotations.NotNull()
     @java.lang.Override()
     public cleargl.GLMatrix getPose() {
         return null;
     }
-
+    
     /**
      * * Returns the HMD pose per eye
-     * *
-     * * @return HMD pose as GLMatrix
+     *     *
+     *     * @return HMD pose as GLMatrix
      */
     @org.jetbrains.annotations.NotNull()
     @java.lang.Override()
     public cleargl.GLMatrix getPoseForEye(int eye) {
         return null;
     }
-
+    
     /**
      * * Check whether the HMD is initialized and working
-     * *
-     * * @return True if HMD is initialiased correctly and working properly
+     *     *
+     *     * @return True if HMD is initialiased correctly and working properly
      */
     @java.lang.Override()
     public boolean initializedAndWorking() {
         return false;
     }
-
+    
     /**
      * * update state
      */
     @java.lang.Override()
     public void update() {
     }
-
+    
     @org.jetbrains.annotations.Nullable()
     @java.lang.Override()
     public graphics.scenery.controls.TrackerInput getWorkingTracker() {
         return null;
     }
-
+    
     @org.jetbrains.annotations.NotNull()
     @java.lang.Override()
     public graphics.scenery.Mesh loadModelForMesh(@org.jetbrains.annotations.NotNull()
-                                                      graphics.scenery.controls.TrackedDeviceType type, @org.jetbrains.annotations.NotNull()
-                                                      graphics.scenery.Mesh mesh) {
+    graphics.scenery.controls.TrackedDeviceType type, @org.jetbrains.annotations.NotNull()
+    graphics.scenery.Mesh mesh) {
         return null;
     }
-
+    
     @org.jetbrains.annotations.NotNull()
     @java.lang.Override()
     public graphics.scenery.Mesh loadModelForMesh(@org.jetbrains.annotations.NotNull()
-                                                      graphics.scenery.controls.TrackedDevice device, @org.jetbrains.annotations.NotNull()
-                                                      graphics.scenery.Mesh mesh) {
+    graphics.scenery.controls.TrackedDevice device, @org.jetbrains.annotations.NotNull()
+    graphics.scenery.Mesh mesh) {
         return null;
     }
-
+    
     @java.lang.Override()
     public void attachToNode(@org.jetbrains.annotations.NotNull()
-                                 graphics.scenery.controls.TrackedDevice device, @org.jetbrains.annotations.NotNull()
-                                 graphics.scenery.Node node, @org.jetbrains.annotations.Nullable()
-                                 graphics.scenery.Camera camera) {
+    graphics.scenery.controls.TrackedDevice device, @org.jetbrains.annotations.NotNull()
+    graphics.scenery.Node node, @org.jetbrains.annotations.Nullable()
+    graphics.scenery.Camera camera) {
     }
-
+    
     @org.jetbrains.annotations.NotNull()
     @java.lang.Override()
     public java.util.Map<java.lang.String, graphics.scenery.controls.TrackedDevice> getTrackedDevices(@org.jetbrains.annotations.NotNull()
-                                                                                                          graphics.scenery.controls.TrackedDeviceType ofType) {
+    graphics.scenery.controls.TrackedDeviceType ofType) {
         return null;
+    }
+    
+    public VRPNTrackerInput(@org.jetbrains.annotations.NotNull()
+    java.lang.String trackerAddress) {
+        super();
+    }
+    
+    public VRPNTrackerInput() {
+        super();
     }
 }

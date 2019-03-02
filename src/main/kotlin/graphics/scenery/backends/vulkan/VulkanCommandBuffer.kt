@@ -7,8 +7,7 @@ import org.lwjgl.vulkan.VkCommandBuffer
 import org.lwjgl.vulkan.VkFenceCreateInfo
 import vkk.*
 import vkk.entities.VkFence
-import vkk.extensionFunctions.begin
-import vkk.extensionFunctions.reset
+import vkk.extensionFunctions.*
 import java.nio.LongBuffer
 
 /**

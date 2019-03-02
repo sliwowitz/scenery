@@ -15,6 +15,7 @@ import org.lwjgl.system.MemoryUtil.*
 import org.lwjgl.vulkan.*
 import org.lwjgl.vulkan.VK10.*
 import vkk.entities.VkDescriptorSetLayout
+import vkk.entities.VkPipelineCache
 import java.nio.IntBuffer
 import java.nio.LongBuffer
 import java.util.*
@@ -403,9 +404,9 @@ open class VulkanRenderpass(val name: String, var config: RenderConfigReader.Ren
     fun initializePipeline(pipelineName: String = "default", shaders: List<VulkanShaderModule>,
                            vertexInputType: VulkanRenderer.VertexDescription = vertexDescriptors.get(VulkanRenderer.VertexDataKinds.PositionNormalTexcoord)!!,
                            settings: (VulkanPipeline) -> Any = {}) {
-        val p = VulkanPipeline(device, pipelineCache)
+        val p = VulkanPipeline(device, VkPipelineCache(pipelineCache))
 
-        val reqDescriptorLayouts = ArrayList<Long>()
+        val reqDescriptorLayouts = ArrayList<VkDescriptorSetLayout>()
 
         val framebuffer = output.values.first()
 
@@ -447,7 +448,7 @@ open class VulkanRenderpass(val name: String, var config: RenderConfigReader.Ren
             .toSortedMap()
             .forEach { setId, group ->
                 logger.debug("${this.name}: Initialising DSL for set $setId with ${group.sortedBy { it.value.binding }.joinToString() { "${it.value.name} (${it.value.set}/${it.value.binding})" }}")
-                reqDescriptorLayouts.add(initializeDescriptorSetLayoutForSpecs(setId, group.sortedBy { it.value.binding }))
+                reqDescriptorLayouts += VkDescriptorSetLayout(initializeDescriptorSetLayoutForSpecs(setId, group.sortedBy { it.value.binding }))
             }
 
         settings.invoke(p)
@@ -456,14 +457,14 @@ open class VulkanRenderpass(val name: String, var config: RenderConfigReader.Ren
             logger.debug("DS are: ${p.descriptorSpecs.entries.sortedBy { it.value.binding }.sortedBy { it.value.set }.joinToString { "${it.key} (set=${it.value.set}, binding=${it.value.binding})" }}")
         }
 
-        logger.debug("Required DSLs: ${reqDescriptorLayouts.joinToString { it.toHexString() }}")
+        logger.debug("Required DSLs: ${reqDescriptorLayouts.joinToString { it.asHexString }}")
 
         when (passConfig.type) {
             RenderConfigReader.RenderpassType.quad -> {
                 p.rasterizationState.cullMode(VK_CULL_MODE_FRONT_BIT)
                 p.rasterizationState.frontFace(VK_FRONT_FACE_COUNTER_CLOCKWISE)
 
-                p.createPipelines(this, framebuffer.renderPass.L,
+                p.createPipelines(this, framebuffer.renderPass,
                     vertexDescriptors[VulkanRenderer.VertexDataKinds.None]!!.state,
                     descriptorSetLayouts = reqDescriptorLayouts,
                     onlyForTopology = GeometryType.TRIANGLES)
@@ -471,7 +472,7 @@ open class VulkanRenderpass(val name: String, var config: RenderConfigReader.Ren
 
             RenderConfigReader.RenderpassType.geometry,
             RenderConfigReader.RenderpassType.lights -> {
-                p.createPipelines(this, framebuffer.renderPass.L,
+                p.createPipelines(this, framebuffer.renderPass,
                     vertexInputType.state,
                     descriptorSetLayouts = reqDescriptorLayouts)
             }

@@ -28,10 +28,7 @@ import org.lwjgl.vulkan.MVKMacosSurface.VK_MVK_MACOS_SURFACE_EXTENSION_NAME
 import org.lwjgl.vulkan.VK10.*
 import vkk.VkBufferUsage
 import vkk.VkVendor
-import vkk.entities.VkCommandPool
-import vkk.entities.VkDescriptorPool
-import vkk.entities.VkDescriptorSet
-import vkk.entities.VkDeviceSize
+import vkk.entities.*
 import vkk.size
 import vkk.vk
 import java.awt.image.BufferedImage
@@ -125,10 +122,7 @@ open class VulkanRenderer(hub: Hub,
         val memoryProperties: VkPhysicalDeviceMemoryProperties? = null
     )
 
-    class Pipeline {
-        internal var pipeline: Long = 0
-        internal var layout: Long = 0
-    }
+    class Pipeline(internal var pipeline: VkPipeline, internal var layout: VkPipelineLayout)
 
     sealed class DescriptorSet(val id: Long = 0L, val name: String = "") {
         object None : DescriptorSet(0L)
@@ -2727,13 +2721,13 @@ open class VulkanRenderer(hub: Hub,
                 pass.vulkanMetadata.uboOffsets.flip()
 
                 if (p.pushConstantSpecs.containsKey("currentEye")) {
-                    vkCmdPushConstants(this, pipeline.layout, VK_SHADER_STAGE_ALL, 0, pass.vulkanMetadata.eye)
+                    vkCmdPushConstants(this, pipeline.layout.L, VK_SHADER_STAGE_ALL, 0, pass.vulkanMetadata.eye)
                 }
 
-                vkCmdBindPipeline(this, VK_PIPELINE_BIND_POINT_GRAPHICS, pipeline.pipeline)
+                vkCmdBindPipeline(this, VK_PIPELINE_BIND_POINT_GRAPHICS, pipeline.pipeline.L)
                 if (pass.vulkanMetadata.descriptorSets.limit() > 0) {
                     vkCmdBindDescriptorSets(this, VK_PIPELINE_BIND_POINT_GRAPHICS,
-                        pipeline.layout, 0, pass.vulkanMetadata.descriptorSets, pass.vulkanMetadata.uboOffsets)
+                        pipeline.layout.L, 0, pass.vulkanMetadata.descriptorSets, pass.vulkanMetadata.uboOffsets)
                 }
                 vkCmdBindVertexBuffers(this, 0, pass.vulkanMetadata.vertexBuffers, pass.vulkanMetadata.vertexBufferOffsets)
 
@@ -2807,14 +2801,14 @@ open class VulkanRenderer(hub: Hub,
             pass.vulkanMetadata.setRequiredDescriptorSetsPostprocess(pass, pipeline)
 
             if (pipeline.pushConstantSpecs.containsKey("currentEye")) {
-                vkCmdPushConstants(this, vulkanPipeline.layout, VK_SHADER_STAGE_ALL, 0, pass.vulkanMetadata.eye)
+                vkCmdPushConstants(this, vulkanPipeline.layout.L, VK_SHADER_STAGE_ALL, 0, pass.vulkanMetadata.eye)
             }
 
-            vkCmdBindPipeline(this, VK_PIPELINE_BIND_POINT_GRAPHICS, vulkanPipeline.pipeline)
+            vkCmdBindPipeline(this, VK_PIPELINE_BIND_POINT_GRAPHICS, vulkanPipeline.pipeline.L)
             if (pass.vulkanMetadata.descriptorSets.limit() > 0) {
                 logger.debug("Binding ${pass.vulkanMetadata.descriptorSets.limit()} descriptor sets with ${pass.vulkanMetadata.uboOffsets.limit()} required offsets")
                 vkCmdBindDescriptorSets(this, VK_PIPELINE_BIND_POINT_GRAPHICS,
-                    vulkanPipeline.layout, 0, pass.vulkanMetadata.descriptorSets, pass.vulkanMetadata.uboOffsets)
+                    vulkanPipeline.layout.L, 0, pass.vulkanMetadata.descriptorSets, pass.vulkanMetadata.uboOffsets)
             }
 
             vkCmdDraw(this, 3, 1, 0, 0)

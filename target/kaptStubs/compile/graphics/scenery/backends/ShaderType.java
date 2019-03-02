@@ -1,5 +1,7 @@
 package graphics.scenery.backends;
 
+import java.lang.System;
+
 /**
  * * Enum for all the supported shader types.
  * *
@@ -13,7 +15,7 @@ public enum ShaderType {
     /*public static final*/ GeometryShader /* = new GeometryShader() */,
     /*public static final*/ FragmentShader /* = new FragmentShader() */,
     /*public static final*/ ComputeShader /* = new ComputeShader() */;
-
+    
     ShaderType() {
     }
 }

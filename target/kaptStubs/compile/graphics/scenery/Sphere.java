@@ -1,5 +1,7 @@
 package graphics.scenery;
 
+import java.lang.System;
+
 /**
  * * Constructs a sphere with the given [radius] and number of [segments].
  * *
@@ -11,8 +13,6 @@ package graphics.scenery;
 public class Sphere extends graphics.scenery.Node implements graphics.scenery.HasGeometry {
     private final int vertexSize = 3;
     private final int texcoordSize = 2;
-    private final float radius = 0.0F;
-    private final int segments = 0;
     @org.jetbrains.annotations.NotNull()
     private graphics.scenery.GeometryType geometryType;
     @org.jetbrains.annotations.NotNull()
@@ -23,183 +23,185 @@ public class Sphere extends graphics.scenery.Node implements graphics.scenery.Ha
     private java.nio.FloatBuffer texcoords;
     @org.jetbrains.annotations.NotNull()
     private java.nio.IntBuffer indices;
-
-    public Sphere(float radius, int segments) {
-        super(null);
-    }
-
+    private final float radius = 0.0F;
+    private final int segments = 0;
+    
     @java.lang.Override()
     public int getVertexSize() {
         return 0;
     }
-
+    
     @java.lang.Override()
     public int getTexcoordSize() {
         return 0;
     }
-
+    
     @org.jetbrains.annotations.NotNull()
     @java.lang.Override()
     public graphics.scenery.GeometryType getGeometryType() {
         return null;
     }
-
+    
     @java.lang.Override()
     public void setGeometryType(@org.jetbrains.annotations.NotNull()
-                                    graphics.scenery.GeometryType p0) {
+    graphics.scenery.GeometryType p0) {
     }
-
+    
     @org.jetbrains.annotations.NotNull()
     @java.lang.Override()
     public final java.nio.FloatBuffer getVertices() {
         return null;
     }
-
+    
     @java.lang.Override()
     public final void setVertices(@org.jetbrains.annotations.NotNull()
-                                      java.nio.FloatBuffer p0) {
+    java.nio.FloatBuffer p0) {
     }
-
+    
     @org.jetbrains.annotations.NotNull()
     @java.lang.Override()
     public final java.nio.FloatBuffer getNormals() {
         return null;
     }
-
+    
     @java.lang.Override()
     public final void setNormals(@org.jetbrains.annotations.NotNull()
-                                     java.nio.FloatBuffer p0) {
+    java.nio.FloatBuffer p0) {
     }
-
+    
     @org.jetbrains.annotations.NotNull()
     @java.lang.Override()
     public final java.nio.FloatBuffer getTexcoords() {
         return null;
     }
-
+    
     @java.lang.Override()
     public final void setTexcoords(@org.jetbrains.annotations.NotNull()
-                                       java.nio.FloatBuffer p0) {
+    java.nio.FloatBuffer p0) {
     }
-
+    
     @org.jetbrains.annotations.NotNull()
     @java.lang.Override()
     public final java.nio.IntBuffer getIndices() {
         return null;
     }
-
+    
     @java.lang.Override()
     public final void setIndices(@org.jetbrains.annotations.NotNull()
-                                     java.nio.IntBuffer p0) {
+    java.nio.IntBuffer p0) {
     }
-
+    
     /**
      * * Creates a vertex on a sphere with radius [radius], and angles [theta] and [phi].
-     * *
-     * * @param[radius] The radius of the sphere
-     * * @param[theta] Theta coordinate, in interval [0, PI]
-     * * @param[phi] Phi coordinate, in interval [0, 2PI]
-     * *
-     * * @return Vertex on a sphere, in cartesian coordinates
+     *     *
+     *     * @param[radius] The radius of the sphere
+     *     * @param[theta] Theta coordinate, in interval [0, PI]
+     *     * @param[phi] Phi coordinate, in interval [0, 2PI]
+     *     *
+     *     * @return Vertex on a sphere, in cartesian coordinates
      */
     private final java.lang.Float[] vertexOnSphere(float radius, float theta, float phi) {
         return null;
     }
-
+    
     /**
      * * Creates UV coordinates for a given surface normal that is assumed to be
-     * * on a sphere.
-     * *
-     * * @param[normal] Normal vector on a sphere.
-     * *
-     * * @return UV coordinates in [0.0, 1.0] range.
+     *     * on a sphere.
+     *     *
+     *     * @param[normal] Normal vector on a sphere.
+     *     *
+     *     * @return UV coordinates in [0.0, 1.0] range.
      */
     private final java.lang.Float[] uvOnSphere(java.lang.Float[] normal) {
         return null;
     }
-
+    
     public final float getRadius() {
         return 0.0F;
     }
-
+    
     public final int getSegments() {
         return 0;
     }
-
+    
+    public Sphere(float radius, int segments) {
+        super(null);
+    }
+    
     /**
      * * Reads geometry from a file given by [filename]. The extension of [filename] will determine
-     * * whether the file will be read by [readFromOBJ] or [readFromSTL].
-     * *
-     * * Materials will be automatically used, if present.
+     *     * whether the file will be read by [readFromOBJ] or [readFromSTL].
+     *     *
+     *     * Materials will be automatically used, if present.
      */
     public void readFrom(@org.jetbrains.annotations.NotNull()
-                             java.lang.String filename) {
+    java.lang.String filename) {
     }
-
+    
     /**
      * * Reads geometry from a file given by [filename]. The extension of [filename] will determine
-     * * whether the file will be read by [readFromOBJ] or [readFromSTL].
-     * *
-     * * Materials will be used, if present and [useMaterial] is true.
+     *     * whether the file will be read by [readFromOBJ] or [readFromSTL].
+     *     *
+     *     * Materials will be used, if present and [useMaterial] is true.
      */
     public void readFrom(@org.jetbrains.annotations.NotNull()
-                             java.lang.String filename, boolean useMaterial) {
+    java.lang.String filename, boolean useMaterial) {
     }
-
+    
     /**
      * * Reads an OBJ file's material properties from the corresponding MTL file
-     * *
-     * * @param[filename] The filename of the MTL file, stored in the OBJ usually
-     * * @return A HashMap storing material name and [Material].
+     *     *
+     *     * @param[filename] The filename of the MTL file, stored in the OBJ usually
+     *     * @return A HashMap storing material name and [Material].
      */
     @org.jetbrains.annotations.NotNull()
     public java.util.HashMap<java.lang.String, graphics.scenery.Material> readFromMTL(@org.jetbrains.annotations.NotNull()
-                                                                                          java.lang.String filename) {
+    java.lang.String filename) {
         return null;
     }
-
+    
     /**
      * * Read the [Node]'s geometry from an OBJ file, including materials
-     * *
-     * * @param[filename] The filename to read from.
+     *     *
+     *     * @param[filename] The filename to read from.
      */
     public void readFromOBJ(@org.jetbrains.annotations.NotNull()
-                                java.lang.String filename) {
+    java.lang.String filename) {
     }
-
+    
     /**
      * * Read the [Node]'s geometry from an OBJ file, and choose whether the OBJ-defined materials shall be imported.
-     * *
-     * * @param[filename] The filename to read from.
-     * * @param[importMaterials] Whether a accompanying MTL file shall be used, defaults to true.
+     *     *
+     *     * @param[filename] The filename to read from.
+     *     * @param[importMaterials] Whether a accompanying MTL file shall be used, defaults to true.
      */
     public void readFromOBJ(@org.jetbrains.annotations.NotNull()
-                                java.lang.String filename, boolean importMaterials) {
+    java.lang.String filename, boolean importMaterials) {
     }
-
+    
     /**
      * * Read the [Node]'s geometry from an OBJ file, possible including materials
-     * *
-     * * @param[filename] The filename to read from.
-     * * @param[importMaterials] Whether a accompanying MTL file shall be used, defaults to true.
-     * * @param[flipNormals] Whether to flip the normals after reading them.
+     *     *
+     *     * @param[filename] The filename to read from.
+     *     * @param[importMaterials] Whether a accompanying MTL file shall be used, defaults to true.
+     *     * @param[flipNormals] Whether to flip the normals after reading them.
      */
     public void readFromOBJ(@org.jetbrains.annotations.NotNull()
-                                java.lang.String filename, boolean importMaterials, boolean flipNormals) {
+    java.lang.String filename, boolean importMaterials, boolean flipNormals) {
     }
-
+    
     /**
      * * Read the [Node]'s geometry from an STL file
-     * *
-     * * @param[filename] The filename to read from.
+     *     *
+     *     * @param[filename] The filename to read from.
      */
     public void readFromSTL(@org.jetbrains.annotations.NotNull()
-                                java.lang.String filename) {
+    java.lang.String filename) {
     }
-
+    
     /**
      * * Recalculates normals, assuming CCW winding order and taking
-     * * STL's facet storage format into account.
+     *     * STL's facet storage format into account.
      */
     public void recalculateNormals() {
     }

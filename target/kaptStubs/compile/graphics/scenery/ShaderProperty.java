@@ -1,5 +1,7 @@
 package graphics.scenery;
 
+import java.lang.System;
+
 /**
  * * ShaderProperty is an annotation that can be used for [Node] properties. Properties
  * * marked as such will be submitted to the GLSL shader by the renderer.

@@ -5,6 +5,8 @@ import graphics.scenery.NodeMetadata
 import graphics.scenery.utils.LazyLogger
 import vkk.*
 import vkk.entities.*
+import vkk.extensionFunctions.allocateDescriptorSets
+import vkk.extensionFunctions.updateDescriptorSets
 import java.util.*
 import java.util.concurrent.ConcurrentHashMap
 

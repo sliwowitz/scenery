@@ -1,5 +1,7 @@
 package graphics.scenery.net;
 
+import java.lang.System;
+
 /**
  * * Created by ulrik on 4/4/2017.
  */
@@ -7,76 +9,76 @@ package graphics.scenery.net;
 public final class NodePublisher implements graphics.scenery.Hubable {
     private final kotlin.Lazy logger$delegate = null;
     @org.jetbrains.annotations.NotNull()
+    private java.util.HashMap<java.lang.Integer, graphics.scenery.Node> nodes;
+    @org.jetbrains.annotations.NotNull()
+    private org.zeromq.ZMQ.Socket publisher;
+    @org.jetbrains.annotations.NotNull()
     private final com.esotericsoftware.kryo.Kryo kryo = null;
+    @org.jetbrains.annotations.Nullable()
+    private graphics.scenery.Hub hub;
     @org.jetbrains.annotations.NotNull()
     private final java.lang.String address = null;
     @org.jetbrains.annotations.NotNull()
     private final org.zeromq.ZContext context = null;
-    @org.jetbrains.annotations.NotNull()
-    private java.util.HashMap<java.lang.Integer, graphics.scenery.Node> nodes;
-    @org.jetbrains.annotations.NotNull()
-    private org.zeromq.ZMQ.Socket publisher;
-    @org.jetbrains.annotations.Nullable()
-    private graphics.scenery.Hub hub;
-
-    public NodePublisher(@org.jetbrains.annotations.Nullable()
-                             graphics.scenery.Hub hub, @org.jetbrains.annotations.NotNull()
-                             java.lang.String address, @org.jetbrains.annotations.NotNull()
-                             org.zeromq.ZContext context) {
-        super();
-    }
-
+    
     private final org.slf4j.Logger getLogger() {
         return null;
     }
-
+    
     @org.jetbrains.annotations.NotNull()
     public final java.util.HashMap<java.lang.Integer, graphics.scenery.Node> getNodes() {
         return null;
     }
-
+    
     public final void setNodes(@org.jetbrains.annotations.NotNull()
-                                   java.util.HashMap<java.lang.Integer, graphics.scenery.Node> p0) {
+    java.util.HashMap<java.lang.Integer, graphics.scenery.Node> p0) {
     }
-
+    
     @org.jetbrains.annotations.NotNull()
     public final org.zeromq.ZMQ.Socket getPublisher() {
         return null;
     }
-
+    
     public final void setPublisher(@org.jetbrains.annotations.NotNull()
-                                       org.zeromq.ZMQ.Socket p0) {
+    org.zeromq.ZMQ.Socket p0) {
     }
-
+    
     @org.jetbrains.annotations.NotNull()
     public final com.esotericsoftware.kryo.Kryo getKryo() {
         return null;
     }
-
+    
     public final void publish() {
     }
-
+    
     public final void close() {
     }
-
+    
     @org.jetbrains.annotations.Nullable()
     @java.lang.Override()
     public graphics.scenery.Hub getHub() {
         return null;
     }
-
+    
     @java.lang.Override()
     public void setHub(@org.jetbrains.annotations.Nullable()
-                           graphics.scenery.Hub p0) {
+    graphics.scenery.Hub p0) {
     }
-
+    
     @org.jetbrains.annotations.NotNull()
     public final java.lang.String getAddress() {
         return null;
     }
-
+    
     @org.jetbrains.annotations.NotNull()
     public final org.zeromq.ZContext getContext() {
         return null;
+    }
+    
+    public NodePublisher(@org.jetbrains.annotations.Nullable()
+    graphics.scenery.Hub hub, @org.jetbrains.annotations.NotNull()
+    java.lang.String address, @org.jetbrains.annotations.NotNull()
+    org.zeromq.ZContext context) {
+        super();
     }
 }

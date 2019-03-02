@@ -1,5 +1,7 @@
 package graphics.scenery;
 
+import java.lang.System;
+
 /**
  * * Creating bounding boxes for [Node]s
  * *
@@ -17,121 +19,117 @@ package graphics.scenery;
 public class BoundingGrid extends graphics.scenery.Mesh {
     @org.jetbrains.annotations.NotNull()
     private java.util.HashMap<java.lang.String, graphics.scenery.TextBoard> labels;
-
+    
     /**
-     * Grid color for the bounding grid.
+     * Grid color for the bounding grid. 
      */
     @org.jetbrains.annotations.NotNull()
     private cleargl.GLVector gridColor;
-
+    
     /**
-     * Number of lines per grid axis.
+     * Number of lines per grid axis. 
      */
     private int numLines;
-
+    
     /**
-     * Line width for the grid.
+     * Line width for the grid. 
      */
     private float lineWidth;
-
+    
     /**
-     * Whether to show only the ticks on the grid, or show the full grid.
+     * Whether to show only the ticks on the grid, or show the full grid. 
      */
     private int ticksOnly;
-
+    
     /**
-     * The [Node] this bounding grid is attached to. Set to null to remove.
+     * The [Node] this bounding grid is attached to. Set to null to remove. 
      */
     @org.jetbrains.annotations.Nullable()
     private graphics.scenery.Node node;
-
+    
     /**
-     * Stores the hash of the [node]'s bounding box to keep an eye on it.
+     * Stores the hash of the [node]'s bounding box to keep an eye on it. 
      */
     private int nodeBoundingBoxHash;
-
-    public BoundingGrid() {
-        super(null);
-    }
-
-    @ShaderProperty()
-    public static void gridColor$annotations() {
-    }
-
-    @ShaderProperty()
-    public static void numLines$annotations() {
-    }
-
-    @ShaderProperty()
-    public static void lineWidth$annotations() {
-    }
-
-    @ShaderProperty()
-    public static void ticksOnly$annotations() {
-    }
-
+    
     @org.jetbrains.annotations.NotNull()
     protected final java.util.HashMap<java.lang.String, graphics.scenery.TextBoard> getLabels() {
         return null;
     }
-
+    
     protected final void setLabels(@org.jetbrains.annotations.NotNull()
-                                       java.util.HashMap<java.lang.String, graphics.scenery.TextBoard> p0) {
+    java.util.HashMap<java.lang.String, graphics.scenery.TextBoard> p0) {
     }
-
+    
+    @ShaderProperty()
+    public static void gridColor$annotations() {
+    }
+    
     @org.jetbrains.annotations.NotNull()
     public final cleargl.GLVector getGridColor() {
         return null;
     }
-
+    
     public final void setGridColor(@org.jetbrains.annotations.NotNull()
-                                       cleargl.GLVector p0) {
+    cleargl.GLVector p0) {
     }
-
+    
+    @ShaderProperty()
+    public static void numLines$annotations() {
+    }
+    
     public final int getNumLines() {
         return 0;
     }
-
+    
     public final void setNumLines(int p0) {
     }
-
+    
+    @ShaderProperty()
+    public static void lineWidth$annotations() {
+    }
+    
     public final float getLineWidth() {
         return 0.0F;
     }
-
+    
     public final void setLineWidth(float p0) {
     }
-
+    
+    @ShaderProperty()
+    public static void ticksOnly$annotations() {
+    }
+    
     public final int getTicksOnly() {
         return 0;
     }
-
+    
     public final void setTicksOnly(int p0) {
     }
-
+    
     @org.jetbrains.annotations.Nullable()
     public final graphics.scenery.Node getNode() {
         return null;
     }
-
+    
     public final void setNode(@org.jetbrains.annotations.Nullable()
-                                  graphics.scenery.Node value) {
+    graphics.scenery.Node value) {
     }
-
+    
     protected final int getNodeBoundingBoxHash() {
         return 0;
     }
-
+    
     protected final void setNodeBoundingBoxHash(int p0) {
     }
-
+    
     @java.lang.Override()
     public void preDraw() {
     }
-
+    
     protected final void updateFromNode() {
     }
-
+    
     /**
      * * Returns this bounding box' coordinates and associated [Node] as String.
      */
@@ -139,5 +137,9 @@ public class BoundingGrid extends graphics.scenery.Mesh {
     @java.lang.Override()
     public java.lang.String toString() {
         return null;
+    }
+    
+    public BoundingGrid() {
+        super(null);
     }
 }

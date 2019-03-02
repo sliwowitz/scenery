@@ -1,5 +1,7 @@
 package graphics.scenery;
 
+import java.lang.System;
+
 /**
  * * Constructs a cylinder with the given [radius] and number of [segments].
  * *
@@ -24,171 +26,171 @@ public final class Cone extends graphics.scenery.Node implements graphics.scener
     private float radius;
     private float height;
     private int segments;
-
-    public Cone(float radius, float height, int segments) {
-        super(null);
-    }
-
+    
     @java.lang.Override()
     public int getVertexSize() {
         return 0;
     }
-
+    
     @java.lang.Override()
     public int getTexcoordSize() {
         return 0;
     }
-
+    
     @org.jetbrains.annotations.NotNull()
     @java.lang.Override()
     public graphics.scenery.GeometryType getGeometryType() {
         return null;
     }
-
+    
     @java.lang.Override()
     public void setGeometryType(@org.jetbrains.annotations.NotNull()
-                                    graphics.scenery.GeometryType p0) {
+    graphics.scenery.GeometryType p0) {
     }
-
+    
     @org.jetbrains.annotations.NotNull()
     @java.lang.Override()
     public java.nio.FloatBuffer getVertices() {
         return null;
     }
-
+    
     @java.lang.Override()
     public void setVertices(@org.jetbrains.annotations.NotNull()
-                                java.nio.FloatBuffer p0) {
+    java.nio.FloatBuffer p0) {
     }
-
+    
     @org.jetbrains.annotations.NotNull()
     @java.lang.Override()
     public java.nio.FloatBuffer getNormals() {
         return null;
     }
-
+    
     @java.lang.Override()
     public void setNormals(@org.jetbrains.annotations.NotNull()
-                               java.nio.FloatBuffer p0) {
+    java.nio.FloatBuffer p0) {
     }
-
+    
     @org.jetbrains.annotations.NotNull()
     @java.lang.Override()
     public java.nio.FloatBuffer getTexcoords() {
         return null;
     }
-
+    
     @java.lang.Override()
     public void setTexcoords(@org.jetbrains.annotations.NotNull()
-                                 java.nio.FloatBuffer p0) {
+    java.nio.FloatBuffer p0) {
     }
-
+    
     @org.jetbrains.annotations.NotNull()
     @java.lang.Override()
     public java.nio.IntBuffer getIndices() {
         return null;
     }
-
+    
     @java.lang.Override()
     public void setIndices(@org.jetbrains.annotations.NotNull()
-                               java.nio.IntBuffer p0) {
+    java.nio.IntBuffer p0) {
     }
-
+    
     public final float getRadius() {
         return 0.0F;
     }
-
+    
     public final void setRadius(float p0) {
     }
-
+    
     public final float getHeight() {
         return 0.0F;
     }
-
+    
     public final void setHeight(float p0) {
     }
-
+    
     public final int getSegments() {
         return 0;
     }
-
+    
     public final void setSegments(int p0) {
     }
-
+    
+    public Cone(float radius, float height, int segments) {
+        super(null);
+    }
+    
     /**
      * * Reads geometry from a file given by [filename]. The extension of [filename] will determine
-     * * whether the file will be read by [readFromOBJ] or [readFromSTL].
-     * *
-     * * Materials will be automatically used, if present.
+     *     * whether the file will be read by [readFromOBJ] or [readFromSTL].
+     *     *
+     *     * Materials will be automatically used, if present.
      */
     public void readFrom(@org.jetbrains.annotations.NotNull()
-                             java.lang.String filename) {
+    java.lang.String filename) {
     }
-
+    
     /**
      * * Reads geometry from a file given by [filename]. The extension of [filename] will determine
-     * * whether the file will be read by [readFromOBJ] or [readFromSTL].
-     * *
-     * * Materials will be used, if present and [useMaterial] is true.
+     *     * whether the file will be read by [readFromOBJ] or [readFromSTL].
+     *     *
+     *     * Materials will be used, if present and [useMaterial] is true.
      */
     public void readFrom(@org.jetbrains.annotations.NotNull()
-                             java.lang.String filename, boolean useMaterial) {
+    java.lang.String filename, boolean useMaterial) {
     }
-
+    
     /**
      * * Reads an OBJ file's material properties from the corresponding MTL file
-     * *
-     * * @param[filename] The filename of the MTL file, stored in the OBJ usually
-     * * @return A HashMap storing material name and [Material].
+     *     *
+     *     * @param[filename] The filename of the MTL file, stored in the OBJ usually
+     *     * @return A HashMap storing material name and [Material].
      */
     @org.jetbrains.annotations.NotNull()
     public java.util.HashMap<java.lang.String, graphics.scenery.Material> readFromMTL(@org.jetbrains.annotations.NotNull()
-                                                                                          java.lang.String filename) {
+    java.lang.String filename) {
         return null;
     }
-
+    
     /**
      * * Read the [Node]'s geometry from an OBJ file, including materials
-     * *
-     * * @param[filename] The filename to read from.
+     *     *
+     *     * @param[filename] The filename to read from.
      */
     public void readFromOBJ(@org.jetbrains.annotations.NotNull()
-                                java.lang.String filename) {
+    java.lang.String filename) {
     }
-
+    
     /**
      * * Read the [Node]'s geometry from an OBJ file, and choose whether the OBJ-defined materials shall be imported.
-     * *
-     * * @param[filename] The filename to read from.
-     * * @param[importMaterials] Whether a accompanying MTL file shall be used, defaults to true.
+     *     *
+     *     * @param[filename] The filename to read from.
+     *     * @param[importMaterials] Whether a accompanying MTL file shall be used, defaults to true.
      */
     public void readFromOBJ(@org.jetbrains.annotations.NotNull()
-                                java.lang.String filename, boolean importMaterials) {
+    java.lang.String filename, boolean importMaterials) {
     }
-
+    
     /**
      * * Read the [Node]'s geometry from an OBJ file, possible including materials
-     * *
-     * * @param[filename] The filename to read from.
-     * * @param[importMaterials] Whether a accompanying MTL file shall be used, defaults to true.
-     * * @param[flipNormals] Whether to flip the normals after reading them.
+     *     *
+     *     * @param[filename] The filename to read from.
+     *     * @param[importMaterials] Whether a accompanying MTL file shall be used, defaults to true.
+     *     * @param[flipNormals] Whether to flip the normals after reading them.
      */
     public void readFromOBJ(@org.jetbrains.annotations.NotNull()
-                                java.lang.String filename, boolean importMaterials, boolean flipNormals) {
+    java.lang.String filename, boolean importMaterials, boolean flipNormals) {
     }
-
+    
     /**
      * * Read the [Node]'s geometry from an STL file
-     * *
-     * * @param[filename] The filename to read from.
+     *     *
+     *     * @param[filename] The filename to read from.
      */
     public void readFromSTL(@org.jetbrains.annotations.NotNull()
-                                java.lang.String filename) {
+    java.lang.String filename) {
     }
-
+    
     /**
      * * Recalculates normals, assuming CCW winding order and taking
-     * * STL's facet storage format into account.
+     *     * STL's facet storage format into account.
      */
     public void recalculateNormals() {
     }

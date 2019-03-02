@@ -1,5 +1,7 @@
 package graphics.scenery.fonts;
 
+import java.lang.System;
+
 /**
  * * Creates renderer-agnostic signed-distance fields (SDF) of fonts
  * *
@@ -13,205 +15,206 @@ package graphics.scenery.fonts;
 public class SDFFontAtlas {
     @org.jetbrains.annotations.NotNull()
     private final kotlin.Lazy logger$delegate = null;
+    
     /**
-     * Hash map of the char linked to it's width and a byte buffer with the SDF of the char
+     * default charset for the SDF font atlas, default is ASCII charset 
+     */
+    @org.jetbrains.annotations.NotNull()
+    private kotlin.ranges.IntRange charset;
+    
+    /**
+     * Hash map of the char linked to it's width and a byte buffer with the SDF of the char 
      */
     @org.jetbrains.annotations.NotNull()
     private final java.util.LinkedHashMap<java.lang.Character, kotlin.Pair<java.lang.Float, java.nio.ByteBuffer>> fontMap = null;
+    
+    /**
+     * Font size for the SDF 
+     */
+    private float fontSize;
+    
+    /**
+     * Texcoord storage for each glyph 
+     */
+    @org.jetbrains.annotations.NotNull()
+    private java.util.HashMap<java.lang.Character, cleargl.GLVector> glyphTexcoords;
+    
+    /**
+     * Font atlas width 
+     */
+    private int atlasWidth;
+    
+    /**
+     * Font atlas height 
+     */
+    private int atlasHeight;
+    
+    /**
+     * Backing store for the font atlas, will finally have a size of atlasWidth*atlasHeight. 
+     */
+    @org.jetbrains.annotations.NotNull()
+    private java.nio.ByteBuffer fontAtlasBacking;
     private final int sdfCacheFormatVersion = 1;
     @org.jetbrains.annotations.NotNull()
     private final java.lang.String cacheDir = null;
     @org.jetbrains.annotations.NotNull()
     private final java.lang.String sdfFileName = null;
     @org.jetbrains.annotations.NotNull()
+    private graphics.scenery.Hub hub;
+    @org.jetbrains.annotations.NotNull()
     private final java.lang.String fontName = null;
     private final int distanceFieldSize = 0;
     private final int maxDistance = 0;
-    /**
-     * default charset for the SDF font atlas, default is ASCII charset
-     */
-    @org.jetbrains.annotations.NotNull()
-    private kotlin.ranges.IntRange charset;
-    /**
-     * Font size for the SDF
-     */
-    private float fontSize;
-    /**
-     * Texcoord storage for each glyph
-     */
-    @org.jetbrains.annotations.NotNull()
-    private java.util.HashMap<java.lang.Character, cleargl.GLVector> glyphTexcoords;
-    /**
-     * Font atlas width
-     */
-    private int atlasWidth;
-    /**
-     * Font atlas height
-     */
-    private int atlasHeight;
-    /**
-     * Backing store for the font atlas, will finally have a size of atlasWidth*atlasHeight.
-     */
-    @org.jetbrains.annotations.NotNull()
-    private java.nio.ByteBuffer fontAtlasBacking;
-    @org.jetbrains.annotations.NotNull()
-    private graphics.scenery.Hub hub;
-
-    public SDFFontAtlas(@org.jetbrains.annotations.NotNull()
-                            graphics.scenery.Hub hub, @org.jetbrains.annotations.NotNull()
-                            java.lang.String fontName, int distanceFieldSize, int maxDistance) {
-        super();
-    }
-
+    
     @org.jetbrains.annotations.NotNull()
     protected final org.slf4j.Logger getLogger() {
         return null;
     }
-
+    
     @org.jetbrains.annotations.NotNull()
     public final kotlin.ranges.IntRange getCharset() {
         return null;
     }
-
+    
     public final void setCharset(@org.jetbrains.annotations.NotNull()
-                                     kotlin.ranges.IntRange p0) {
+    kotlin.ranges.IntRange p0) {
     }
-
+    
     @org.jetbrains.annotations.NotNull()
     protected final java.util.LinkedHashMap<java.lang.Character, kotlin.Pair<java.lang.Float, java.nio.ByteBuffer>> getFontMap() {
         return null;
     }
-
+    
     protected final float getFontSize() {
         return 0.0F;
     }
-
+    
     protected final void setFontSize(float p0) {
     }
-
+    
     @org.jetbrains.annotations.NotNull()
     protected final java.util.HashMap<java.lang.Character, cleargl.GLVector> getGlyphTexcoords() {
         return null;
     }
-
+    
     protected final void setGlyphTexcoords(@org.jetbrains.annotations.NotNull()
-                                               java.util.HashMap<java.lang.Character, cleargl.GLVector> p0) {
+    java.util.HashMap<java.lang.Character, cleargl.GLVector> p0) {
     }
-
+    
     public final int getAtlasWidth() {
         return 0;
     }
-
+    
     public final void setAtlasWidth(int p0) {
     }
-
+    
     public final int getAtlasHeight() {
         return 0;
     }
-
+    
     public final void setAtlasHeight(int p0) {
     }
-
+    
     @org.jetbrains.annotations.NotNull()
     protected final java.nio.ByteBuffer getFontAtlasBacking() {
         return null;
     }
-
+    
     protected final void setFontAtlasBacking(@org.jetbrains.annotations.NotNull()
-                                                 java.nio.ByteBuffer p0) {
+    java.nio.ByteBuffer p0) {
     }
-
+    
     protected final int getSdfCacheFormatVersion() {
         return 0;
     }
-
+    
     @org.jetbrains.annotations.NotNull()
     protected final java.lang.String getCacheDir() {
         return null;
     }
-
+    
     @org.jetbrains.annotations.NotNull()
     protected final java.lang.String getSdfFileName() {
         return null;
     }
-
+    
     /**
      * * Dumps a given byte buffer to a file. Useful for debugging the SDF
-     * *
-     * * @param[buf] The ByteBuffer to dump.
+     *     *
+     *     * @param[buf] The ByteBuffer to dump.
      */
     public final void dumpToFile(@org.jetbrains.annotations.NotNull()
-                                     java.nio.ByteBuffer buf) {
+    java.nio.ByteBuffer buf) {
     }
-
+    
     /**
      * * Dumps font metrics given in [fontMap] to a file.
      */
     public final void dumpMetricsToFile(@org.jetbrains.annotations.NotNull()
-                                            java.util.LinkedHashMap<java.lang.Character, kotlin.Pair<java.lang.Float, java.nio.ByteBuffer>> fontMap, @org.jetbrains.annotations.NotNull()
-                                            java.util.HashMap<java.lang.Character, cleargl.GLVector> glyphTexCoordMap) {
+    java.util.LinkedHashMap<java.lang.Character, kotlin.Pair<java.lang.Float, java.nio.ByteBuffer>> fontMap, @org.jetbrains.annotations.NotNull()
+    java.util.HashMap<java.lang.Character, cleargl.GLVector> glyphTexCoordMap) {
     }
-
+    
     /**
      * * Reads a font atlas from a file given by [filename].
      */
     @org.jetbrains.annotations.NotNull()
     protected final java.nio.ByteBuffer readAtlasFromFile(@org.jetbrains.annotations.NotNull()
-                                                              java.lang.String filename) {
+    java.lang.String filename) {
         return null;
     }
-
+    
     /**
      * * Reads font metrics from a file given by [filename].
      */
     protected final void readMetricsFromFile(@org.jetbrains.annotations.NotNull()
-                                                 java.lang.String filename, @org.jetbrains.annotations.NotNull()
-                                                 java.util.LinkedHashMap<java.lang.Character, kotlin.Pair<java.lang.Float, java.nio.ByteBuffer>> fontMap, @org.jetbrains.annotations.NotNull()
-                                                 java.util.HashMap<java.lang.Character, cleargl.GLVector> glyphMap) {
+    java.lang.String filename, @org.jetbrains.annotations.NotNull()
+    java.util.LinkedHashMap<java.lang.Character, kotlin.Pair<java.lang.Float, java.nio.ByteBuffer>> fontMap, @org.jetbrains.annotations.NotNull()
+    java.util.HashMap<java.lang.Character, cleargl.GLVector> glyphMap) {
     }
-
+    
     /**
      * * Generates an image of a given char with the Java font engine
-     * *
-     * * @param[c] The char to generate the image for
-     * * @param[font] The Java Font object of the font to use
-     * * @param[size] Size of the image
-     * * @returns A pair of char width and the image byte buffer
+     *     *
+     *     * @param[c] The char to generate the image for
+     *     * @param[font] The Java Font object of the font to use
+     *     * @param[size] Size of the image
+     *     * @returns A pair of char width and the image byte buffer
      */
     @org.jetbrains.annotations.NotNull()
     protected final kotlin.Pair<java.lang.Float, java.nio.ByteBuffer> genCharImage(char c, @org.jetbrains.annotations.NotNull()
-        java.awt.Font font, int size) {
+    java.awt.Font font, int size) {
         return null;
     }
-
+    
     /**
      * * Converts a map of chars and SDFs to a square texture that can be used
-     * * by a renderer.
-     * *
-     * * @param[map] map of a char to a pair of glyph width and the SDF byte buffer
-     * * @param[charSize] Pixel size of each glyph
-     * * @return A byte buffer containing the full font atlas texture
+     *     * by a renderer.
+     *     *
+     *     * @param[map] map of a char to a pair of glyph width and the SDF byte buffer
+     *     * @param[charSize] Pixel size of each glyph
+     *     * @return A byte buffer containing the full font atlas texture
      */
     @org.jetbrains.annotations.NotNull()
     protected final java.nio.ByteBuffer toFontAtlas(@org.jetbrains.annotations.NotNull()
-                                                        java.util.AbstractMap<java.lang.Character, kotlin.Pair<java.lang.Float, java.nio.ByteBuffer>> map, int charSize) {
+    java.util.AbstractMap<java.lang.Character, kotlin.Pair<java.lang.Float, java.nio.ByteBuffer>> map, int charSize) {
         return null;
     }
-
+    
     /**
      * * Reads a single line from a given buffer and returns the line as float array
-     * *
-     * * @param[lineSize] The pixel size of one line
-     * * @param[line] The number of the line to read
-     * * @param[buf] The ByteBuffer to read the line from
-     * * @return FloatArray of the line pixels
+     *     *
+     *     * @param[lineSize] The pixel size of one line
+     *     * @param[line] The number of the line to read
+     *     * @param[buf] The ByteBuffer to read the line from
+     *     * @return FloatArray of the line pixels
      */
     @org.jetbrains.annotations.NotNull()
     protected final byte[] readLineFromBuffer(int lineSize, int line, @org.jetbrains.annotations.NotNull()
-        java.nio.ByteBuffer buf) {
+    java.nio.ByteBuffer buf) {
         return null;
     }
-
+    
     /**
      * * Exposes the font atlas texture to the outside world
      */
@@ -219,50 +222,56 @@ public class SDFFontAtlas {
     public final java.nio.ByteBuffer getAtlas() {
         return null;
     }
-
+    
     /**
      * * Returns the texcoords for a given glyph
-     * *
-     * * @param[glyph] The char to get the texcoords for.
-     * * @return The char's texcoords.
+     *     *
+     *     * @param[glyph] The char to get the texcoords for.
+     *     * @return The char's texcoords.
      */
     @org.jetbrains.annotations.NotNull()
     public final cleargl.GLVector getTexcoordsForGlyph(char glyph) {
         return null;
     }
-
+    
     /**
      * * Creates a mesh for a given string, correctly aligning the glyphs on the mesh.
-     * *
-     * * @param[text] The text to create a mesh for
-     * * @return A [Mesh] with the glyphs on it (via texcoords).
+     *     *
+     *     * @param[text] The text to create a mesh for
+     *     * @return A [Mesh] with the glyphs on it (via texcoords).
      */
     @org.jetbrains.annotations.NotNull()
     @kotlin.Suppress(names = {"UNCHECKED_CAST"})
     public final graphics.scenery.Mesh createMeshForString(@org.jetbrains.annotations.NotNull()
-                                                               java.lang.String text) {
+    java.lang.String text) {
         return null;
     }
-
+    
     @org.jetbrains.annotations.NotNull()
     public final graphics.scenery.Hub getHub() {
         return null;
     }
-
+    
     public final void setHub(@org.jetbrains.annotations.NotNull()
-                                 graphics.scenery.Hub p0) {
+    graphics.scenery.Hub p0) {
     }
-
+    
     @org.jetbrains.annotations.NotNull()
     public final java.lang.String getFontName() {
         return null;
     }
-
+    
     public final int getDistanceFieldSize() {
         return 0;
     }
-
+    
     public final int getMaxDistance() {
         return 0;
+    }
+    
+    public SDFFontAtlas(@org.jetbrains.annotations.NotNull()
+    graphics.scenery.Hub hub, @org.jetbrains.annotations.NotNull()
+    java.lang.String fontName, int distanceFieldSize, int maxDistance) {
+        super();
     }
 }

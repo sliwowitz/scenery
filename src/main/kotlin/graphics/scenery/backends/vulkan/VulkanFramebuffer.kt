@@ -5,6 +5,7 @@ import org.lwjgl.vulkan.*
 import org.lwjgl.vulkan.VK10.*
 import vkk.*
 import vkk.entities.*
+import vkk.extensionFunctions.*
 import java.util.*
 
 /**

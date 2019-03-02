@@ -6,6 +6,10 @@ import org.lwjgl.system.MemoryStack.stackPush
 import org.lwjgl.vulkan.*
 import vkk.*
 import vkk.entities.VkCommandPool
+import vkk.extensionFunctions.createCommandPool
+import vkk.extensionFunctions.destroy
+import vkk.extensionFunctions.destroyCommandPool
+import vkk.extensionFunctions.waitIdle
 
 /**
  * Describes a Vulkan device attached to an [instance] and a [physicalDevice].

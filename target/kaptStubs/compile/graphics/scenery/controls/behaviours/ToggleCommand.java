@@ -1,5 +1,7 @@
 package graphics.scenery.controls.behaviours;
 
+import java.lang.System;
+
 /**
  * * Toggle command class. Enables to call a parameter-free method of an instance
  * * by the press of a button.
@@ -15,26 +17,26 @@ public final class ToggleCommand implements org.scijava.ui.behaviour.ClickBehavi
     private final java.lang.String name = null;
     private final java.lang.Object receiver = null;
     private final java.lang.String method = null;
-
-    public ToggleCommand(@org.jetbrains.annotations.NotNull()
-                             java.lang.String name, @org.jetbrains.annotations.NotNull()
-                             java.lang.Object receiver, @org.jetbrains.annotations.NotNull()
-                             java.lang.String method) {
-        super();
-    }
-
+    
     private final org.slf4j.Logger getLogger() {
         return null;
     }
-
+    
     /**
      * * This function is called upon arrival of an event that concerns
-     * * this behaviour. It will execute the given method on the given object instance.
-     * *
-     * * @param[x] x position in window (unused)
-     * * @param[y] y position in window (unused)
+     *     * this behaviour. It will execute the given method on the given object instance.
+     *     *
+     *     * @param[x] x position in window (unused)
+     *     * @param[y] y position in window (unused)
      */
     @java.lang.Override()
     public void click(int x, int y) {
+    }
+    
+    public ToggleCommand(@org.jetbrains.annotations.NotNull()
+    java.lang.String name, @org.jetbrains.annotations.NotNull()
+    java.lang.Object receiver, @org.jetbrains.annotations.NotNull()
+    java.lang.String method) {
+        super();
     }
 }

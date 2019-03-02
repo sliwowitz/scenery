@@ -1,5 +1,7 @@
 package graphics.scenery;
 
+import java.lang.System;
+
 /**
  * * Constructs a plane with the dimensions given in [sizes].
  * *
@@ -20,82 +22,82 @@ public class Plane extends graphics.scenery.Mesh implements graphics.scenery.Has
     private int texcoordSize;
     @org.jetbrains.annotations.NotNull()
     private graphics.scenery.GeometryType geometryType;
-
-    public Plane(@org.jetbrains.annotations.NotNull()
-                     cleargl.GLVector sizes) {
-        super(null);
-    }
-
+    
     @org.jetbrains.annotations.NotNull()
     @java.lang.Override()
     public java.nio.FloatBuffer getVertices() {
         return null;
     }
-
+    
     @java.lang.Override()
     public void setVertices(@org.jetbrains.annotations.NotNull()
-                                java.nio.FloatBuffer p0) {
+    java.nio.FloatBuffer p0) {
     }
-
+    
     @org.jetbrains.annotations.NotNull()
     @java.lang.Override()
     public java.nio.FloatBuffer getNormals() {
         return null;
     }
-
+    
     @java.lang.Override()
     public void setNormals(@org.jetbrains.annotations.NotNull()
-                               java.nio.FloatBuffer p0) {
+    java.nio.FloatBuffer p0) {
     }
-
+    
     @org.jetbrains.annotations.NotNull()
     @java.lang.Override()
     public java.nio.FloatBuffer getTexcoords() {
         return null;
     }
-
+    
     @java.lang.Override()
     public void setTexcoords(@org.jetbrains.annotations.NotNull()
-                                 java.nio.FloatBuffer p0) {
+    java.nio.FloatBuffer p0) {
     }
-
+    
     @org.jetbrains.annotations.NotNull()
     @java.lang.Override()
     public java.nio.IntBuffer getIndices() {
         return null;
     }
-
+    
     @java.lang.Override()
     public void setIndices(@org.jetbrains.annotations.NotNull()
-                               java.nio.IntBuffer p0) {
+    java.nio.IntBuffer p0) {
     }
-
+    
     @java.lang.Override()
     public int getVertexSize() {
         return 0;
     }
-
+    
     @java.lang.Override()
     public void setVertexSize(int p0) {
     }
-
+    
     @java.lang.Override()
     public int getTexcoordSize() {
         return 0;
     }
-
+    
     @java.lang.Override()
     public void setTexcoordSize(int p0) {
     }
-
+    
     @org.jetbrains.annotations.NotNull()
     @java.lang.Override()
     public graphics.scenery.GeometryType getGeometryType() {
         return null;
     }
-
+    
     @java.lang.Override()
     public void setGeometryType(@org.jetbrains.annotations.NotNull()
-                                    graphics.scenery.GeometryType p0) {
+    graphics.scenery.GeometryType p0) {
+    }
+    
+    public Plane(@org.jetbrains.annotations.NotNull()
+    cleargl.GLVector sizes) {
+        super(null);
     }
 }

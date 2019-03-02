@@ -1,5 +1,7 @@
 package graphics.scenery.controls;
 
+import java.lang.System;
+
 /**
  * * Enum class for the types of devices that can be tracked.
  * * Includes HMDs, controllers, base stations, generic devices, and invalid ones for the moment.
@@ -11,7 +13,7 @@ public enum TrackedDeviceType {
     /*public static final*/ Controller /* = new Controller() */,
     /*public static final*/ BaseStation /* = new BaseStation() */,
     /*public static final*/ Generic /* = new Generic() */;
-
+    
     TrackedDeviceType() {
     }
 }
