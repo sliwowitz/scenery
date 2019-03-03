@@ -270,7 +270,7 @@ open class SwingSwapchain(open val device: VulkanDevice,
                 .baseArrayLayer(0)
                 .layerCount(1)
 
-            with(VU.newCommandBuffer(device, commandPools.Standard, autostart = true)) {
+            with(VU.newCommandBuffer(device, commandPools.Standard.L, autostart = true)) {
                 for (i in 0 until imageCount.get(0)) {
                     images[i] = swapchainImages.get(i)
 
@@ -284,7 +284,7 @@ open class SwingSwapchain(open val device: VulkanDevice,
                         { VK10.vkCreateImageView(this@SwingSwapchain.device.vulkanDevice, colorAttachmentView, null, this) }, {})
                 }
 
-                endCommandBuffer(this@SwingSwapchain.device, commandPools.Standard, queue,
+                endCommandBuffer(this@SwingSwapchain.device, commandPools.Standard.L, queue,
                     flush = true, dealloc = true)
             }
 

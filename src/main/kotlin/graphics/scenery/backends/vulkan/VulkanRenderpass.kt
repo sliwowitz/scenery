@@ -14,6 +14,7 @@ import org.lwjgl.system.MemoryUtil
 import org.lwjgl.system.MemoryUtil.*
 import org.lwjgl.vulkan.*
 import org.lwjgl.vulkan.VK10.*
+import vkk.*
 import vkk.entities.VkDescriptorSetLayout
 import vkk.entities.VkPipelineCache
 import java.nio.IntBuffer
@@ -417,15 +418,16 @@ open class VulkanRenderpass(val name: String, var config: RenderConfigReader.Ren
         val blendMasks = VkPipelineColorBlendAttachmentState.calloc(framebuffer.colorAttachmentCount())
         (0 until framebuffer.colorAttachmentCount()).forEach {
             if (passConfig.renderTransparent) {
-                blendMasks[it]
-                    .blendEnable(true)
-                    .colorBlendOp(passConfig.colorBlendOp.toVulkan())
-                    .srcColorBlendFactor(passConfig.srcColorBlendFactor.toVulkan())
-                    .dstColorBlendFactor(passConfig.dstColorBlendFactor.toVulkan())
-                    .alphaBlendOp(passConfig.alphaBlendOp.toVulkan())
-                    .srcAlphaBlendFactor(passConfig.srcAlphaBlendFactor.toVulkan())
-                    .dstAlphaBlendFactor(passConfig.dstAlphaBlendFactor.toVulkan())
-                    .colorWriteMask(VK_COLOR_COMPONENT_R_BIT or VK_COLOR_COMPONENT_G_BIT or VK_COLOR_COMPONENT_B_BIT or VK_COLOR_COMPONENT_A_BIT)
+                blendMasks[it].apply {
+                    blendEnable =true
+                    colorBlendOp = passConfig.colorBlendOp.toVulkan()
+                    srcColorBlendFactor = passConfig.srcColorBlendFactor.toVulkan()
+                    dstColorBlendFactor = passConfig.dstColorBlendFactor.toVulkan()
+                    alphaBlendOp = passConfig.alphaBlendOp.toVulkan()
+                    srcAlphaBlendFactor = passConfig.srcAlphaBlendFactor.toVulkan()
+                    dstAlphaBlendFactor = passConfig.dstAlphaBlendFactor.toVulkan()
+                    colorWriteMask = VkColorComponent.RGBA_BIT.i
+                }
             } else {
                 blendMasks[it]
                     .blendEnable(false)

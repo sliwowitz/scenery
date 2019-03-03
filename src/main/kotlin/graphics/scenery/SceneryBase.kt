@@ -16,6 +16,9 @@ import graphics.scenery.utils.LazyLogger
 import graphics.scenery.utils.Renderdoc
 import graphics.scenery.utils.SceneryPanel
 import graphics.scenery.utils.Statistics
+import kool.reset
+import kool.stak
+import org.lwjgl.system.MemoryStack.stackGet
 import org.lwjgl.system.Platform
 import org.scijava.Context
 import org.scijava.ui.behaviour.ClickBehaviour
@@ -281,6 +284,8 @@ open class SceneryBase @JvmOverloads constructor(var applicationName: String,
                     frameTimes.push((renderer?.lastFrameTime ?: 1.0f) / 100.0f)
                     scene.activeObserver?.deltaT = frameTimes.average().toFloat()
                 }
+
+                stackGet().reset()
             }
 
             if (statsRequested && ticks % 100L == 0L) {

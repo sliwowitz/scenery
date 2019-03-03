@@ -391,8 +391,8 @@ open class VulkanFramebuffer(protected val device: VulkanDevice,
     /**
      * Gets all the image views of the current framebuffer.
      */
-    protected fun getAttachmentImageViews(): VkImageViewBuffer {
-        return VkImageViewBuffer(attachments.size) { attachments.values.elementAt(it).imageView }
+    protected fun getAttachmentImageViews(): VkImageView_Buffer {
+        return VkImageView_Buffer(attachments.size) { attachments.values.elementAt(it).imageView }
     }
 
     /**

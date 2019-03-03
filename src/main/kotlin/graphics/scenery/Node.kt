@@ -41,7 +41,7 @@ open class Node(open var name: String = "Node") : Renderable, Serializable {
     /** Hash map used for storing metadata for the Node. [Renderer] implementations use
      * it to e.g. store renderer-specific state. */
     @Transient
-    var metadata: HashMap<String, Any> = HashMap()
+    val metadata: HashMap<String, Any> = HashMap()
 
     /** Material of the Node */
     @Transient

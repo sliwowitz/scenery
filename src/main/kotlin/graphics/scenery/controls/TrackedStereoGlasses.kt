@@ -217,7 +217,7 @@ class TrackedStereoGlasses(var address: String = "device@localhost:5500", var sc
         vrpnTracker.update()
     }
 
-    override fun getVulkanInstanceExtensions(): List<String> = emptyList()
+    override fun getVulkanInstanceExtensions(): ArrayList<String> = arrayListOf()
 
     override fun getWorkingTracker(): TrackerInput? {
         if (initializedAndWorking()) {

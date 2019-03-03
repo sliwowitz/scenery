@@ -85,7 +85,7 @@ interface Display {
      *
      * @return [List] of strings containing the required instance extensions
      */
-    fun getVulkanInstanceExtensions(): List<String>
+    fun getVulkanInstanceExtensions(): ArrayList<String>
 
     /**
      * Returns a [List] of Vulkan device extensions required by the device.

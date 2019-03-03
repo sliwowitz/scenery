@@ -30,10 +30,8 @@ import java.nio.FloatBuffer
 import java.nio.IntBuffer
 import java.nio.LongBuffer
 import java.nio.charset.Charset
-import java.util.*
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.TimeUnit
-import kotlin.collections.ArrayList
 import kotlin.math.absoluteValue
 
 /**
@@ -730,20 +728,18 @@ open class OpenVRHMD(val seated: Boolean = true, val useCompositor: Boolean = tr
      *
      * @return [List] of strings containing the required instance extensions
      */
-    override fun getVulkanInstanceExtensions(): List<String> {
-        stackPush().use { stack ->
+    override fun getVulkanInstanceExtensions(): ArrayList<String> {
+        return stackPush().use { stack ->
             val buffer = stack.calloc(1024)
             val count = VRCompositor_GetVulkanInstanceExtensionsRequired(buffer)
 
             logger.debug("Querying required vulkan instance extensions...")
-            return if (count == 0) {
-                listOf()
-            } else {
-                val extensions = VRCompositor_GetVulkanInstanceExtensionsRequired(count).split(" ")
-
-                logger.debug("Vulkan required instance extensions are: ${extensions.joinToString()}")
-                return extensions
-            }
+            if (count == 0) {
+                arrayListOf()
+            } else VRCompositor_GetVulkanInstanceExtensionsRequired(count)
+                .split(" ").toCollection(ArrayList()).apply {
+                    logger.debug("Vulkan required instance extensions are: ${joinToString()}")
+                }
         }
     }
 

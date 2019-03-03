@@ -27,6 +27,7 @@ import org.zeromq.ZMQ
 import org.zeromq.ZMsg
 import org.zeromq.ZPoller
 import vkk.VkMemoryProperty
+import vkk.entities.VkCommandPool
 import java.math.BigInteger
 import java.nio.ByteBuffer
 import java.nio.ByteOrder
@@ -281,7 +282,7 @@ class Hololens : TrackerInput, Display, Hubable {
             dedicatedAllocationCreateInfo.dedicatedAllocation(true)
         }
 
-        val t = VulkanTexture(device, VulkanRenderer.CommandPools(commandPool, commandPool, commandPool, commandPool), queue, queue,
+        val t = VulkanTexture(device, VulkanRenderer.CommandPools(VkCommandPool(commandPool), VkCommandPool(commandPool), VkCommandPool(commandPool), VkCommandPool(commandPool)), queue, queue,
             width, height, 1,
             format, 1, true, true)
 
@@ -541,8 +542,8 @@ class Hololens : TrackerInput, Display, Hubable {
         return hololensDisplaySize
     }
 
-    override fun getVulkanInstanceExtensions(): List<String> {
-        return listOf("VK_NV_external_memory_capabilities",
+    override fun getVulkanInstanceExtensions(): ArrayList<String> {
+        return arrayListOf("VK_NV_external_memory_capabilities",
             "VK_KHR_external_memory_capabilities",
             "VK_KHR_get_physical_device_properties2")
     }

@@ -47,7 +47,7 @@ open class VulkanObjectState : NodeMetadata {
     var blendingHashCode = 0
 
     /** Whether this [graphics.scenery.Node] will use any default textures for any of its texture slots. */
-    var defaultTexturesFor = HashSet<String>()
+    val defaultTexturesFor = HashSet<String>()
 
     /** Descriptor sets required */
     var requiredDescriptorSets = HashMap<String, VkDescriptorSet>()
