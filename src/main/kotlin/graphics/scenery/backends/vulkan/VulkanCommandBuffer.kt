@@ -1,14 +1,11 @@
 package graphics.scenery.backends.vulkan
 
-import kool.set
-import org.lwjgl.system.MemoryUtil.*
-import org.lwjgl.vulkan.VK10.*
 import org.lwjgl.vulkan.VkCommandBuffer
-import org.lwjgl.vulkan.VkFenceCreateInfo
-import vkk.*
+import vkk.VkCommandBufferUsage
+import vkk.entities.VkCommandPool
 import vkk.entities.VkFence
 import vkk.extensionFunctions.*
-import java.nio.LongBuffer
+import vkk.vk
 
 /**
  * Vulkan Command Buffer class. Wraps command buffer and fencing functionality.
@@ -66,7 +63,7 @@ class VulkanCommandBuffer(val device: VulkanDevice, var commandBuffer: VkCommand
     fun getFence(): VkFence {
         return when {
             fenced -> fence
-            else -> return VkFence.NULL
+            else -> VkFence.NULL
         }
     }
 
@@ -77,6 +74,24 @@ class VulkanCommandBuffer(val device: VulkanDevice, var commandBuffer: VkCommand
         if (fenced && fenceInitialized) {
             vkDev.destroyFence(fence)
         }
+    }
+
+    /**
+     * Prepares this command buffer for recording, either initialising or
+     * resetting the associated Vulkan command buffer. Recording will take place in command pool [pool].
+     */
+    fun prepare(pool: VkCommandPool): VkCommandBuffer {
+        // start command buffer recording
+        if (commandBuffer == null) {
+            commandBuffer = VU.newCommandBuffer(device, pool)
+        }
+        return commandBuffer!!.apply {
+            reset()
+        }
+    }
+
+    inline fun record(block: VkCommandBuffer.() -> Unit) {
+        commandBuffer!!.record(block = block)
     }
 
     /**

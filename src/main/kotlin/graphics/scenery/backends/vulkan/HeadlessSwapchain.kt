@@ -9,6 +9,7 @@ import org.lwjgl.system.MemoryUtil
 import org.lwjgl.vulkan.*
 import vkk.VkBufferUsage
 import vkk.VkMemoryProperty
+import vkk.entities.VkSemaphore_Buffer
 import java.nio.ByteBuffer
 import java.nio.LongBuffer
 
@@ -181,7 +182,7 @@ open class HeadlessSwapchain(device: VulkanDevice,
     /**
      * Presents the current image.
      */
-    override fun present(waitForSemaphores: LongBuffer?) {
+    override fun present(waitForSemaphores: VkSemaphore_Buffer) {
         MemoryStack.stackPush().use { stack ->
             if (vulkanSwapchainRecreator.mustRecreate) {
                 return
@@ -192,7 +193,7 @@ open class HeadlessSwapchain(device: VulkanDevice,
 
             with(VU.newCommandBuffer(device, commandPools.Standard.L, autostart = true)) {
                 endCommandBuffer(this@HeadlessSwapchain.device, commandPools.Standard.L, presentQueue,
-                    waitSemaphores = waitForSemaphores, waitDstStageMask = mask,
+                    waitSemaphores = waitForSemaphores.buffer, waitDstStageMask = mask,
                     flush = true, dealloc = true)
             }
         }

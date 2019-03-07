@@ -2,25 +2,20 @@ package graphics.scenery.backends.vulkan
 
 import glm_.BYTES
 import glm_.L
-import kool.free
-import kool.indices
-import kool.set
-import kool.stak
+import kool.*
 import org.lwjgl.glfw.GLFWVulkan
 import org.lwjgl.system.MemoryUtil
+import org.lwjgl.system.Pointer
 import org.lwjgl.system.Struct
 import org.lwjgl.system.StructBuffer
-import org.lwjgl.vulkan.VK10.VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO
-import org.lwjgl.vulkan.VK10.vkAllocateCommandBuffers
+import org.lwjgl.vulkan.VK10
 import org.lwjgl.vulkan.VkCommandBuffer
-import org.lwjgl.vulkan.VkCommandBufferAllocateInfo
 import org.lwjgl.vulkan.VkDevice
+import org.lwjgl.vulkan.VkQueue
 import vkk.*
 import vkk.entities.*
-import vkk.extensionFunctions.allocateDescriptorSet
-import vkk.extensionFunctions.begin
-import vkk.extensionFunctions.end
-import vkk.extensionFunctions.updateDescriptorSets
+import vkk.extensionFunctions.*
+import java.nio.IntBuffer
 
 fun VkDeviceSize(size: Int): VkDeviceSize = VkDeviceSize(size.L)
 
@@ -47,19 +42,32 @@ inline class NanoSecond(val L: Long) {
  * Creates and returns a new command buffer on [device], associated with [commandPool]. By default, it'll be a primary
  * command buffer, that can be changed by setting [level] to [VK_COMMAND_BUFFER_LEVEL_SECONDARY].
  */
-fun VulkanDevice.newCommandBuffer(commandPool: VkCommandPool, level: VkCommandBufferLevel = VkCommandBufferLevel.PRIMARY): VkCommandBuffer =
-    stak {
-        val cmdBufAllocateInfo = VkCommandBufferAllocateInfo.callocStack(it)
-            .sType(VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO)
-            .commandPool(commandPool.L)
-            .level(level.i)
-            .commandBufferCount(1)
-
-        val pCommandBuffer = it.callocPointer(1)
-        vkAllocateCommandBuffers(vulkanDevice, cmdBufAllocateInfo, pCommandBuffer)
-
-        VkCommandBuffer(pCommandBuffer[0], vulkanDevice)
+fun VkDevice.useCommandBuffer(commandPool: VkCommandPool,
+                               level: VkCommandBufferLevel = VkCommandBufferLevel.PRIMARY,
+                               block: (VkCommandBuffer) -> Unit) {
+    val cmdBufAllocateInfo = vk.CommandBufferAllocateInfo {
+        this.commandPool = commandPool
+        this.level = level
+        commandBufferCount = 1
     }
+    val cmd = allocateCommandBuffers<VkCommandBuffer>(cmdBufAllocateInfo)
+    block(cmd)
+    freeCommandBuffer(commandPool, cmd)
+}
+
+/**
+ * Creates and returns a new command buffer on [device], associated with [commandPool]. By default, it'll be a primary
+ * command buffer, that can be changed by setting [level] to [VK_COMMAND_BUFFER_LEVEL_SECONDARY].
+ */
+fun VkDevice.newCommandBuffer(commandPool: VkCommandPool,
+                               level: VkCommandBufferLevel = VkCommandBufferLevel.PRIMARY): VkCommandBuffer {
+    val cmdBufAllocateInfo = vk.CommandBufferAllocateInfo {
+        this.commandPool = commandPool
+        this.level = level
+        commandBufferCount = 1
+    }
+    return allocateCommandBuffers(cmdBufAllocateInfo)
+}
 
 //fun newCommandBuffer(commandPool: VkCommandPool, level: VkCommandBufferLevel = VkCommandBufferLevel.PRIMARY): VkCommandBuffer {
 //    val cmdBuf = newCommandBuffer(device, VkCommandPool(commandPool), VkCommandBufferLevel(level))
@@ -72,9 +80,11 @@ fun VulkanDevice.newCommandBuffer(commandPool: VkCommandPool, level: VkCommandBu
 //}
 
 /** begin .. end */
-inline fun <R> VkCommandBuffer.record(flags: VkCommandBufferUsageFlags = VkCommandBufferUsage.SIMULTANEOUS_USE_BIT.i, block: VkCommandBuffer.() -> R): R {
+inline fun VkCommandBuffer.record(flags: VkCommandBufferUsageFlags = VkCommandBufferUsage.SIMULTANEOUS_USE_BIT.i, block: VkCommandBuffer.() -> Unit): VkCommandBuffer {
     begin(flags)
-    return block().also { end() }
+    block()
+    end()
+    return this
 }
 
 object glfw {
@@ -160,3 +170,60 @@ fun VkDevice.createDescriptorSet(descriptorPool: VkDescriptorPool, descriptorSet
 
     return descriptorSet
 }
+
+/**
+ * Creates and returns a new descriptor set layout on [device] with one member of [type], which is by default a
+ * dynamic uniform buffer. The [binding] and number of descriptors ([descriptorNum], [descriptorCount]) can be
+ * customized,  as well as the shader stages to which the DSL should be visible ([shaderStages]).
+ */
+fun VkDevice.createDescriptorSetLayout(type: VkDescriptorType = VkDescriptorType.UNIFORM_BUFFER_DYNAMIC, binding: Int = 0, descriptorNum: Int = 1,
+                                       descriptorCount: Int = 1, shaderStages: VkShaderStageFlags = VkShaderStage.ALL.i): VkDescriptorSetLayout {
+
+    val layoutBinding = vk.DescriptorSetLayoutBinding(descriptorNum)
+
+    (binding until descriptorNum).forEach { i ->
+        layoutBinding[i].apply {
+            this.binding = i
+            descriptorType = type
+            this.descriptorCount = descriptorCount
+            stageFlags = shaderStages
+        }
+    }
+
+    val descriptorLayout = vk.DescriptorSetLayoutCreateInfo(layoutBinding)
+
+    return createDescriptorSetLayout(descriptorLayout).apply {
+        VU.logger.debug("Created DSL $asHexString with $descriptorNum descriptors with $descriptorCount elements.")
+    }
+}
+
+/**
+ * Submits the given command buffer to the queue [queue].
+ *
+ * [submitInfoPNext], [signalSemaphores], [waitSemaphores] and [waitDstStageMask] can be used to further fine-grain
+ * the submission process.
+ */
+fun VkCommandBuffer.submit(queue: VkQueue, submitInfoPNext: Pointer? = null,
+                           signalSemaphores: VkSemaphore_Buffer? = null, waitSemaphores: VkSemaphore_Buffer? = null,
+                           waitDstStageMask: IntBuffer? = null): VkCommandBuffer {
+
+    queue.submit(vk.SubmitInfo {
+        commandBuffer = this@submit
+        this.signalSemaphores = signalSemaphores
+        submitInfoPNext?.let { next = it.adr }
+        waitSemaphores?.let {
+            if (it.rem > 0 && waitDstStageMask != null) {
+                this.waitSemaphores = it
+                this.waitDstStageMask = waitDstStageMask
+            }
+        }
+    })
+    return this
+}
+//    vkFreeCommandBuffers(device.vulkanDevice, commandPool, this)
+
+
+fun VkDeviceSize_Buffer.free() = buffer.free()
+fun VkDeviceSize_Buffer.limit(newLimit: Int) = buffer.limit(newLimit)
+fun VkBuffer_Buffer.free() = buffer.free()
+fun VkBuffer_Buffer.limit(newLimit: Int) = buffer.limit(newLimit)

@@ -77,11 +77,11 @@ class VulkanBufferAllocation(val usage: VkBufferUsageFlags,
      * Tries to fit a new suballocation of [size] with the current suballocations. Returns
      * a new possible suballocation if feasible, and null otherwise.
      */
-    fun fit(size: Int): VulkanSuballocation? {
+    fun fit(size: VkDeviceSize): VulkanSuballocation? {
         suballocations.removeAll { s -> s.free }
         logger.trace("Trying to fit {} with {} pre-existing suballocs", size, suballocations.size)
 
-        val sizeWithSlack = VkDeviceSize(size + 512)
+        val sizeWithSlack = size + 512
         val spot = findFreeSpaceCandidate(sizeWithSlack)
 
         if (spot == null) {

@@ -30,6 +30,7 @@ import org.lwjgl.vulkan.VK10
 import org.lwjgl.vulkan.VK10.*
 import org.lwjgl.vulkan.VkQueue
 import vkk.VkMemoryProperty
+import vkk.entities.VkSemaphore_Buffer
 import java.nio.LongBuffer
 
 /**
@@ -300,10 +301,11 @@ class OpenGLSwapchain(val device: VulkanDevice,
      * Presents the currently rendered image, drawing the Vulkan image into the current
      * OpenGL context.
      */
-    override fun present(waitForSemaphores: LongBuffer?) {
+    override fun present(waitForSemaphores: VkSemaphore_Buffer) {
         glDisable(GL_DEPTH_TEST)
 
-        waitForSemaphores?.let { NVDrawVulkanImage.glWaitVkSemaphoreNV(waitForSemaphores.get(0)) }
+        if(waitForSemaphores.rem > 0)
+            NVDrawVulkanImage.glWaitVkSemaphoreNV(waitForSemaphores[0].L)
 
         // note: glDrawVkImageNV expects the OpenGL screen space conventions,
         // so the Vulkan image's ST coordinates have to be flipped

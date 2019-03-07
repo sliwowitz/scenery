@@ -17,6 +17,7 @@ import org.lwjgl.vulkan.KHRSwapchain.vkAcquireNextImageKHR
 import vkk.VkImageAspect
 import vkk.VkImageLayout
 import vkk.entities.VkImage
+import vkk.entities.VkSemaphore_Buffer
 import java.nio.IntBuffer
 import java.nio.LongBuffer
 import java.util.*
@@ -390,7 +391,7 @@ open class VulkanSwapchain(open val device: VulkanDevice,
     /**
      * Presents the current swapchain image on screen.
      */
-    override fun present(waitForSemaphores: LongBuffer?) {
+    override fun present(waitForSemaphores: VkSemaphore_Buffer) {
         // Present the current buffer to the swap chain
         // This will display the image
         swapchainPointer.put(0, handle)
@@ -404,7 +405,8 @@ open class VulkanSwapchain(open val device: VulkanDevice,
             .pImageIndices(swapchainImage)
             .pResults(null)
 
-        waitForSemaphores?.let { presentInfo.pWaitSemaphores(it) }
+        if(waitForSemaphores.rem > 0)
+            presentInfo.pWaitSemaphores(waitForSemaphores.buffer)
 
         // here we accept the VK_ERROR_OUT_OF_DATE_KHR error code, which
         // seems to spuriously occur on Linux upon resizing.

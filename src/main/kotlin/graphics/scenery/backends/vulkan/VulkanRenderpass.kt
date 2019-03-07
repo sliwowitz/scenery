@@ -10,13 +10,13 @@ import graphics.scenery.backends.ShaderType
 import graphics.scenery.backends.Shaders
 import graphics.scenery.utils.LazyLogger
 import graphics.scenery.utils.RingBuffer
+import kool.free
 import org.lwjgl.system.MemoryUtil
 import org.lwjgl.system.MemoryUtil.*
 import org.lwjgl.vulkan.*
 import org.lwjgl.vulkan.VK10.*
 import vkk.*
-import vkk.entities.VkDescriptorSetLayout
-import vkk.entities.VkPipelineCache
+import vkk.entities.*
 import java.nio.IntBuffer
 import java.nio.LongBuffer
 import java.util.*
@@ -123,13 +123,13 @@ open class VulkanRenderpass(val name: String, var config: RenderConfigReader.Ren
      * Vulkan metadata class, keeping information about viewports, scissor areas, etc.
      */
     class VulkanMetadata(var descriptorSets: LongBuffer = memAllocLong(10),
-                         var vertexBufferOffsets: LongBuffer = memAllocLong(4),
-                         var scissor: VkRect2D.Buffer = VkRect2D.calloc(1),
-                         var viewport: VkViewport.Buffer = VkViewport.calloc(1),
-                         var vertexBuffers: LongBuffer = memAllocLong(4),
+                         var vertexBufferOffsets: VkDeviceSize_Buffer = VkDeviceSize_Buffer(4),
+                         var scissor: VkRect2D = VkRect2D(),
+                         var viewport: VkViewport = VkViewport(),
+                         var vertexBuffers: VkBuffer_Buffer = VkBuffer_Buffer(4),
                          var clearValues: VkClearValue.Buffer? = null,
                          var renderArea: VkRect2D = VkRect2D.calloc(),
-                         var renderPassBeginInfo: VkRenderPassBeginInfo = VkRenderPassBeginInfo.calloc(),
+                         var renderPassBeginInfo: VkRenderPassBeginInfo = VkRenderPassBeginInfo(),
                          var uboOffsets: IntBuffer = memAllocInt(16),
                          var eye: IntBuffer = memAllocInt(1),
                          var renderLists: HashMap<VulkanCommandBuffer, Array<Node>> = HashMap()) : AutoCloseable {
@@ -137,17 +137,16 @@ open class VulkanRenderpass(val name: String, var config: RenderConfigReader.Ren
         /** Close this metadata instance, and frees all members */
         override fun close() {
             memFree(descriptorSets)
-            memFree(vertexBufferOffsets)
+            vertexBufferOffsets.free()
             scissor.free()
             viewport.free()
-            memFree(vertexBuffers)
+            vertexBuffers.free()
             clearValues?.free()
             renderArea.free()
             renderPassBeginInfo.free()
             memFree(uboOffsets)
             memFree(eye)
         }
-
     }
 
     /** [VulkanMetadata] for this renderpass */
@@ -539,7 +538,7 @@ open class VulkanRenderpass(val name: String, var config: RenderConfigReader.Ren
      * Returns the [commandBufferBacking]'s current read position. Used e.g.
      * to determine the most currently rendered swapchain image for a viewport pass.
      */
-    fun getReadPosition() = commandBufferBacking.currentReadPosition - 1
+    val readPosition get() = commandBufferBacking.currentReadPosition - 1
 
     /**
      * Returns the active [VulkanPipeline] for [forNode], if it has a preferred pipeline,

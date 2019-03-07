@@ -4,6 +4,7 @@ import graphics.scenery.Hub
 import graphics.scenery.backends.SceneryWindow
 import graphics.scenery.utils.SceneryFXPanel
 import graphics.scenery.utils.SceneryPanel
+import vkk.entities.VkSemaphore_Buffer
 import java.nio.LongBuffer
 
 /**
@@ -34,7 +35,7 @@ interface Swapchain : AutoCloseable {
      * Present routine, to be called when the image should be presented to a window or a buffer.
      * Optionally will wait on the semaphores given in [waitForSemaphores].
      */
-    fun present(waitForSemaphores: LongBuffer? = null)
+    fun present(waitForSemaphores: VkSemaphore_Buffer)
 
     /**
      * Post-present routine, e.g. for copying the rendered image or showing it in another window.
