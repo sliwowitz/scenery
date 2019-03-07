@@ -2497,7 +2497,7 @@ open class VulkanRenderer(hub: Hub,
                 if (pass.vulkanMetadata.descriptorSets.capacity() < requiredSets.rem) {
                     logger.debug("Reallocating descriptor set storage")
                     pass.vulkanMetadata.descriptorSets.free()
-                    pass.vulkanMetadata.descriptorSets = memAllocLong(requiredSets.rem)
+                    pass.vulkanMetadata.descriptorSets = VkDescriptorSet_Buffer(requiredSets.rem)
                 }
 
                 pass.vulkanMetadata.descriptorSets.apply {
@@ -2519,7 +2519,7 @@ open class VulkanRenderer(hub: Hub,
                 bindPipeline(VkPipelineBindPoint.GRAPHICS, pipeline.pipeline)
                 if (pass.vulkanMetadata.descriptorSets.limit() > 0) {
                     bindDescriptorSets(VkPipelineBindPoint.GRAPHICS, pipeline.layout,
-                        0, VkDescriptorSet_Buffer(pass.vulkanMetadata.descriptorSets), pass.vulkanMetadata.uboOffsets)
+                        0, pass.vulkanMetadata.descriptorSets, pass.vulkanMetadata.uboOffsets)
                 }
                 bindVertexBuffers(0, pass.vulkanMetadata.vertexBuffers, pass.vulkanMetadata.vertexBufferOffsets)
 
@@ -2547,24 +2547,21 @@ open class VulkanRenderer(hub: Hub,
 
         logger.trace("Creating postprocessing command buffer for {}/{} ({} attachments)", pass.name, target, target.attachments.count())
 
-        pass.vulkanMetadata.renderPassBeginInfo
-            .sType(VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO)
-            .pNext(NULL)
-            .renderPass(target.renderPass.L)
-            .framebuffer(target.framebuffer.L)
-            .renderArea(pass.vulkanMetadata.renderArea)
-            .pClearValues(pass.vulkanMetadata.clearValues)
-
+        pass.vulkanMetadata.renderPassBeginInfo.apply {
+            renderPass = target.renderPass
+            framebuffer = target.framebuffer
+            renderArea = pass.vulkanMetadata.renderArea
+            clearValues = pass.vulkanMetadata.clearValues
+        }
         if (!commandBuffer.stale) {
             return
         }
 
         // prepare command buffer and start recording
-        with(commandBuffer.prepareAndStartRecording(commandPools.Render.L)) {
+        commandBuffer.prepare(commandPools.Render).record {
 
-            vkCmdWriteTimestamp(this, VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT,
-                timestampQueryPool.L, 2 * renderpasses.values.indexOf(pass))
-            vkCmdBeginRenderPass(this, pass.vulkanMetadata.renderPassBeginInfo, VK_SUBPASS_CONTENTS_INLINE)
+            writeTimestamp(VkPipelineStage.BOTTOM_OF_PIPE_BIT.i, timestampQueryPool, 2 * renderpasses.values.indexOf(pass))
+            beginRenderPass(pass.vulkanMetadata.renderPassBeginInfo, VkSubpassContents.INLINE)
 
             setViewport(pass.vulkanMetadata.viewport)
             setScissor(pass.vulkanMetadata.scissor)
@@ -2573,15 +2570,16 @@ open class VulkanRenderer(hub: Hub,
             val vulkanPipeline = pipeline.getPipelineForGeometryType(GeometryType.TRIANGLES)
 
             if (pass.vulkanMetadata.descriptorSets.capacity() != pipeline.descriptorSpecs.count()) {
-                memFree(pass.vulkanMetadata.descriptorSets)
-                pass.vulkanMetadata.descriptorSets = memAllocLong(pipeline.descriptorSpecs.count())
+                pass.vulkanMetadata.descriptorSets.free()
+                pass.vulkanMetadata.descriptorSets = VkDescriptorSet_Buffer(pipeline.descriptorSpecs.count())
             }
 
             // allocate more vertexBufferOffsets than needed, set limit lateron
-            pass.vulkanMetadata.uboOffsets.position(0)
-            pass.vulkanMetadata.uboOffsets.limit(16)
-            (0..15).forEach { pass.vulkanMetadata.uboOffsets.put(it, 0) }
-
+            pass.vulkanMetadata.uboOffsets.apply {
+                position(0)
+                limit(16)
+                fill(0)
+            }
             if (logger.isDebugEnabled) {
                 logger.debug("${pass.name}: descriptor sets are {}", pass.descriptorSets.keys.joinToString())
                 logger.debug("pipeline provides {}", pipeline.descriptorSpecs.keys.joinToString())
@@ -2590,25 +2588,23 @@ open class VulkanRenderer(hub: Hub,
             // set the required descriptor sets for this render pass
             pass.vulkanMetadata.setRequiredDescriptorSetsPostprocess(pass, pipeline)
 
-            if (pipeline.pushConstantSpecs.containsKey("currentEye")) {
-                vkCmdPushConstants(this, vulkanPipeline.layout.L, VK_SHADER_STAGE_ALL, 0, pass.vulkanMetadata.eye)
+            if ("currentEye" in pipeline.pushConstantSpecs) {
+                pushConstants(vulkanPipeline.layout, VkShaderStage.ALL.i, 0, pass.vulkanMetadata.eye)
             }
 
-            vkCmdBindPipeline(this, VK_PIPELINE_BIND_POINT_GRAPHICS, vulkanPipeline.pipeline.L)
+            bindPipeline(VkPipelineBindPoint.GRAPHICS, vulkanPipeline.pipeline)
             if (pass.vulkanMetadata.descriptorSets.limit() > 0) {
                 logger.debug("Binding ${pass.vulkanMetadata.descriptorSets.limit()} descriptor sets with ${pass.vulkanMetadata.uboOffsets.limit()} required offsets")
-                vkCmdBindDescriptorSets(this, VK_PIPELINE_BIND_POINT_GRAPHICS,
-                    vulkanPipeline.layout.L, 0, pass.vulkanMetadata.descriptorSets, pass.vulkanMetadata.uboOffsets)
+                bindDescriptorSets(VkPipelineBindPoint.GRAPHICS, vulkanPipeline.layout,
+                    0, pass.vulkanMetadata.descriptorSets, pass.vulkanMetadata.uboOffsets)
             }
 
-            vkCmdDraw(this, 3, 1, 0, 0)
+            draw( 3, 1, 0, 0)
 
-            vkCmdEndRenderPass(this)
-            vkCmdWriteTimestamp(this, VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT,
-                timestampQueryPool.L, 2 * renderpasses.values.indexOf(pass) + 1)
+            endRenderPass()
+            writeTimestamp(VkPipelineStage.BOTTOM_OF_PIPE_BIT.i, timestampQueryPool, 2 * renderpasses.values.indexOf(pass) + 1)
 
             commandBuffer.stale = false
-            this.endCommandBuffer()
         }
     }
 
@@ -2639,7 +2635,7 @@ open class VulkanRenderer(hub: Hub,
 
             if (set != null) {
                 logger.trace("Adding DS#{} for {} to required pipeline DSs", i, dsName)
-                this.descriptorSets.put(i, set.L)
+                descriptorSets[i] = set
             } else {
                 logger.error("DS for {} not found!", dsName)
             }

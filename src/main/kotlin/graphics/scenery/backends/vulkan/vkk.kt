@@ -16,6 +16,7 @@ import vkk.*
 import vkk.entities.*
 import vkk.extensionFunctions.*
 import java.nio.IntBuffer
+import java.nio.LongBuffer
 
 fun VkDeviceSize(size: Int): VkDeviceSize = VkDeviceSize(size.L)
 
@@ -227,3 +228,10 @@ fun VkDeviceSize_Buffer.free() = buffer.free()
 fun VkDeviceSize_Buffer.limit(newLimit: Int) = buffer.limit(newLimit)
 fun VkBuffer_Buffer.free() = buffer.free()
 fun VkBuffer_Buffer.limit(newLimit: Int) = buffer.limit(newLimit)
+fun VkDescriptorSet_Buffer.free() = buffer.free()
+fun VkDescriptorSet_Buffer.limit() = buffer.limit()
+fun VkDescriptorSet_Buffer.limit(newLimit: Int) = buffer.limit(newLimit)
+fun VkDescriptorSet_Buffer.rewind() = buffer.rewind()
+fun VkDescriptorSet_Buffer.capacity() = buffer.capacity()
+fun VkDescriptorSet_Buffer.position(newPosition: Int) = buffer.position(newPosition)
+fun VkDescriptorSet_Buffer.put(src: LongBuffer) = buffer.put(src)

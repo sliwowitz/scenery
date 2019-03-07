@@ -122,7 +122,7 @@ open class VulkanRenderpass(val name: String, var config: RenderConfigReader.Ren
     /**
      * Vulkan metadata class, keeping information about viewports, scissor areas, etc.
      */
-    class VulkanMetadata(var descriptorSets: LongBuffer = memAllocLong(10),
+    class VulkanMetadata(var descriptorSets: VkDescriptorSet_Buffer = VkDescriptorSet_Buffer(10),
                          var vertexBufferOffsets: VkDeviceSize_Buffer = VkDeviceSize_Buffer(4),
                          var scissor: VkRect2D = VkRect2D(),
                          var viewport: VkViewport = VkViewport(),
@@ -136,7 +136,7 @@ open class VulkanRenderpass(val name: String, var config: RenderConfigReader.Ren
 
         /** Close this metadata instance, and frees all members */
         override fun close() {
-            memFree(descriptorSets)
+            descriptorSets.free()
             vertexBufferOffsets.free()
             scissor.free()
             viewport.free()
