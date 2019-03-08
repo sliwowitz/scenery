@@ -224,6 +224,7 @@ fun VkCommandBuffer.submit(queue: VkQueue, submitInfoPNext: Pointer? = null,
 //    vkFreeCommandBuffers(device.vulkanDevice, commandPool, this)
 
 
+fun VkSemaphore_Buffer.free() = buffer.free()
 fun VkDeviceSize_Buffer.free() = buffer.free()
 fun VkDeviceSize_Buffer.limit(newLimit: Int) = buffer.limit(newLimit)
 fun VkBuffer_Buffer.free() = buffer.free()

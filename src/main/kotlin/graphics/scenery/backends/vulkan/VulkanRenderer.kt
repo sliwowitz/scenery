@@ -16,10 +16,10 @@ import kotlinx.coroutines.*
 import org.lwjgl.glfw.GLFW.glfwInit
 import org.lwjgl.glfw.GLFWVulkan.glfwVulkanSupported
 import org.lwjgl.system.Configuration
-import org.lwjgl.system.MemoryUtil.*
+import org.lwjgl.system.MemoryUtil.memAlloc
+import org.lwjgl.system.MemoryUtil.memByteBuffer
 import org.lwjgl.system.Platform
 import org.lwjgl.vulkan.*
-import org.lwjgl.vulkan.EXTDebugReport.vkDestroyDebugReportCallbackEXT
 import org.lwjgl.vulkan.KHRSurface.VK_KHR_SURFACE_EXTENSION_NAME
 import org.lwjgl.vulkan.KHRWin32Surface.VK_KHR_WIN32_SURFACE_EXTENSION_NAME
 import org.lwjgl.vulkan.KHRXlibSurface.VK_KHR_XLIB_SURFACE_EXTENSION_NAME
@@ -2599,7 +2599,7 @@ open class VulkanRenderer(hub: Hub,
                     0, pass.vulkanMetadata.descriptorSets, pass.vulkanMetadata.uboOffsets)
             }
 
-            draw( 3, 1, 0, 0)
+            draw(3, 1, 0, 0)
 
             endRenderPass()
             writeTimestamp(VkPipelineStage.BOTTOM_OF_PIPE_BIT.i, timestampQueryPool, 2 * renderpasses.values.indexOf(pass) + 1)
@@ -2663,11 +2663,7 @@ open class VulkanRenderer(hub: Hub,
     }
 
     private fun Display.wantsVR(): Display? {
-        return if (settings.get("vr.Active")) {
-            this@wantsVR
-        } else {
-            null
-        }
+        return this@wantsVR.takeIf { settings.get("vr.Active") }
     }
 
     private fun getDescriptorCache(): ConcurrentHashMap<String, VkDescriptorSet> {
@@ -2763,7 +2759,7 @@ open class VulkanRenderer(hub: Hub,
                     val propertyUbo = it.value.second
                     val offset = propertyUbo.backingBuffer!!.advance()
                     nodeUpdated = propertyUbo.populate(offset = offset.toLong())
-                    propertyUbo.offsets.put(0, offset)
+                    propertyUbo.offsets[0] = offset
                     propertyUbo.offsets.limit(1)
                 }
 
@@ -2845,7 +2841,7 @@ open class VulkanRenderer(hub: Hub,
         initialized = false
 
         logger.info("Renderer teardown started.")
-        vkQueueWaitIdle(queue)
+        queue.waitIdle()
 
         logger.debug("Cleaning texture cache...")
         textureCache.forEach {
@@ -2857,7 +2853,7 @@ open class VulkanRenderer(hub: Hub,
         scene.discover(scene, { true }).forEach {
             destroyNode(it)
         }
-        scene.metadata.remove("DescriptorCache")
+        scene.metadata -= "DescriptorCache"
         scene.initialized = false
 
         logger.debug("Closing buffers...")
@@ -2874,18 +2870,19 @@ open class VulkanRenderer(hub: Hub,
         }
 
         logger.debug("Closing descriptor sets and pools...")
-        descriptorSetLayouts.forEach { vkDestroyDescriptorSetLayout(device.vulkanDevice, it.value.L, null) }
-        vkDestroyDescriptorPool(device.vulkanDevice, descriptorPool.L, null)
+        descriptorSetLayouts.forEach { vkDev.destroyDescriptorSetLayout(it.value) }
+        vkDev.destroyDescriptorPool(descriptorPool)
 
         logger.debug("Closing command buffers...")
-        memFree(ph.waitStages)
+        ph.signalSemaphore.free()
+        ph.waitStages.free()
 
         if (timestampQueryPool.isValid) {
             logger.debug("Closing query pools...")
-            vkDestroyQueryPool(device.vulkanDevice, timestampQueryPool.L, null)
+            vkDev.destroyQueryPool(timestampQueryPool)
         }
 
-        semaphores.forEach { it.value.forEach { semaphore -> vkDestroySemaphore(device.vulkanDevice, semaphore.L, null) } }
+        semaphores.forEach { it.value.forEach { semaphore -> vkDev.destroySemaphore(semaphore) } }
 
         semaphoreCreateInfo.free()
 
@@ -2906,10 +2903,10 @@ open class VulkanRenderer(hub: Hub,
             device.destroyCommandPool(Standard)
         }
 
-        vkDestroyPipelineCache(device.vulkanDevice, pipelineCache.L, null)
+        vkDev.destroyPipelineCache(pipelineCache)
 
         if (validation) {
-            vkDestroyDebugReportCallbackEXT(instance, debugCallbackHandle.L, null)
+            instance.destroyDebugReportCallbackEXT(debugCallbackHandle)
         }
 
         debugCallback.free()
@@ -2918,14 +2915,12 @@ open class VulkanRenderer(hub: Hub,
         device.close()
 
         logger.debug("Closing instance...")
-        vkDestroyInstance(instance, null)
+        instance.destroy()
 
         logger.info("Renderer teardown complete.")
     }
 
-    override fun reshape(newWidth: Int, newHeight: Int) {
-
-    }
+    override fun reshape(newWidth: Int, newHeight: Int) {}
 
     @Suppress("UNUSED")
     fun toggleFullscreen() {
