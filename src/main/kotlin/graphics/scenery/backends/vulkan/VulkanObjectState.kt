@@ -129,7 +129,7 @@ open class VulkanObjectState : NodeMetadata {
                 dstSet = descriptorSet
                 dstBinding = 0
                 dstArrayElement = i
-                imageInfo_ = d[i]
+                imageInfo = d[i]
                 descriptorType = VkDescriptorType.COMBINED_IMAGE_SAMPLER
             }
         }

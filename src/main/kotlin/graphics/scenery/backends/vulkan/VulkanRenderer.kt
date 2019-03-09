@@ -816,7 +816,7 @@ open class VulkanRenderer(hub: Hub,
             //            node.javaClass.kotlin.memberProperties.filter { it.findAnnotation<ShaderProperty>() != null }.forEach { logger.info("${node.name}.${it.name} is ShaderProperty!") }
             val needsShaderPropertyUBO = node.javaClass.kotlin.memberProperties.any { it.findAnnotation<ShaderProperty>() != null }
             if (needsShaderPropertyUBO) {
-                var dsl = 0L
+                var dsl = VkDescriptorSetLayout.NULL
 
                 renderpasses.filter {
                     (it.value.passConfig.type == RenderConfigReader.RenderpassType.geometry || it.value.passConfig.type == RenderConfigReader.RenderpassType.lights)
@@ -827,10 +827,9 @@ open class VulkanRenderer(hub: Hub,
                         dsl = pass.value.initializeShaderPropertyDescriptorSetLayout()
                     }
 
-                val descriptorSet = VU.createDescriptorSetDynamic(device, descriptorPool.L, dsl,
-                    1, buffers["ShaderPropertyBuffer"]!!)
+                val descriptorSet = vkDev.createDescriptorSetDynamic(descriptorPool, dsl,1, buffers["ShaderPropertyBuffer"]!!)
 
-                s.requiredDescriptorSets["ShaderProperties"] = VkDescriptorSet(descriptorSet)
+                s.requiredDescriptorSets["ShaderProperties"] = descriptorSet
             }
 
 
@@ -1370,7 +1369,7 @@ open class VulkanRenderer(hub: Hub,
 
         config.createRenderpassFlow().map { passName ->
             val passConfig = config.renderpasses[passName]!!
-            val pass = VulkanRenderpass(passName, config, device, descriptorPool.L, pipelineCache.L, vertexDescriptors)
+            val pass = VulkanRenderpass(passName, config, device, descriptorPool, pipelineCache, vertexDescriptors)
 
             var width = windowWidth
             var height = windowHeight
@@ -1892,21 +1891,21 @@ open class VulkanRenderer(hub: Hub,
 
             target.submitCommandBuffers[0] = commandBuffer.commandBuffer!!
             target.signalSemaphores[0] = target.semaphore
-            target.waitSemaphores[0] = waitSemaphore.L
+            target.waitSemaphores[0] = waitSemaphore
             target.waitStages[0] = VkPipelineStage.COLOR_ATTACHMENT_OUTPUT_BIT.i
 
             si.apply {
                 waitSemaphoreCount = 1
                 waitDstStageMask = target.waitStages
-                commandBuffers = target.submitCommandBuffers
-                signalSemaphores = VkSemaphore_Buffer(target.signalSemaphores)
-                waitSemaphores = VkSemaphore_Buffer(target.waitSemaphores)
+                commandBuffers = target.submitCommandBuffers.buffer
+                signalSemaphores = target.signalSemaphores
+                waitSemaphores = target.waitSemaphores
             }
             queue.submit(si, commandBuffer.getFence())
 
             commandBuffer.submitted = true
-            firstWaitSemaphore = VkSemaphore(target.semaphore)
-            waitSemaphore = VkSemaphore(target.semaphore)
+            firstWaitSemaphore = target.semaphore
+            waitSemaphore = target.semaphore
         }
 
         val viewportPass = renderpasses.values.last()
@@ -2472,11 +2471,11 @@ open class VulkanRenderer(hub: Hub,
                         }
 
                         name.startsWith("Inputs") -> {
-                            pass.descriptorSets["input-${pass.name}-${name.substringAfter("-")}"]?.let { DescriptorSet.Set(VkDescriptorSet(it), "Inputs") }
+                            pass.descriptorSets["input-${pass.name}-${name.substringAfter("-")}"]?.let { DescriptorSet.Set(it, "Inputs") }
                         }
 
                         name == "ShaderParameters" -> {
-                            pass.descriptorSets["ShaderParameters-${pass.name}"]?.let { DescriptorSet.Set(VkDescriptorSet(it), name) }
+                            pass.descriptorSets["ShaderParameters-${pass.name}"]?.let { DescriptorSet.Set(it, name) }
                         }
 
                         else -> s.UBOs[name]?.let { DescriptorSet.DynamicSet(it.first, offset = it.second.offsets[0], name = name) }
@@ -2630,7 +2629,7 @@ open class VulkanRenderer(hub: Hub,
             val set = if (dsName == "Matrices" || dsName == "LightParameters" || dsName == "VRParameters") {
                 this@VulkanRenderer.descriptorSets[dsName]
             } else {
-                pass.descriptorSets[dsName]?.let(::VkDescriptorSet)
+                pass.descriptorSets[dsName]
             }
 
             if (set != null) {

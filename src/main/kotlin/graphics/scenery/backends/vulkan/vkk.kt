@@ -2,13 +2,14 @@ package graphics.scenery.backends.vulkan
 
 import glm_.BYTES
 import glm_.L
+import graphics.scenery.backends.RenderConfigReader
 import kool.*
+import org.lwjgl.PointerBuffer
 import org.lwjgl.glfw.GLFWVulkan
 import org.lwjgl.system.MemoryUtil
 import org.lwjgl.system.Pointer
 import org.lwjgl.system.Struct
 import org.lwjgl.system.StructBuffer
-import org.lwjgl.vulkan.VK10
 import org.lwjgl.vulkan.VkCommandBuffer
 import org.lwjgl.vulkan.VkDevice
 import org.lwjgl.vulkan.VkQueue
@@ -44,8 +45,8 @@ inline class NanoSecond(val L: Long) {
  * command buffer, that can be changed by setting [level] to [VK_COMMAND_BUFFER_LEVEL_SECONDARY].
  */
 fun VkDevice.useCommandBuffer(commandPool: VkCommandPool,
-                               level: VkCommandBufferLevel = VkCommandBufferLevel.PRIMARY,
-                               block: (VkCommandBuffer) -> Unit) {
+                              level: VkCommandBufferLevel = VkCommandBufferLevel.PRIMARY,
+                              block: (VkCommandBuffer) -> Unit) {
     val cmdBufAllocateInfo = vk.CommandBufferAllocateInfo {
         this.commandPool = commandPool
         this.level = level
@@ -61,7 +62,7 @@ fun VkDevice.useCommandBuffer(commandPool: VkCommandPool,
  * command buffer, that can be changed by setting [level] to [VK_COMMAND_BUFFER_LEVEL_SECONDARY].
  */
 fun VkDevice.newCommandBuffer(commandPool: VkCommandPool,
-                               level: VkCommandBufferLevel = VkCommandBufferLevel.PRIMARY): VkCommandBuffer {
+                              level: VkCommandBufferLevel = VkCommandBufferLevel.PRIMARY): VkCommandBuffer {
     val cmdBufAllocateInfo = vk.CommandBufferAllocateInfo {
         this.commandPool = commandPool
         this.level = level
@@ -236,3 +237,92 @@ fun VkDescriptorSet_Buffer.rewind() = buffer.rewind()
 fun VkDescriptorSet_Buffer.capacity() = buffer.capacity()
 fun VkDescriptorSet_Buffer.position(newPosition: Int) = buffer.position(newPosition)
 fun VkDescriptorSet_Buffer.put(src: LongBuffer) = buffer.put(src)
+
+inline class VkCommandBuffer_Buffer(val buffer: PointerBuffer) {
+    operator fun set(index: Int, value: VkCommandBuffer) {
+        buffer[index] = value
+    }
+//    operator fun get(index: Int) = VkCommandBuffer(buffer[0])
+}
+
+fun VkCommandBuffer_Buffer(size: Int) = VkCommandBuffer_Buffer(PointerBuffer(size))
+fun VkCommandBuffer_Buffer.free() = buffer.free()
+
+/**
+ * Creates and returns a new descriptor set layout on [device] with the members declared in [types], which is
+ * a [List] of a Pair of a type, associated with a count (e.g. Dynamic UBO to 1). The base binding can be set with [binding].
+ * The shader stages to which the DSL should be visible can be set via [shaderStages].
+ */
+fun VkDevice.createDescriptorSetLayout(types: List<Pair<VkDescriptorType, Int>>, binding: Int = 0, shaderStages: VkShaderStageFlags): VkDescriptorSetLayout {
+
+    val layoutBinding = vk.DescriptorSetLayoutBinding(types.size)
+
+    types.forEachIndexed { i, (type, count) ->
+        layoutBinding[i].apply {
+            this.binding = i + binding
+            descriptorType = type
+            descriptorCount = count
+            stageFlags = shaderStages
+        }
+    }
+    return createDescriptorSetLayout(vk.DescriptorSetLayoutCreateInfo(layoutBinding)).apply {
+        VU.logger.debug("Created DSL $asHexString with ${types.size} descriptors.")
+    }
+}
+
+/**
+ * Creates and returns a new descriptor set for a framebuffer given as [target]. The set will be allocated on [device],
+ * from [descriptorPool], and conforms to an existing descriptor set layout [descriptorSetLayout]. Additional
+ * metadata about the framebuffer needs to be given via [rt], and a subset of the framebuffer can be selected
+ * by setting [onlyFor] to the respective name of the attachment.
+ */
+fun VkDevice.createRenderTargetDescriptorSet(descriptorPool: VkDescriptorPool, descriptorSetLayout: VkDescriptorSetLayout,
+                                             rt: Map<String, RenderConfigReader.TargetFormat>,
+                                             target: VulkanFramebuffer, onlyFor: String? = null): VkDescriptorSet {
+
+    val allocInfo = vk.DescriptorSetAllocateInfo(descriptorPool, descriptorSetLayout)
+
+    val descriptorSet: VkDescriptorSet = allocateDescriptorSets(allocInfo)
+
+    val descriptorWrites = when (onlyFor) {
+        null -> {
+            val writeDescriptorSet = vk.WriteDescriptorSet(rt.size)
+
+            rt.entries.forEachIndexed { i, entry ->
+                val attachment = target.attachments[entry.key]!!
+                val d = vk.DescriptorImageInfo(target.framebufferSampler, attachment.imageView, VkImageLayout.SHADER_READ_ONLY_OPTIMAL)
+
+                writeDescriptorSet[i].apply {
+                    dstSet = descriptorSet
+                    dstBinding = i
+                    dstArrayElement = 0
+                    imageInfo = d
+                    descriptorType = VkDescriptorType.COMBINED_IMAGE_SAMPLER
+                }
+            }
+            writeDescriptorSet
+        }
+        else -> {
+            val writeDescriptorSet = vk.WriteDescriptorSet(1)
+
+            rt.entries.first { it.key == onlyFor }.apply {
+                val attachment = target.attachments[this.key]!!
+                val d = vk.DescriptorImageInfo(target.framebufferSampler, attachment.imageView, VkImageLayout.SHADER_READ_ONLY_OPTIMAL)
+
+                writeDescriptorSet[0].apply {
+                    dstSet = descriptorSet
+                    dstBinding = 0
+                    dstArrayElement = 0
+                    imageInfo = d
+                    descriptorType = VkDescriptorType.COMBINED_IMAGE_SAMPLER
+                }
+            }
+            writeDescriptorSet
+        }
+    }
+
+    updateDescriptorSets(descriptorWrites)
+
+    VU.logger.debug("Creating framebuffer attachment descriptor $descriptorSet set with ${rt.size} bindings, DSL=$descriptorSetLayout")
+    return descriptorSet
+}

@@ -4,7 +4,7 @@ import java.util.*
 
 /**
  * Ring buffer class. Creates a ring buffer of size [size], with all elements
- * initialiased to a default value. Querying this ring buffer will return the current
+ * initialized to a default value. Querying this ring buffer will return the current
  * element of the buffer, and advance the read position. Setting it will store
  * the element, and advance the write position. Running one of these two operations
  * again will then affect the next element of the ring buffer.
