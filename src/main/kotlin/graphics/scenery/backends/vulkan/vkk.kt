@@ -12,6 +12,7 @@ import org.lwjgl.system.Struct
 import org.lwjgl.system.StructBuffer
 import org.lwjgl.vulkan.VkCommandBuffer
 import org.lwjgl.vulkan.VkDevice
+import org.lwjgl.vulkan.VkPhysicalDevice
 import org.lwjgl.vulkan.VkQueue
 import vkk.*
 import vkk.entities.*
@@ -112,7 +113,7 @@ object glfw {
 fun VkDevice.createDescriptorSetDynamic(descriptorPool: VkDescriptorPool, descriptorSetLayout: VkDescriptorSetLayout,
                                         bindingCount: Int, buffer: VulkanBuffer): VkDescriptorSet {
 
-    VU.logger.debug("Creating dynamic descriptor set with $bindingCount bindings, DSL=${descriptorSetLayout.asHexString}")
+    VU.logger.debug("Creating dynamic descriptor set with $bindingCount bindings, DSL=${descriptorSetLayout.hexString}")
 
     val allocInfo = vk.DescriptorSetAllocateInfo(descriptorPool, descriptorSetLayout)
 
@@ -195,7 +196,7 @@ fun VkDevice.createDescriptorSetLayout(type: VkDescriptorType = VkDescriptorType
     val descriptorLayout = vk.DescriptorSetLayoutCreateInfo(layoutBinding)
 
     return createDescriptorSetLayout(descriptorLayout).apply {
-        VU.logger.debug("Created DSL $asHexString with $descriptorNum descriptors with $descriptorCount elements.")
+        VU.logger.debug("Created DSL $hexString with $descriptorNum descriptors with $descriptorCount elements.")
     }
 }
 
@@ -266,7 +267,7 @@ fun VkDevice.createDescriptorSetLayout(types: List<Pair<VkDescriptorType, Int>>,
         }
     }
     return createDescriptorSetLayout(vk.DescriptorSetLayoutCreateInfo(layoutBinding)).apply {
-        VU.logger.debug("Created DSL $asHexString with ${types.size} descriptors.")
+        VU.logger.debug("Created DSL $hexString with ${types.size} descriptors.")
     }
 }
 
@@ -326,3 +327,7 @@ fun VkDevice.createRenderTargetDescriptorSet(descriptorPool: VkDescriptorPool, d
     VU.logger.debug("Creating framebuffer attachment descriptor $descriptorSet set with ${rt.size} bindings, DSL=$descriptorSetLayout")
     return descriptorSet
 }
+
+fun VkPhysicalDevice_Buffer.isEmpty() = rem == 0
+val VkPhysicalDevice_Buffer.indices get() = buffer.indices
+operator fun VkPhysicalDevice_Buffer.get(index: Int) = VkPhysicalDevice(buffer[index], null)

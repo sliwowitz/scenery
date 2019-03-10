@@ -5,6 +5,7 @@ import cleargl.GLVector
 import glm_.i
 import graphics.scenery.*
 import graphics.scenery.backends.*
+import graphics.scenery.backends.Display
 import graphics.scenery.backends.RenderConfigReader.TargetFormat.*
 import graphics.scenery.backends.vulkan.VU.createDescriptorSetLayout
 import graphics.scenery.spirvcrossj.Loader
@@ -1343,7 +1344,7 @@ open class VulkanRenderer(hub: Hub,
         descriptorSetLayouts
             .filter { it.key.startsWith("outputs-") }
             .map {
-                logger.debug("Marking RT DSL ${it.value.asHexString} for deletion")
+                logger.debug("Marking RT DSL ${it.value.hexString} for deletion")
                 vkDestroyDescriptorSetLayout(device.vulkanDevice, it.value.L, null)
                 it.key
             }
@@ -2072,7 +2073,7 @@ open class VulkanRenderer(hub: Hub,
             geometryPool.createBuffer(fullAllocationBytes)
         }
 
-        logger.debug("Using VulkanBuffer {} for vertex+index storage, offset={}", vertexBuffer.vulkanBuffer.asHexString, vertexBuffer.bufferOffset)
+        logger.debug("Using VulkanBuffer {} for vertex+index storage, offset={}", vertexBuffer.vulkanBuffer.hexString, vertexBuffer.bufferOffset)
 
         logger.debug("Initiating copy with 0->${vertexBuffer.bufferOffset}, size=$fullAllocationBytes")
         val copyRegion = vk.BufferCopy {
@@ -2436,7 +2437,7 @@ open class VulkanRenderer(hub: Hub,
                     return@drawLoop
                 }
 
-                logger.trace("{} - Rendering {}, vertex+index buffer={}...", pass.name, node.name, vertexIndexBuffer.vulkanBuffer.asHexString)
+                logger.trace("{} - Rendering {}, vertex+index buffer={}...", pass.name, node.name, vertexIndexBuffer.vulkanBuffer.hexString)
 //                if(rerecordingCauses.contains(node.name)) {
 //                    logger.debug("Using pipeline ${pass.getActivePipeline(node)} for re-recording")
 //                }

@@ -7,10 +7,15 @@ import graphics.scenery.backends.Shaders
 import graphics.scenery.spirvcrossj.CompilerGLSL
 import graphics.scenery.spirvcrossj.Decoration
 import graphics.scenery.utils.LazyLogger
+import kool.free
 import org.lwjgl.system.MemoryUtil.*
 import org.lwjgl.vulkan.VK10.*
 import org.lwjgl.vulkan.VkPipelineShaderStageCreateInfo
 import org.lwjgl.vulkan.VkShaderModuleCreateInfo
+import vkk.*
+import vkk.entities.VkShaderModule
+import vkk.extensionFunctions.createShaderModule
+import vkk.extensionFunctions.destroyShaderModule
 import java.util.concurrent.ConcurrentHashMap
 
 
@@ -33,7 +38,7 @@ import java.util.concurrent.ConcurrentHashMap
 open class VulkanShaderModule(val device: VulkanDevice, entryPoint: String, sp: ShaderPackage) {
     protected val logger by LazyLogger()
     var shader: VkPipelineShaderStageCreateInfo
-    var shaderModule: Long
+    var shaderModule = VkShaderModule.NULL
     var uboSpecs = LinkedHashMap<String, UBOSpec>()
     var pushConstantSpecs = LinkedHashMap<String, PushConstantSpec>()
     private var deallocated: Boolean = false
@@ -104,7 +109,7 @@ open class VulkanShaderModule(val device: VulkanDevice, entryPoint: String, sp: 
 
             // only add the UBO spec if it doesn't already exist, and has more than 0 members
             // SPIRV UBOs may have 0 members, if they are not used in the actual shader code
-            if (!uboSpecs.contains(res.name) && ubo.members.size > 0) {
+            if (res.name !in uboSpecs && ubo.members.size > 0) {
                 uboSpecs[res.name] = ubo
             }
         }
@@ -171,8 +176,8 @@ open class VulkanShaderModule(val device: VulkanDevice, entryPoint: String, sp: 
             val samplerDim = type.image.dim
 
             val name = if (res.name.startsWith("Input")) {
-                if (!inputSets.contains(setId)) {
-                    inputSets.add(setId)
+                if (setId !in inputSets) {
+                    inputSets += setId
                 }
 
                 "Inputs-$setId"
@@ -226,22 +231,17 @@ open class VulkanShaderModule(val device: VulkanDevice, entryPoint: String, sp: 
         code.put(sp.spirv)
         code.flip()
 
-        val moduleCreateInfo = VkShaderModuleCreateInfo.calloc()
-            .sType(VK_STRUCTURE_TYPE_SHADER_MODULE_CREATE_INFO)
-            .pNext(NULL)
-            .pCode(code)
-            .flags(0)
+        val moduleCreateInfo = vk.ShaderModuleCreateInfo {
+            this.code = code
+        }
+        shaderModule = device.vulkanDevice.createShaderModule(moduleCreateInfo)
 
-        this.shaderModule = VU.getLong("Creating shader module",
-            { vkCreateShaderModule(device.vulkanDevice, moduleCreateInfo, null, this) },
-            { moduleCreateInfo.free(); })
-
-        this.shader = VkPipelineShaderStageCreateInfo.calloc()
-            .sType(VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO)
-            .stage(sp.type.toVulkanShaderStage())
-            .module(this.shaderModule)
-            .pName(memUTF8(entryPoint))
-            .pNext(NULL)
+        shader = VkPipelineShaderStageCreateInfo.calloc().apply {
+            type = VkStructureType.PIPELINE_SHADER_STAGE_CREATE_INFO
+            stage = sp.type.toVulkanShaderStage()
+            module = shaderModule
+            pName = entryPoint.toUTF8()
+        }
 
         // re-sort UBO specs according to set and binding
         val sortedSpecs = uboSpecs.entries
@@ -252,12 +252,12 @@ open class VulkanShaderModule(val device: VulkanDevice, entryPoint: String, sp: 
     }
 
     protected fun ShaderType.toVulkanShaderStage() = when (this) {
-        ShaderType.VertexShader -> VK_SHADER_STAGE_VERTEX_BIT
-        ShaderType.GeometryShader -> VK_SHADER_STAGE_GEOMETRY_BIT
-        ShaderType.TessellationControlShader -> VK_SHADER_STAGE_TESSELLATION_CONTROL_BIT
-        ShaderType.TessellationEvaluationShader -> VK_SHADER_STAGE_TESSELLATION_EVALUATION_BIT
-        ShaderType.FragmentShader -> VK_SHADER_STAGE_FRAGMENT_BIT
-        ShaderType.ComputeShader -> VK_SHADER_STAGE_COMPUTE_BIT
+        ShaderType.VertexShader -> VkShaderStage.VERTEX_BIT
+        ShaderType.GeometryShader -> VkShaderStage.GEOMETRY_BIT
+        ShaderType.TessellationControlShader -> VkShaderStage.TESSELLATION_CONTROL_BIT
+        ShaderType.TessellationEvaluationShader -> VkShaderStage.TESSELLATION_EVALUATION_BIT
+        ShaderType.FragmentShader -> VkShaderStage.FRAGMENT_BIT
+        ShaderType.ComputeShader -> VkShaderStage.COMPUTE_BIT
     }
 
     /**
@@ -266,10 +266,10 @@ open class VulkanShaderModule(val device: VulkanDevice, entryPoint: String, sp: 
      */
     fun close() {
         if (!deallocated) {
-            vkDestroyShaderModule(device.vulkanDevice, shader.module(), null)
-            shaderModuleCache.remove(signature.hashCode())
+            device.vulkanDevice.destroyShaderModule(shader.module)
+            shaderModuleCache -= signature.hashCode()
 
-            memFree(shader.pName())
+            shader.pName.free()
             shader.free()
 
             deallocated = true

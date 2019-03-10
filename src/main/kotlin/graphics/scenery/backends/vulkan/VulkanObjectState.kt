@@ -136,7 +136,7 @@ open class VulkanObjectState : NodeMetadata {
 
         device.vulkanDevice.updateDescriptorSets(wd)
 
-        logger.debug("Creating texture descriptor for $name in pass $passName {} set with 1 bindings, DSL={}", descriptorSet.asHexString, descriptorSetLayout.L.toHexString())
+        logger.debug("Creating texture descriptor for $name in pass $passName {} set with 1 bindings, DSL={}", descriptorSet.hexString, descriptorSetLayout.L.toHexString())
         return descriptorSet
     }
 

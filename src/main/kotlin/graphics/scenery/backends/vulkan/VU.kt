@@ -631,7 +631,7 @@ object VU {
         val descriptorLayout = vk.DescriptorSetLayoutCreateInfo(layoutBinding)
 
         return createDescriptorSetLayout(descriptorLayout).apply {
-            logger.debug("Created DSL $asHexString with ${types.size} descriptors.")
+            logger.debug("Created DSL $hexString with ${types.size} descriptors.")
         }
     }
 

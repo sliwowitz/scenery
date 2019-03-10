@@ -174,7 +174,7 @@ open class VulkanUBO(val device: VulkanDevice, var backingBuffer: VulkanBuffer? 
         logger.trace("Closing UBO $this ...")
         if (backingBuffer == null) {
             ownedBackingBuffer?.let {
-                logger.trace("Destroying self-owned buffer of $this/$it  ${it.memory.asHexString})...")
+                logger.trace("Destroying self-owned buffer of $this/$it  ${it.memory.hexString})...")
                 it.close()
             }
         }

@@ -6,10 +6,7 @@ import org.lwjgl.system.MemoryStack.stackPush
 import org.lwjgl.vulkan.*
 import vkk.*
 import vkk.entities.VkCommandPool
-import vkk.extensionFunctions.createCommandPool
-import vkk.extensionFunctions.destroy
-import vkk.extensionFunctions.destroyCommandPool
-import vkk.extensionFunctions.waitIdle
+import vkk.extensionFunctions.*
 
 /**
  * Describes a Vulkan device attached to an [instance] and a [physicalDevice].
@@ -292,7 +289,7 @@ open class VulkanDevice(val instance: VkInstance, val physicalDevice: VkPhysical
                                validationLayers: List<String> = listOf(),
                                headless: Boolean = false): VulkanDevice {
 
-            val physicalDevices = instance.enumeratePhysicalDevices()
+            val physicalDevices: VkPhysicalDevice_Buffer = instance.enumeratePhysicalDevices()
             if (physicalDevices.isEmpty()) {
                 throw IllegalStateException("No Vulkan-compatible devices found!")
             }

@@ -317,7 +317,7 @@ open class VulkanRenderpass(val name: String, var config: RenderConfigReader.Ren
             vkDev.createDescriptorSetLayout(
                 listOf(VkDescriptorType.UNIFORM_BUFFER_DYNAMIC to 1),
                 binding = 0, shaderStages = VkShaderStage.ALL.i).apply {
-                logger.debug("Created Shader Property DSL $asHexString for $name")
+                logger.debug("Created Shader Property DSL $hexString for $name")
             }
         }
     }
@@ -429,7 +429,7 @@ open class VulkanRenderpass(val name: String, var config: RenderConfigReader.Ren
             logger.debug("DS are: ${p.descriptorSpecs.entries.sortedBy { it.value.binding }.sortedBy { it.value.set }.joinToString { "${it.key} (set=${it.value.set}, binding=${it.value.binding})" }}")
         }
 
-        logger.debug("Required DSLs: ${reqDescriptorLayouts.joinToString { it.asHexString }}")
+        logger.debug("Required DSLs: ${reqDescriptorLayouts.joinToString { it.hexString }}")
 
         when (passConfig.type) {
             RenderConfigReader.RenderpassType.quad -> {
