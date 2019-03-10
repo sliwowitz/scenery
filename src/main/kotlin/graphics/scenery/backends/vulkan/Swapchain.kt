@@ -4,7 +4,8 @@ import graphics.scenery.Hub
 import graphics.scenery.backends.SceneryWindow
 import graphics.scenery.utils.SceneryFXPanel
 import graphics.scenery.utils.SceneryPanel
-import vkk.entities.VkSemaphore_Buffer
+import vkk.VkFormat
+import vkk.entities.*
 import java.nio.LongBuffer
 
 /**
@@ -13,11 +14,11 @@ import java.nio.LongBuffer
  * @author Ulrik Günther <hello@ulrik.is>
  */
 interface Swapchain : AutoCloseable {
-    var handle: Long
-    var images: LongArray // TODO vk
-    var imageViews: LongArray // TODO vk
+    var handle: VkSwapchainKHR
+    var images: VkImage_Array
+    var imageViews: VkImageView_Array
 
-    var format: Int
+    var format: VkFormat
 
     /**
      * Creates a window for this swapchain, and initialiases [win] to the appropriate window

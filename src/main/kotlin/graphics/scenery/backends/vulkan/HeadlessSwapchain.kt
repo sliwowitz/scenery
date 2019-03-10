@@ -9,6 +9,8 @@ import org.lwjgl.system.MemoryUtil
 import org.lwjgl.vulkan.*
 import vkk.VkBufferUsage
 import vkk.VkMemoryProperty
+import vkk.entities.VkImageView_Array
+import vkk.entities.VkImage_Array
 import vkk.entities.VkSemaphore_Buffer
 import java.nio.ByteBuffer
 import java.nio.LongBuffer
@@ -128,13 +130,13 @@ open class HeadlessSwapchain(device: VulkanDevice,
             t to image
         }
 
-        images = textureImages.map {
+        images = VkImage_Array(textureImages.map {
             it.second.image
-        }.toLongArray()
+        }.toLongArray())
 
-        imageViews = textureImages.map {
+        imageViews = VkImageView_Array(textureImages.map {
             it.first.createImageView(it.second, format)
-        }.toLongArray()
+        }.toLongArray())
 
         logger.info("Created ${images.size} swapchain images")
 
@@ -225,19 +227,19 @@ open class HeadlessSwapchain(device: VulkanDevice,
 
             val transferImage = images[image]
 
-            VulkanTexture.transitionLayout(transferImage,
+            VulkanTexture.transitionLayout(transferImage.L,
                 KHRSwapchain.VK_IMAGE_LAYOUT_PRESENT_SRC_KHR,
                 VK10.VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL,
                 srcStage = VK10.VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT,
                 dstStage = VK10.VK_PIPELINE_STAGE_TRANSFER_BIT,
                 commandBuffer = this)
 
-            VK10.vkCmdCopyImageToBuffer(this, transferImage,
+            VK10.vkCmdCopyImageToBuffer(this, transferImage.L,
                 VK10.VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL,
                 sharingBuffer.vulkanBuffer.L,
                 regions)
 
-            VulkanTexture.transitionLayout(transferImage,
+            VulkanTexture.transitionLayout(transferImage.L,
                 VK10.VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL,
                 KHRSwapchain.VK_IMAGE_LAYOUT_PRESENT_SRC_KHR,
                 srcStage = VK10.VK_PIPELINE_STAGE_TRANSFER_BIT,
@@ -282,13 +284,11 @@ open class HeadlessSwapchain(device: VulkanDevice,
      * Closes the swapchain, deallocating all resources.
      */
     override fun close() {
-        KHRSwapchain.vkDestroySwapchainKHR(device.vulkanDevice, handle, null)
-        KHRSurface.vkDestroySurfaceKHR(device.instance, surface, null)
+        KHRSwapchain.vkDestroySwapchainKHR(device.vulkanDevice, handle.L, null)
+        KHRSurface.vkDestroySurfaceKHR(device.instance, surface.L, null)
 
         presentInfo.free()
 
-        MemoryUtil.memFree(swapchainImage)
-        MemoryUtil.memFree(swapchainPointer)
         MemoryUtil.memFree(imageBuffer)
 
         sharingBuffer.close()

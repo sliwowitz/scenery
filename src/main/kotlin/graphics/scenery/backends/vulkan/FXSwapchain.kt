@@ -55,7 +55,7 @@ class FXSwapchain(device: VulkanDevice,
 
         PlatformImpl.startup { }
         val lCountDownLatch = CountDownLatch(1)
-        var p: SceneryFXPanel? = null
+        var p: SceneryFXPanel?
 
         Platform.runLater {
             if (imagePanel == null) {
@@ -244,8 +244,6 @@ class FXSwapchain(device: VulkanDevice,
      * Closes the swapchain, deallocating all resources.
      */
     override fun close() {
-        MemoryUtil.memFree(swapchainImage)
-        MemoryUtil.memFree(swapchainPointer)
         MemoryUtil.memFree(imageBuffer)
 
         sharingBuffer.close()

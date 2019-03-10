@@ -1,6 +1,7 @@
 package graphics.scenery.backends.vulkan
 
 import graphics.scenery.utils.LazyLogger
+import kool.rem
 import kool.set
 import org.lwjgl.system.MemoryStack.stackPush
 import org.lwjgl.vulkan.*
@@ -68,7 +69,7 @@ open class VulkanDevice(val instance: VkInstance, val physicalDevice: VkPhysical
         val presentQueueFamilyIndex = 0
         var index = 0
 
-        while (index < queueProps.size) {
+        while (index < queueProps.rem) {
             if (queueProps[index].queueFlags has VkQueueFlag.GRAPHICS_BIT) {
                 graphicsQueueFamilyIndex = index
             }

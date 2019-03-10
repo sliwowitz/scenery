@@ -29,8 +29,12 @@ import org.lwjgl.system.Platform
 import org.lwjgl.vulkan.VK10
 import org.lwjgl.vulkan.VK10.*
 import org.lwjgl.vulkan.VkQueue
+import vkk.VkFormat
 import vkk.VkMemoryProperty
+import vkk.entities.VkImageView_Array
+import vkk.entities.VkImage_Array
 import vkk.entities.VkSemaphore_Buffer
+import vkk.entities.VkSwapchainKHR
 import java.nio.LongBuffer
 
 /**
@@ -49,16 +53,16 @@ class OpenGLSwapchain(val device: VulkanDevice,
     private val logger by LazyLogger()
 
     /** Swapchain handle. */
-    override var handle: Long = 0L
+    override var handle  = VkSwapchainKHR.NULL
     /** Array for rendered images. */
-    override var images: LongArray = LongArray(0)
+    override var images = VkImage_Array(0)
     /** Array for image views. */
-    override var imageViews: LongArray = LongArray(0)
+    override var imageViews = VkImageView_Array(0)
     /** Number of frames presented with this swapchain. */
     protected var presentedFrames = 0L
 
     /** Color format of the images. */
-    override var format: Int = 0
+    override var format = VkFormat.UNDEFINED
 
     /** Window instance to use. */
     lateinit var window: SceneryWindow.GLFWWindow
@@ -148,10 +152,9 @@ class OpenGLSwapchain(val device: VulkanDevice,
             throw UnsupportedOperationException("NV_draw_vulkan_image not supported. Please use standard Vulkan swapchain.")
         }
 
-        format = if (useSRGB) {
-            VK10.VK_FORMAT_B8G8R8A8_SRGB
-        } else {
-            VK10.VK_FORMAT_B8G8R8A8_UNORM
+        format = when {
+            useSRGB -> VkFormat.B8G8R8A8_SRGB
+            else -> VkFormat.B8G8R8A8_UNORM
         }
 
         if (window.width <= 0 || window.height <= 0) {
@@ -164,10 +167,10 @@ class OpenGLSwapchain(val device: VulkanDevice,
         val imgs = (0 until bufferCount).map {
             with(VU.newCommandBuffer(device, commandPools.Standard.L, autostart = true)) {
                 val t = VulkanTexture(this@OpenGLSwapchain.device, commandPools, queue, queue,
-                    window.width, window.height, 1, format, 1)
+                    window.width, window.height, 1, format.i, 1)
 
                 val image = t.createImage(window.width, window.height, 1,
-                    format, VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT or VK_IMAGE_USAGE_SAMPLED_BIT,
+                    format.i, VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT or VK_IMAGE_USAGE_SAMPLED_BIT,
                     VK_IMAGE_TILING_OPTIMAL, VkMemoryProperty.DEVICE_LOCAL_BIT.i,
                     1)
 
@@ -176,17 +179,17 @@ class OpenGLSwapchain(val device: VulkanDevice,
                     VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, 1,
                     commandBuffer = this)
 
-                val view = t.createImageView(image, format)
+                val view = t.createImageView(image, format.i)
 
                 endCommandBuffer(this@OpenGLSwapchain.device, commandPools.Standard.L, queue, flush = true, dealloc = true)
                 Pair(image.image, view)
             }
         }
 
-        images = imgs.map { it.first }.toLongArray()
-        imageViews = imgs.map { it.second }.toLongArray()
+        images = VkImage_Array(imgs.map { it.first }.toLongArray())
+        imageViews = VkImageView_Array(imgs.map { it.second }.toLongArray())
 
-        handle = -1L
+        handle = VkSwapchainKHR.NULL
 
         glfwSwapInterval(0)
         glfwShowWindow(window.window)
@@ -314,7 +317,7 @@ class OpenGLSwapchain(val device: VulkanDevice,
             glClear(GL_COLOR_BUFFER_BIT)
             glDisable(GL_DEPTH_TEST)
 
-            NVDrawVulkanImage.glDrawVkImageNV(images[0], 0,
+            NVDrawVulkanImage.glDrawVkImageNV(images[0].L, 0,
                 0.0f, 0.0f, window.width.toFloat(), window.height.toFloat(), 0.0f,
                 0.0f, 1.0f, 0.5f, 0.0f)
 
@@ -322,12 +325,12 @@ class OpenGLSwapchain(val device: VulkanDevice,
             glClear(GL_COLOR_BUFFER_BIT)
             glDisable(GL_DEPTH_TEST)
 
-            NVDrawVulkanImage.glDrawVkImageNV(images[0], 0,
+            NVDrawVulkanImage.glDrawVkImageNV(images[0].L, 0,
                 0.0f, 0.0f, window.width.toFloat(), window.height.toFloat(), 0.0f,
                 0.5f, 1.0f, 1.0f, 0.0f)
         } else {
             glClear(GL_COLOR_BUFFER_BIT)
-            NVDrawVulkanImage.glDrawVkImageNV(images[0], 0,
+            NVDrawVulkanImage.glDrawVkImageNV(images[0].L, 0,
                 0.0f, 0.0f, window.width.toFloat(), window.height.toFloat(), 0.0f,
                 0.0f, 1.0f, 1.0f, 0.0f)
         }
@@ -415,8 +418,8 @@ class OpenGLSwapchain(val device: VulkanDevice,
      * Closes the swapchain, freeing all of its resources.
      */
     override fun close() {
-        imageViews.forEach { vkDestroyImageView(device.vulkanDevice, it, null) }
-        images.forEach { vkDestroyImage(device.vulkanDevice, it, null) }
+        imageViews.forEach { vkDestroyImageView(device.vulkanDevice, it.L, null) }
+        images.forEach { vkDestroyImage(device.vulkanDevice, it.L, null) }
 
         windowSizeCallback.close()
         glfwDestroyWindow(window.window)

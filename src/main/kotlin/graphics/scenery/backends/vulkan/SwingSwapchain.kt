@@ -14,10 +14,10 @@ import org.lwjgl.vulkan.KHRSwapchain.VK_ERROR_OUT_OF_DATE_KHR
 import org.lwjgl.vulkan.KHRSwapchain.vkAcquireNextImageKHR
 import org.lwjgl.vulkan.awt.AWTVKCanvas
 import org.lwjgl.vulkan.awt.VKData
+import vkk.VkFormat
 import vkk.VkImageAspect
 import vkk.VkImageLayout
-import vkk.entities.VkImage
-import vkk.entities.VkSemaphore_Buffer
+import vkk.entities.*
 import java.awt.BorderLayout
 import java.awt.Color
 import java.awt.Dimension
@@ -46,16 +46,16 @@ open class SwingSwapchain(open val device: VulkanDevice,
     protected val logger by LazyLogger()
 
     /** Swapchain handle. */
-    override var handle: Long = 0L
+    override var handle = VkSwapchainKHR.NULL
     /** Array for rendered images. */
-    override var images: LongArray = LongArray(0)
+    override var images = VkImage_Array(0)
     /** Array for image views. */
-    override var imageViews: LongArray = LongArray(0)
+    override var imageViews = VkImageView_Array(0)
     /** Number of frames presented with this swapchain. */
     protected var presentedFrames: Long = 0
 
     /** Color format for the swapchain images. */
-    override var format: Int = 0
+    override var format = VkFormat.UNDEFINED
 
     /** Swapchain image. */
     var swapchainImage: IntBuffer = MemoryUtil.memAllocInt(1)
@@ -224,30 +224,30 @@ open class SwingSwapchain(open val device: VulkanDevice,
                 .compositeAlpha(KHRSurface.VK_COMPOSITE_ALPHA_OPAQUE_BIT_KHR)
 
             if ((oldSwapchain is VulkanSwapchain || oldSwapchain is FXSwapchain) && oldHandle != null) {
-                swapchainCI.oldSwapchain(oldHandle)
+                swapchainCI.oldSwapchain(oldHandle.L)
             }
 
             swapchainCI.imageExtent().width(window.width).height(window.height)
 
-            handle = VU.getLong("Creating swapchain",
-                { KHRSwapchain.vkCreateSwapchainKHR(device.vulkanDevice, swapchainCI, null, this) }, {})
+            handle = VkSwapchainKHR(VU.getLong("Creating swapchain",
+                { KHRSwapchain.vkCreateSwapchainKHR(device.vulkanDevice, swapchainCI, null, this) }, {}))
 
             // If we just re-created an existing swapchain, we should destroy the old swapchain at this point.
             // Note: destroying the swapchain also cleans up all its associated presentable images once the platform is done with them.
-            if (oldSwapchain is VulkanSwapchain && oldHandle != null && oldHandle != VK10.VK_NULL_HANDLE) {
+            if (oldSwapchain is VulkanSwapchain && oldHandle?.isValid == true) {
                 // TODO: Figure out why deleting a retired swapchain crashes on Nvidia
 //                KHRSwapchain.vkDestroySwapchainKHR(device.vulkanDevice, oldHandle, null)
-                retiredSwapchains.add(device to oldHandle)
+                retiredSwapchains.add(device to oldHandle.L)
             }
 
             val imageCount = VU.getInts("Getting swapchain images", 1) {
-                KHRSwapchain.vkGetSwapchainImagesKHR(device.vulkanDevice, handle, this, null)
+                KHRSwapchain.vkGetSwapchainImagesKHR(device.vulkanDevice, handle.L, this, null)
             }
 
             logger.debug("Got ${imageCount.get(0)} swapchain images")
 
             val swapchainImages = VU.getLongs("Getting swapchain images", imageCount.get(0),
-                { KHRSwapchain.vkGetSwapchainImagesKHR(device.vulkanDevice, handle, imageCount, this) }, {})
+                { KHRSwapchain.vkGetSwapchainImagesKHR(device.vulkanDevice, handle.L, imageCount, this) }, {})
 
             val images = LongArray(imageCount.get(0))
             val imageViews = LongArray(imageCount.get(0))
@@ -289,9 +289,9 @@ open class SwingSwapchain(open val device: VulkanDevice,
                     flush = true, dealloc = true)
             }
 
-            this.images = images
-            this.imageViews = imageViews
-            this.format = colorFormatAndSpace.colorFormat
+            this.images = VkImage_Array(images)
+            this.imageViews = VkImageView_Array(imageViews)
+            this.format = VkFormat(colorFormatAndSpace.colorFormat)
 
             memFree(swapchainImages)
             memFree(imageCount)
@@ -403,7 +403,7 @@ open class SwingSwapchain(open val device: VulkanDevice,
     override fun present(waitForSemaphores: VkSemaphore_Buffer) {
         // Present the current buffer to the swap chain
         // This will display the image
-        swapchainPointer.put(0, handle)
+        swapchainPointer.put(0, handle.L)
 
         // Info struct to present the current swapchain image to the display
         presentInfo
@@ -445,7 +445,7 @@ open class SwingSwapchain(open val device: VulkanDevice,
         // we avoid stalling the GPU and gain a few FPS
         VK10.vkQueueWaitIdle(presentQueue)
 
-        val err = vkAcquireNextImageKHR(device.vulkanDevice, handle, timeout,
+        val err = vkAcquireNextImageKHR(device.vulkanDevice, handle.L, timeout,
             signalSemaphore,
             VK10.VK_NULL_HANDLE, swapchainImage)
 
@@ -489,7 +489,7 @@ open class SwingSwapchain(open val device: VulkanDevice,
      */
     override fun close() {
         logger.debug("Closing swapchain $this")
-        KHRSwapchain.vkDestroySwapchainKHR(device.vulkanDevice, handle, null)
+        KHRSwapchain.vkDestroySwapchainKHR(device.vulkanDevice, handle.L, null)
 
         presentInfo.free()
         MemoryUtil.memFree(swapchainImage)

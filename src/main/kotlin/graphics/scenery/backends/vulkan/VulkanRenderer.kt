@@ -1434,7 +1434,7 @@ open class VulkanRenderer(hub: Hub,
                     width = windowWidth
                     height = windowHeight
 
-                    swapchain.images.forEachIndexed { i, _ ->
+                    swapchain.images.array.forEachIndexed { i, _ ->
                         pass.output["Viewport-$i"] = VulkanFramebuffer(this@VulkanRenderer.device, commandPools.Standard.L,
                             width, height, this, sRGB = renderConfig.sRGB).apply {
                             addSwapchainAttachment("swapchain-$i", swapchain, i)
@@ -1585,9 +1585,9 @@ open class VulkanRenderer(hub: Hub,
         if (hub?.getWorkingHMDDisplay()?.hasCompositor() == true) {
             hub?.getWorkingHMDDisplay()?.wantsVR()?.submitToCompositorVulkan(
                 window.width, window.height,
-                swapchain.format,
+                swapchain.format.i,
                 instance, device, queue,
-                swapchain.images[pass.readPosition])
+                swapchain.images[pass.readPosition].L)
         }
 
         if (recordMovie || screenshotRequested) {
@@ -1636,7 +1636,7 @@ open class VulkanRenderer(hub: Hub,
                             imageExtent(window.width, window.height, 1)
                             imageSubresource = subresource
                         }
-                        val image = VkImage(swapchain.images[pass.readPosition])
+                        val image = swapchain.images[pass.readPosition]
 
                         VulkanTexture.transitionLayout(image.L,
                             VkImageLayout.PRESENT_SRC_KHR.i,

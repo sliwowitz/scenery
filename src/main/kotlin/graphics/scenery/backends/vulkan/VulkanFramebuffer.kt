@@ -351,8 +351,8 @@ open class VulkanFramebuffer(protected val device: VulkanDevice,
      */
     fun addSwapchainAttachment(name: String, swapchain: Swapchain, index: Int): VulkanFramebuffer {
         val att = VulkanFramebufferAttachment().apply {
-            image = VkImage(swapchain.images[index])
-            imageView = VkImageView(swapchain.imageViews[index])
+            image = swapchain.images[index]
+            imageView = swapchain.imageViews[index]
             type = VulkanFramebufferType.COLOR_ATTACHMENT
             fromSwapchain = true
         }
