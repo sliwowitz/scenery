@@ -30,6 +30,8 @@ import org.lwjgl.vulkan.VK10
 import org.lwjgl.vulkan.VK10.*
 import org.lwjgl.vulkan.VkQueue
 import vkk.VkFormat
+import vkk.VkImageLayout
+import vkk.VkImageTiling
 import vkk.VkMemoryProperty
 import vkk.entities.VkImageView_Array
 import vkk.entities.VkImage_Array
@@ -170,16 +172,16 @@ class OpenGLSwapchain(val device: VulkanDevice,
                     window.width, window.height, 1, format, 1)
 
                 val image = t.createImage(window.width, window.height, 1,
-                    format.i, VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT or VK_IMAGE_USAGE_SAMPLED_BIT,
-                    VK_IMAGE_TILING_OPTIMAL, VkMemoryProperty.DEVICE_LOCAL_BIT.i,
+                    format, VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT or VK_IMAGE_USAGE_SAMPLED_BIT,
+                    VkImageTiling.OPTIMAL, VkMemoryProperty.DEVICE_LOCAL_BIT.i,
                     1)
 
-                VulkanTexture.transitionLayout(image.image.L,
-                    VK_IMAGE_LAYOUT_UNDEFINED,
-                    VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, 1,
+                VulkanTexture.transitionLayout(image.image,
+                    VkImageLayout.UNDEFINED,
+                    VkImageLayout.SHADER_READ_ONLY_OPTIMAL, 1,
                     commandBuffer = this)
 
-                val view = t.createImageView(image, format.i)
+                val view = t.createImageView(image, format)
 
                 endCommandBuffer(this@OpenGLSwapchain.device, commandPools.Standard.L, queue, flush = true, dealloc = true)
                 Pair(image.image, view)
@@ -187,7 +189,7 @@ class OpenGLSwapchain(val device: VulkanDevice,
         }
 
         images = VkImage_Array(imgs.size) { imgs[it].first }
-        imageViews = VkImageView_Array(imgs.map { it.second }.toLongArray())
+        imageViews = VkImageView_Array(imgs.size) { imgs[it].second }
 
         handle = VkSwapchainKHR.NULL
 

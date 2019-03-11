@@ -26,9 +26,10 @@ import org.zeromq.ZContext
 import org.zeromq.ZMQ
 import org.zeromq.ZMsg
 import org.zeromq.ZPoller
-import vkk.VkFormat
-import vkk.VkMemoryProperty
+import vkk.*
 import vkk.entities.VkCommandPool
+import vkk.entities.VkDeviceMemory
+import vkk.entities.VkImage
 import java.math.BigInteger
 import java.nio.ByteBuffer
 import java.nio.ByteOrder
@@ -305,8 +306,8 @@ class Hololens : TrackerInput, Display, Hubable {
 
         var memoryHandle: Long = -1L
         val img = t.createImage(hololensDisplaySize.x().toInt(), hololensDisplaySize.y().toInt(), 1,
-            VK_FORMAT_R8G8B8A8_UNORM, VK_IMAGE_USAGE_SAMPLED_BIT,
-            VK_IMAGE_TILING_OPTIMAL, VkMemoryProperty.DEVICE_LOCAL_BIT.i, 1,
+            VkFormat.R8G8B8A8_UNORM, VkImageUsage.SAMPLED_BIT.i,
+            VkImageTiling.OPTIMAL, VkMemoryProperty.DEVICE_LOCAL_BIT.i, 1,
             imageCreateInfo = imageCreateInfo,
             customAllocator = { memoryRequirements, allocatedImage ->
                 logger.debug("Using custom image allocation for external handle ...")
@@ -336,7 +337,7 @@ class Hololens : TrackerInput, Display, Hubable {
 
                 if (extProperties.externalMemoryFeatures() and VK_EXTERNAL_MEMORY_FEATURE_DEDICATED_ONLY_BIT_NV != 0) {
                     logger.debug("Using VK_NV_dedicated_allocation")
-                    dedicatedAllocationInfo.image(allocatedImage)
+                    dedicatedAllocationInfo.image(allocatedImage.L)
                     importMemoryInfo.pNext(dedicatedAllocationInfo.address())
                 }
 
@@ -345,12 +346,12 @@ class Hololens : TrackerInput, Display, Hubable {
                 memoryHandle = VU.getLong("Allocate memory for D3D shared image",
                     { vkAllocateMemory(device.vulkanDevice, memoryInfo, null, this) },
                     { dedicatedAllocationInfo.free(); memoryInfo.free(); importMemoryInfo.free(); })
-                memoryHandle
+                VkDeviceMemory(memoryHandle)
             })
 
         with(VU.newCommandBuffer(device, commandPool, autostart = true)) {
-            VulkanTexture.transitionLayout(img.image.L,
-                VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL, 1,
+            VulkanTexture.transitionLayout(img.image,
+                VkImageLayout.UNDEFINED, VkImageLayout.COLOR_ATTACHMENT_OPTIMAL, 1,
                 srcStage = VK_PIPELINE_STAGE_TRANSFER_BIT,
                 dstStage = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT,
                 commandBuffer = this)
@@ -463,9 +464,9 @@ class Hololens : TrackerInput, Display, Hubable {
                         .layerCount(1)
 
                     // transition source attachment
-                    VulkanTexture.transitionLayout(image,
-                        KHRSwapchain.VK_IMAGE_LAYOUT_PRESENT_SRC_KHR,
-                        VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL,
+                    VulkanTexture.transitionLayout(VkImage(image),
+                        VkImageLayout.PRESENT_SRC_KHR,
+                        VkImageLayout.TRANSFER_SRC_OPTIMAL,
                         subresourceRange = subresourceRange,
                         commandBuffer = this,
                         srcStage = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT,
@@ -473,9 +474,9 @@ class Hololens : TrackerInput, Display, Hubable {
                     )
 
                     // transition destination attachment
-                    VulkanTexture.transitionLayout(currentImage.first.image.L,
-                        VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL,
-                        VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
+                    VulkanTexture.transitionLayout(currentImage.first.image,
+                        VkImageLayout.COLOR_ATTACHMENT_OPTIMAL,
+                        VkImageLayout.TRANSFER_DST_OPTIMAL,
                         subresourceRange = subresourceRange,
                         commandBuffer = this,
                         srcStage = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT,
@@ -489,9 +490,9 @@ class Hololens : TrackerInput, Display, Hubable {
                     )
 
                     // transition destination attachment back to attachment
-                    VulkanTexture.transitionLayout(currentImage.first.image.L,
-                        VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
-                        VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL,
+                    VulkanTexture.transitionLayout(currentImage.first.image,
+                        VkImageLayout.TRANSFER_DST_OPTIMAL,
+                        VkImageLayout.COLOR_ATTACHMENT_OPTIMAL,
                         subresourceRange = subresourceRange,
                         commandBuffer = this,
                         srcStage = VK_PIPELINE_STAGE_TRANSFER_BIT,
@@ -499,9 +500,9 @@ class Hololens : TrackerInput, Display, Hubable {
                     )
 
                     // transition source attachment back to shader read-only
-                    VulkanTexture.transitionLayout(image,
-                        VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL,
-                        KHRSwapchain.VK_IMAGE_LAYOUT_PRESENT_SRC_KHR,
+                    VulkanTexture.transitionLayout(VkImage(image),
+                        VkImageLayout.TRANSFER_SRC_OPTIMAL,
+                        VkImageLayout.PRESENT_SRC_KHR,
                         subresourceRange = subresourceRange,
                         commandBuffer = this,
                         srcStage = VK_PIPELINE_STAGE_TRANSFER_BIT,

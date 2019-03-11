@@ -166,7 +166,7 @@ fun VkDevice.createDescriptorSetLayout(type: VkDescriptorType = VkDescriptorType
  */
 fun VkCommandBuffer.submit(queue: VkQueue, submitInfoPNext: Pointer? = null,
                            signalSemaphores: VkSemaphore_Buffer? = null, waitSemaphores: VkSemaphore_Buffer? = null,
-                           waitDstStageMask: IntBuffer? = null): VkCommandBuffer {
+                           waitDstStageMask: IntBuffer? = null): VkQueue {
 
     queue.submit(vk.SubmitInfo {
         commandBuffer = this@submit
@@ -179,7 +179,7 @@ fun VkCommandBuffer.submit(queue: VkQueue, submitInfoPNext: Pointer? = null,
             }
         }
     })
-    return this
+    return queue
 }
 
 /**

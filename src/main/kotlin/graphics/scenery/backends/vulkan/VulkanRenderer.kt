@@ -1638,9 +1638,9 @@ open class VulkanRenderer(hub: Hub,
                         }
                         val image = swapchain.images[pass.readPosition]
 
-                        VulkanTexture.transitionLayout(image.L,
-                            VkImageLayout.PRESENT_SRC_KHR.i,
-                            VkImageLayout.TRANSFER_SRC_OPTIMAL.i,
+                        VulkanTexture.transitionLayout(image,
+                            VkImageLayout.PRESENT_SRC_KHR,
+                            VkImageLayout.TRANSFER_SRC_OPTIMAL,
                             commandBuffer = this)
 
                         copyImageToBuffer(image,
@@ -1648,9 +1648,9 @@ open class VulkanRenderer(hub: Hub,
                             sb.vulkanBuffer,
                             region)
 
-                        VulkanTexture.transitionLayout(image.L,
-                            VkImageLayout.TRANSFER_SRC_OPTIMAL.i,
-                            VkImageLayout.PRESENT_SRC_KHR.i,
+                        VulkanTexture.transitionLayout(image,
+                            VkImageLayout.TRANSFER_SRC_OPTIMAL,
+                            VkImageLayout.PRESENT_SRC_KHR,
                             commandBuffer = this)
 
                     }.submit(queue)
@@ -2357,18 +2357,18 @@ open class VulkanRenderer(hub: Hub,
                             layerCount = 1
                         }
                         // transition source attachment
-                        VulkanTexture.transitionLayout(inputAttachment.image.L,
-                            VkImageLayout.SHADER_READ_ONLY_OPTIMAL.i,
-                            VkImageLayout.TRANSFER_SRC_OPTIMAL.i,
+                        VulkanTexture.transitionLayout(inputAttachment.image,
+                            VkImageLayout.SHADER_READ_ONLY_OPTIMAL,
+                            VkImageLayout.TRANSFER_SRC_OPTIMAL,
                             subresourceRange = subresourceRange,
                             commandBuffer = transitionBuffer,
                             srcStage = VkPipelineStage.FRAGMENT_SHADER_BIT.i,
                             dstStage = VkPipelineStage.TRANSFER_BIT.i)
 
                         // transition destination attachment
-                        VulkanTexture.transitionLayout(outputAttachment.image.L,
-                            inputAspectType.i,
-                            VkImageLayout.TRANSFER_DST_OPTIMAL.i,
+                        VulkanTexture.transitionLayout(outputAttachment.image,
+                            inputAspectType,
+                            VkImageLayout.TRANSFER_DST_OPTIMAL,
                             subresourceRange = subresourceRange,
                             commandBuffer = transitionBuffer,
                             srcStage = VkPipelineStage.FRAGMENT_SHADER_BIT.i,
@@ -2379,18 +2379,18 @@ open class VulkanRenderer(hub: Hub,
                             imageBlit, VkFilter.NEAREST)
 
                         // transition destination attachment back to attachment
-                        VulkanTexture.transitionLayout(outputAttachment.image.L,
-                            VkImageLayout.TRANSFER_DST_OPTIMAL.i,
-                            outputAspectDstType.i,
+                        VulkanTexture.transitionLayout(outputAttachment.image,
+                            VkImageLayout.TRANSFER_DST_OPTIMAL,
+                            outputAspectDstType,
                             subresourceRange = subresourceRange,
                             commandBuffer = transitionBuffer,
                             srcStage = VkPipelineStage.TRANSFER_BIT.i,
                             dstStage = outputDstStage.i)
 
                         // transition source attachment back to shader read-only
-                        VulkanTexture.transitionLayout(inputAttachment.image.L,
-                            VkImageLayout.TRANSFER_SRC_OPTIMAL.i,
-                            outputAspectSrcType.i,
+                        VulkanTexture.transitionLayout(inputAttachment.image,
+                            VkImageLayout.TRANSFER_SRC_OPTIMAL,
+                            outputAspectSrcType,
                             subresourceRange = subresourceRange,
                             commandBuffer = transitionBuffer,
                             srcStage = VkPipelineStage.TRANSFER_BIT.i,

@@ -7,9 +7,7 @@ import graphics.scenery.utils.SceneryPanel
 import org.lwjgl.system.MemoryStack
 import org.lwjgl.system.MemoryUtil
 import org.lwjgl.vulkan.*
-import vkk.VkBufferUsage
-import vkk.VkFormat
-import vkk.VkMemoryProperty
+import vkk.*
 import vkk.entities.VkImageView_Array
 import vkk.entities.VkImage_Array
 import vkk.entities.VkSemaphore_Buffer
@@ -124,17 +122,18 @@ open class HeadlessSwapchain(device: VulkanDevice,
         val textureImages = (0 until bufferCount).map {
             val t = VulkanTexture(device, commandPools, queue, queue, window.width, window.height, 1,
                 VkFormat(format), 1)
-            val image = t.createImage(window.width, window.height, 1, format,
+            val image = t.createImage(window.width, window.height, 1, VkFormat(format),
                 VK10.VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT or VK10.VK_IMAGE_USAGE_TRANSFER_SRC_BIT,
-                VK10.VK_IMAGE_TILING_OPTIMAL, VkMemoryProperty.DEVICE_LOCAL_BIT.i, 1)
+                VkImageTiling.OPTIMAL, VkMemoryProperty.DEVICE_LOCAL_BIT.i, 1)
             t to image
         }
 
         images = VkImage_Array(textureImages.size) { textureImages[it].second.image }
 
-        imageViews = VkImageView_Array(textureImages.map {
-            it.first.createImageView(it.second, format)
-        }.toLongArray())
+        imageViews = VkImageView_Array(textureImages.size) {
+            val image = textureImages[it]
+            image.first.createImageView(image.second, VkFormat(format))
+        }
 
         logger.info("Created ${images.size} swapchain images")
 
@@ -225,9 +224,9 @@ open class HeadlessSwapchain(device: VulkanDevice,
 
             val transferImage = images[image]
 
-            VulkanTexture.transitionLayout(transferImage.L,
-                KHRSwapchain.VK_IMAGE_LAYOUT_PRESENT_SRC_KHR,
-                VK10.VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL,
+            VulkanTexture.transitionLayout(transferImage,
+                VkImageLayout.PRESENT_SRC_KHR,
+                VkImageLayout.TRANSFER_SRC_OPTIMAL,
                 srcStage = VK10.VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT,
                 dstStage = VK10.VK_PIPELINE_STAGE_TRANSFER_BIT,
                 commandBuffer = this)
@@ -237,9 +236,9 @@ open class HeadlessSwapchain(device: VulkanDevice,
                 sharingBuffer.vulkanBuffer.L,
                 regions)
 
-            VulkanTexture.transitionLayout(transferImage.L,
-                VK10.VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL,
-                KHRSwapchain.VK_IMAGE_LAYOUT_PRESENT_SRC_KHR,
+            VulkanTexture.transitionLayout(transferImage,
+                VkImageLayout.TRANSFER_SRC_OPTIMAL,
+                VkImageLayout.PRESENT_SRC_KHR,
                 srcStage = VK10.VK_PIPELINE_STAGE_TRANSFER_BIT,
                 dstStage = VK10.VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT,
                 commandBuffer = this)
