@@ -8,12 +8,12 @@ import org.lwjgl.system.MemoryStack
 import org.lwjgl.system.MemoryUtil
 import org.lwjgl.vulkan.*
 import vkk.VkBufferUsage
+import vkk.VkFormat
 import vkk.VkMemoryProperty
 import vkk.entities.VkImageView_Array
 import vkk.entities.VkImage_Array
 import vkk.entities.VkSemaphore_Buffer
 import java.nio.ByteBuffer
-import java.nio.LongBuffer
 
 
 /**
@@ -123,16 +123,14 @@ open class HeadlessSwapchain(device: VulkanDevice,
 
         val textureImages = (0 until bufferCount).map {
             val t = VulkanTexture(device, commandPools, queue, queue, window.width, window.height, 1,
-                format, 1)
+                VkFormat(format), 1)
             val image = t.createImage(window.width, window.height, 1, format,
                 VK10.VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT or VK10.VK_IMAGE_USAGE_TRANSFER_SRC_BIT,
                 VK10.VK_IMAGE_TILING_OPTIMAL, VkMemoryProperty.DEVICE_LOCAL_BIT.i, 1)
             t to image
         }
 
-        images = VkImage_Array(textureImages.map {
-            it.second.image
-        }.toLongArray())
+        images = VkImage_Array(textureImages.size) { textureImages[it].second.image }
 
         imageViews = VkImageView_Array(textureImages.map {
             it.first.createImageView(it.second, format)

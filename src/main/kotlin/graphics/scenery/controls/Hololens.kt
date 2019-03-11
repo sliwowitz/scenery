@@ -26,6 +26,7 @@ import org.zeromq.ZContext
 import org.zeromq.ZMQ
 import org.zeromq.ZMsg
 import org.zeromq.ZPoller
+import vkk.VkFormat
 import vkk.VkMemoryProperty
 import vkk.entities.VkCommandPool
 import java.math.BigInteger
@@ -284,7 +285,7 @@ class Hololens : TrackerInput, Display, Hubable {
 
         val t = VulkanTexture(device, VulkanRenderer.CommandPools(VkCommandPool(commandPool), VkCommandPool(commandPool), VkCommandPool(commandPool), VkCommandPool(commandPool)), queue, queue,
             width, height, 1,
-            format, 1, true, true)
+            VkFormat(format), 1, true, true)
 
         val imageCreateInfo = VkImageCreateInfo.calloc()
             .sType(VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO)
@@ -348,7 +349,7 @@ class Hololens : TrackerInput, Display, Hubable {
             })
 
         with(VU.newCommandBuffer(device, commandPool, autostart = true)) {
-            VulkanTexture.transitionLayout(img.image,
+            VulkanTexture.transitionLayout(img.image.L,
                 VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL, 1,
                 srcStage = VK_PIPELINE_STAGE_TRANSFER_BIT,
                 dstStage = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT,
@@ -472,7 +473,7 @@ class Hololens : TrackerInput, Display, Hubable {
                     )
 
                     // transition destination attachment
-                    VulkanTexture.transitionLayout(currentImage.first.image,
+                    VulkanTexture.transitionLayout(currentImage.first.image.L,
                         VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL,
                         VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
                         subresourceRange = subresourceRange,
@@ -483,12 +484,12 @@ class Hololens : TrackerInput, Display, Hubable {
 
                     vkCmdBlitImage(this@with,
                         image, VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL,
-                        currentImage.first.image, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
+                        currentImage.first.image.L, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
                         imageBlit, VK_FILTER_NEAREST
                     )
 
                     // transition destination attachment back to attachment
-                    VulkanTexture.transitionLayout(currentImage.first.image,
+                    VulkanTexture.transitionLayout(currentImage.first.image.L,
                         VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
                         VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL,
                         subresourceRange = subresourceRange,
