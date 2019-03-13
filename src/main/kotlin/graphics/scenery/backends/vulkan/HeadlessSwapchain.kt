@@ -4,6 +4,8 @@ import graphics.scenery.Hub
 import graphics.scenery.backends.RenderConfigReader
 import graphics.scenery.backends.SceneryWindow
 import graphics.scenery.utils.SceneryPanel
+import kool.ByteBuffer
+import kool.free
 import org.lwjgl.system.MemoryStack
 import org.lwjgl.system.MemoryUtil
 import org.lwjgl.vulkan.*
@@ -11,6 +13,7 @@ import vkk.*
 import vkk.entities.VkImageView_Array
 import vkk.entities.VkImage_Array
 import vkk.entities.VkSemaphore_Buffer
+import vkk.extensionFunctions.getQueue
 import java.nio.ByteBuffer
 
 
@@ -108,21 +111,20 @@ open class HeadlessSwapchain(device: VulkanDevice,
     override fun create(oldSwapchain: Swapchain?): Swapchain {
         presentedFrames = 0
         if (oldSwapchain != null && initialized) {
-            MemoryUtil.memFree(imageBuffer)
+            imageBuffer.free()
             sharingBuffer.close()
         }
 
-        val format = if (useSRGB) {
-            VK10.VK_FORMAT_B8G8R8A8_SRGB
-        } else {
-            VK10.VK_FORMAT_B8G8R8A8_UNORM
+        val format = when {
+            useSRGB -> VkFormat.B8G8R8A8_SRGB
+            else -> VkFormat.B8G8R8A8_UNORM
         }
-        presentQueue = VU.createDeviceQueue(device, device.queueIndices.graphicsQueue)
+        presentQueue = vkDev.getQueue(device.queueIndices.graphicsQueue)
 
         val textureImages = (0 until bufferCount).map {
             val t = VulkanTexture(device, commandPools, queue, queue, window.width, window.height, 1,
-                VkFormat(format), 1)
-            val image = t.createImage(window.width, window.height, 1, VkFormat(format),
+                format, 1)
+            val image = t.createImage(window.width, window.height, 1, format,
                 VK10.VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT or VK10.VK_IMAGE_USAGE_TRANSFER_SRC_BIT,
                 VkImageTiling.OPTIMAL, VkMemoryProperty.DEVICE_LOCAL_BIT.i, 1)
             t to image
@@ -130,15 +132,12 @@ open class HeadlessSwapchain(device: VulkanDevice,
 
         images = VkImage_Array(textureImages.size) { textureImages[it].second.image }
 
-        imageViews = VkImageView_Array(textureImages.size) {
-            val image = textureImages[it]
-            image.first.createImageView(image.second, VkFormat(format))
-        }
+        imageViews = VkImageView_Array(textureImages.size) { textureImages[it].run { first.createImageView(second, format) } }
 
         logger.info("Created ${images.size} swapchain images")
 
         val imageByteSize = VkDeviceSize(window.width * window.height * 4)
-        imageBuffer = MemoryUtil.memAlloc(imageByteSize.i)
+        imageBuffer = ByteBuffer(imageByteSize.i)
         sharingBuffer = VulkanBuffer(device,
             imageByteSize,
             VkBufferUsage.TRANSFER_DST_BIT.i,

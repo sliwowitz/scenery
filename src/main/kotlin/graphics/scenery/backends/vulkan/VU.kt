@@ -3,6 +3,9 @@ package graphics.scenery.backends.vulkan
 import graphics.scenery.Blending
 import graphics.scenery.backends.RenderConfigReader
 import graphics.scenery.utils.LazyLogger
+import kool.IntBuffer
+import kool.LongBuffer
+import kool.PointerBuffer
 import org.lwjgl.PointerBuffer
 import org.lwjgl.system.MemoryStack.stackPush
 import org.lwjgl.system.MemoryUtil.*
@@ -41,15 +44,6 @@ fun Long.toHexString(): String {
  */
 fun BigInteger.toHexString(): String {
     return "0x${this.toString(16)}"
-}
-
-/**
- * Ends the recording of a command buffer.
- */
-fun VkCommandBuffer.endCommandBuffer() {
-    if (vkEndCommandBuffer(this) != VK_SUCCESS) {
-        throw AssertionError("Failed to end command buffer $this")
-    }
 }
 
 /**
@@ -246,7 +240,7 @@ object VU {
      * For debugging, the call may be given a [name].
      */
     inline fun getInts(name: String, count: Int, function: IntBuffer.() -> Int): IntBuffer {
-        val receiver = memAllocInt(count)
+        val receiver = IntBuffer(count)
         val result = function.invoke(receiver)
 
         if (result != VK_SUCCESS) {
@@ -293,7 +287,7 @@ object VU {
      * For debugging, the call may be given a [name].
      */
     inline fun getLongs(name: String, count: Int, function: LongBuffer.() -> Int, cleanup: LongBuffer.() -> Any): LongBuffer {
-        val receiver = memAllocLong(count)
+        val receiver = LongBuffer(count)
         val result = function.invoke(receiver)
 
         if (result != VK_SUCCESS) {
@@ -339,7 +333,7 @@ object VU {
      * For debugging, the call may be given a [name].
      */
     inline fun getPointers(name: String, count: Int, function: PointerBuffer.() -> Int): PointerBuffer {
-        val receiver = memAllocPointer(count)
+        val receiver = PointerBuffer(count)
         val result = function.invoke(receiver)
 
         if (result != VK_SUCCESS) {
@@ -360,7 +354,7 @@ object VU {
      * For debugging, the call may be given a [name].
      */
     inline fun getPointers(name: String, count: Int, function: PointerBuffer.() -> Int, cleanup: PointerBuffer.() -> Any): PointerBuffer {
-        val receiver = memAllocPointer(count)
+        val receiver = PointerBuffer(count)
         val result = function.invoke(receiver)
 
         if (result != VK_SUCCESS) {

@@ -12,8 +12,8 @@ import graphics.scenery.volumes.Volume.Colormap.ColormapBuffer
 import graphics.scenery.volumes.Volume.Colormap.ColormapFile
 import io.scif.SCIFIO
 import io.scif.util.FormatTools
+import kool.ByteBuffer
 import org.lwjgl.system.MemoryUtil
-import org.lwjgl.system.MemoryUtil.memAlloc
 import sun.misc.Unsafe
 import java.io.FileInputStream
 import java.nio.ByteBuffer
@@ -323,7 +323,7 @@ open class Volume(var autosetProperties: Boolean = true) : Mesh("Volume") {
             logger.debug("Preloading $id from disk")
             val buffer = ByteArray(1024 * 1024)
             val stream = FileInputStream(file.toFile())
-            val imageData: ByteBuffer = memAlloc((2 * dimensions[0] * dimensions[1] * dimensions[2]).toInt())
+            val imageData = ByteBuffer((2 * dimensions[0] * dimensions[1] * dimensions[2]).toInt())
 
             logger.debug("${file.fileName}: Allocated ${imageData.capacity()} bytes for UINT16 image of ${dimensions.joinToString("x")}")
 
@@ -452,7 +452,7 @@ open class Volume(var autosetProperties: Boolean = true) : Mesh("Volume") {
             volumes.get(id)!!
         } else {
             logger.info("Loading $id from disk")
-            val imageData: ByteBuffer = memAlloc((bytesPerVoxel * sizeX * sizeY * sizeZ))
+            val imageData = ByteBuffer(bytesPerVoxel * sizeX * sizeY * sizeZ)
 
             logger.info("${file.fileName}: Allocated ${imageData.capacity()} bytes for $dataType ${8 * bytesPerVoxel}bit image of $sizeX/$sizeY/$sizeZ")
 
@@ -544,7 +544,7 @@ open class Volume(var autosetProperties: Boolean = true) : Mesh("Volume") {
             logger.info("Loading $id from disk")
             val buffer = ByteArray(1024 * 1024)
             val stream = FileInputStream(file.toFile())
-            val imageData: ByteBuffer = memAlloc((2 * dimensions[0] * dimensions[1] * dimensions[2]).toInt())
+            val imageData = ByteBuffer((2 * dimensions[0] * dimensions[1] * dimensions[2]).toInt())
 
             logger.info("${file.fileName}: Allocated ${imageData.capacity()} bytes for UINT16 image of ${dimensions.joinToString("x")}")
 
@@ -756,7 +756,7 @@ open class Volume(var autosetProperties: Boolean = true) : Mesh("Volume") {
             }
             val byteSize = (size * size * size * bytesPerVoxel).toInt()
 
-            val buffer = intoBuffer ?: memAlloc(byteSize * bytesPerVoxel)
+            val buffer = intoBuffer ?: ByteBuffer(byteSize * bytesPerVoxel)
 
             (0 until byteSize / bytesPerVoxel).chunked(byteSize / 4).forEachParallel { subList ->
                 subList.forEach {

@@ -10,6 +10,9 @@ import graphics.scenery.backends.vulkan.VulkanDevice
 import graphics.scenery.backends.vulkan.VulkanTexture
 import graphics.scenery.backends.vulkan.endCommandBuffer
 import graphics.scenery.utils.LazyLogger
+import kool.FloatBuffer
+import kool.IntBuffer
+import kool.LongBuffer
 import org.lwjgl.openvr.*
 import org.lwjgl.openvr.VR.*
 import org.lwjgl.openvr.VRCompositor.*
@@ -62,7 +65,7 @@ open class OpenVRHMD(val seated: Boolean = true, val useCompositor: Boolean = tr
     protected var gamePoses: TrackedDevicePose.Buffer = TrackedDevicePose.calloc(k_unMaxTrackedDeviceCount)
 
     /** error code storage */
-    protected val error: IntBuffer = memAllocInt(1)
+    protected val error = IntBuffer(1)
     /** Storage for the poses of all tracked devices. */
     protected var trackedDevices = ConcurrentHashMap<String, TrackedDevice>()
     /** Cache for per-eye projection matrices */
@@ -71,9 +74,9 @@ open class OpenVRHMD(val seated: Boolean = true, val useCompositor: Boolean = tr
     protected var eyeTransformCache: ArrayList<GLMatrix?> = ArrayList()
 
     /** When did the last vsync occur? */
-    protected val lastVsync: FloatBuffer = memAllocFloat(1)
+    protected val lastVsync = FloatBuffer(1)
     /** Current frame count on the HMD */
-    protected val frameCount: LongBuffer = memAllocLong(1)
+    protected val frameCount = LongBuffer(1)
     /** Display frequency of the HMD */
     protected var hmdDisplayFreq: Int = 0
 
@@ -182,7 +185,7 @@ open class OpenVRHMD(val seated: Boolean = true, val useCompositor: Boolean = tr
             VRCompositor_SetTrackingSpace(ETrackingUniverseOrigin_TrackingUniverseStanding)
         }
 
-        val err = memAllocInt(1)
+        val err = IntBuffer(1)
         vsyncToPhotons = VRSystem_GetFloatTrackedDeviceProperty(k_unTrackedDeviceIndex_Hmd, ETrackedDeviceProperty_Prop_SecondsFromVsyncToPhotons_Float, err)
         memFree(err)
 
@@ -237,8 +240,8 @@ open class OpenVRHMD(val seated: Boolean = true, val useCompositor: Boolean = tr
      * @return Render target size as 2D vector
      */
     final override fun getRenderTargetSize(): GLVector {
-        val x = memAllocInt(1)
-        val y = memAllocInt(1)
+        val x = IntBuffer(1)
+        val y = IntBuffer(1)
 
         VRSystem_GetRecommendedRenderTargetSize(x, y)
 
@@ -258,7 +261,7 @@ open class OpenVRHMD(val seated: Boolean = true, val useCompositor: Boolean = tr
      */
     @Suppress("unused")
     fun getFOV(direction: Int): Float {
-        val err = memAllocInt(1)
+        val err = IntBuffer(1)
         val fov = VRSystem_GetFloatTrackedDeviceProperty(k_unTrackedDeviceIndex_Hmd, direction, err)
 
         if (fov == 0f) {
@@ -323,7 +326,7 @@ open class OpenVRHMD(val seated: Boolean = true, val useCompositor: Boolean = tr
      * @return IPD as Float
      */
     override fun getIPD(): Float {
-        val err = memAllocInt(1)
+        val err = IntBuffer(1)
         if (!initialized) {
             return 0.065f
         } else {
@@ -454,7 +457,7 @@ open class OpenVRHMD(val seated: Boolean = true, val useCompositor: Boolean = tr
 
                 val d = trackedDevices.computeIfAbsent("$type-$device", {
                     val nameBuf = memCalloc(1024)
-                    val err = memAllocInt(1)
+                    val err = IntBuffer(1)
 
                     VRSystem_GetStringTrackedDeviceProperty(device, ETrackedDeviceProperty_Prop_RenderModelName_String, nameBuf, err)
 

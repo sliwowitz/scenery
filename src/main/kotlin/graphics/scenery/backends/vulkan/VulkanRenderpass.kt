@@ -10,10 +10,9 @@ import graphics.scenery.backends.ShaderType
 import graphics.scenery.backends.Shaders
 import graphics.scenery.utils.LazyLogger
 import graphics.scenery.utils.RingBuffer
+import kool.IntBuffer
 import kool.free
 import org.lwjgl.system.MemoryUtil
-import org.lwjgl.system.MemoryUtil.memAllocInt
-import org.lwjgl.system.MemoryUtil.memFree
 import org.lwjgl.vulkan.*
 import org.lwjgl.vulkan.VK10.*
 import vkk.*
@@ -64,7 +63,7 @@ open class VulkanRenderpass(val name: String, var config: RenderConfigReader.Ren
     var waitSemaphores = VkSemaphore_Buffer(1)
         protected set
     /** Stages this renderpass will wait for when executed */
-    var waitStages = memAllocInt(1)
+    var waitStages = IntBuffer(1)
         protected set
     /** Semaphores this renderpass is going to signal after finishing execution */
     var signalSemaphores = VkSemaphore_Buffer(1)
@@ -133,8 +132,8 @@ open class VulkanRenderpass(val name: String, var config: RenderConfigReader.Ren
                          var clearValues: VkClearValue.Buffer? = null,
                          var renderArea: VkRect2D = VkRect2D(),
                          var renderPassBeginInfo: VkRenderPassBeginInfo = VkRenderPassBeginInfo(),
-                         var uboOffsets: IntBuffer = memAllocInt(16),
-                         var eye: IntBuffer = memAllocInt(1),
+                         var uboOffsets: IntBuffer = IntBuffer(16),
+                         var eye: IntBuffer = IntBuffer(1),
                          var renderLists: HashMap<VulkanCommandBuffer, Array<Node>> = HashMap()) : AutoCloseable {
 
         /** Close this metadata instance, and frees all members */

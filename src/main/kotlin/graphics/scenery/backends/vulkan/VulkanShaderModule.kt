@@ -7,6 +7,7 @@ import graphics.scenery.backends.Shaders
 import graphics.scenery.spirvcrossj.CompilerGLSL
 import graphics.scenery.spirvcrossj.Decoration
 import graphics.scenery.utils.LazyLogger
+import kool.ByteBuffer
 import kool.free
 import org.lwjgl.system.MemoryUtil.*
 import org.lwjgl.vulkan.VK10.*
@@ -227,7 +228,7 @@ open class VulkanShaderModule(val device: VulkanDevice, entryPoint: String, sp: 
                 }
             }
 
-        val code = memAlloc(sp.spirv.size)
+        val code = ByteBuffer(sp.spirv.size)
         code.put(sp.spirv)
         code.flip()
 

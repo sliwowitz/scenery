@@ -5,6 +5,7 @@ import cleargl.GLVector
 import graphics.scenery.backends.UBO
 import graphics.scenery.numerics.Random
 import graphics.scenery.utils.LazyLogger
+import kool.ByteBuffer
 import org.junit.Assert.assertEquals
 import org.junit.Test
 import org.lwjgl.system.MemoryUtil
@@ -27,7 +28,7 @@ class UBOTests {
         logger.info("Testing in-order UBO serialisation...")
 
         val ubo = UBO()
-        val storage = MemoryUtil.memAlloc(96)
+        val storage = ByteBuffer(96)
         val storageView = storage.duplicate().order(ByteOrder.LITTLE_ENDIAN)
 
         // ints are 4 byte-aligned
@@ -67,7 +68,7 @@ class UBOTests {
         logger.info("Testing out-of-order UBO serialisation...")
 
         val ubo = UBO()
-        val storage = MemoryUtil.memAlloc(12)
+        val storage = ByteBuffer(12)
         val storageView = storage.duplicate().order(ByteOrder.LITTLE_ENDIAN)
 
         ubo.add("member1", { 1337 }, offset = 4 * 2)
@@ -96,7 +97,7 @@ class UBOTests {
         logger.info("Testing hashed UBO serialisation...")
 
         val ubo = UBO()
-        val storage = MemoryUtil.memAlloc(96)
+        val storage = ByteBuffer(96)
         val storageView = storage.duplicate().order(ByteOrder.LITTLE_ENDIAN)
         val defaultVector = GLVector(1.0f, 2.0f, 3.0f)
 

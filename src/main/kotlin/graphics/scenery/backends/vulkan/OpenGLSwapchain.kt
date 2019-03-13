@@ -11,6 +11,7 @@ import graphics.scenery.backends.SceneryWindow
 import graphics.scenery.utils.LazyLogger
 import graphics.scenery.utils.SceneryFXPanel
 import graphics.scenery.utils.SceneryPanel
+import kool.IntBuffer
 import org.lwjgl.glfw.GLFW.*
 import org.lwjgl.glfw.GLFWNativeGLX.glfwGetGLXWindow
 import org.lwjgl.glfw.GLFWNativeWin32.glfwGetWin32Window
@@ -24,7 +25,6 @@ import org.lwjgl.opengl.NVDrawVulkanImage
 import org.lwjgl.opengl.WGLNVSwapGroup
 import org.lwjgl.system.MemoryUtil
 import org.lwjgl.system.MemoryUtil.NULL
-import org.lwjgl.system.MemoryUtil.memAllocInt
 import org.lwjgl.system.Platform
 import org.lwjgl.vulkan.VK10
 import org.lwjgl.vulkan.VK10.*
@@ -219,8 +219,8 @@ class OpenGLSwapchain(val device: VulkanDevice,
         val swapGroup = System.getProperty("scenery.VulkanRenderer.SwapGroup", "1").toInt()
         val swapBarrier = System.getProperty("scenery.VulkanRenderer.SwapBarrier", "1").toInt()
 
-        val maxGroups = memAllocInt(1)
-        val maxBarriers = memAllocInt(1)
+        val maxGroups = IntBuffer(1)
+        val maxBarriers = IntBuffer(1)
 
         when (Platform.get()) {
             Platform.WINDOWS -> {

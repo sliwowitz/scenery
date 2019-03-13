@@ -1,6 +1,6 @@
 package graphics.scenery
 
-import org.lwjgl.system.MemoryUtil.memAlloc
+import kool.FloatBuffer
 import java.nio.ByteOrder
 import java.nio.FloatBuffer
 import java.nio.IntBuffer
@@ -43,7 +43,7 @@ open class PointCloud(var pointRadius: Float = 0.1f, override var name: String =
      */
     fun setupPointCloud() {
         if (this.texcoords.limit() == 0) {// Only preinitialize if texcoords has not been preinialized
-            this.texcoords = memAlloc(vertices.limit() * texcoordSize * 4).order(ByteOrder.nativeOrder()).asFloatBuffer()
+            this.texcoords = FloatBuffer(vertices.limit() * texcoordSize)
             var i = 0
             while (i < this.texcoords.limit() - 1) {
                 this.texcoords.put(i, this.pointRadius)

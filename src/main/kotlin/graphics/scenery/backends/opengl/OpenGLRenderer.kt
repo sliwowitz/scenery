@@ -12,6 +12,7 @@ import graphics.scenery.backends.*
 import graphics.scenery.spirvcrossj.Loader
 import graphics.scenery.spirvcrossj.libspirvcrossj
 import graphics.scenery.utils.*
+import kool.ByteBuffer
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.async
 import kotlinx.coroutines.launch
@@ -236,7 +237,7 @@ open class OpenGLRenderer(hub: Hub,
             alignment = tmp[0].toLong()
 
             gl.glGenBuffers(1, id, 0)
-            buffer = MemoryUtil.memAlloc(maxOf(tmp[0], size))
+            buffer = ByteBuffer(maxOf(tmp[0], size))
 
             gl.glBindBuffer(GL4.GL_UNIFORM_BUFFER, id[0])
             gl.glBufferData(GL4.GL_UNIFORM_BUFFER, size * 1L, null, GL4.GL_DYNAMIC_DRAW)
@@ -1999,7 +2000,7 @@ open class OpenGLRenderer(hub: Hub,
 
             pboBuffers.forEachIndexed { i, _ ->
                 if (pboBuffers[i] == null) {
-                    pboBuffers[i] = MemoryUtil.memAlloc(4 * window.width * window.height)
+                    pboBuffers[i] = ByteBuffer(4 * window.width * window.height)
                 }
             }
 
@@ -2294,7 +2295,7 @@ open class OpenGLRenderer(hub: Hub,
         val filename = "${name}_${Date().toInstant().epochSecond}.raw"
         val bytes = texture.width * texture.height * texture.depth * texture.channels * texture.bitsPerChannel / 8
         logger.info("Dumping $name to $filename ($bytes bytes)")
-        val buffer = MemoryUtil.memAlloc(bytes)
+        val buffer = ByteBuffer(bytes)
         gl.glPixelStorei(GL4.GL_PACK_ALIGNMENT, 1)
         texture.bind()
         gl.glGetTexImage(texture.textureTarget, 0, texture.format, texture.type, buffer)

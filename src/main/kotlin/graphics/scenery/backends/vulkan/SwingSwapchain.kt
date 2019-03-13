@@ -6,6 +6,8 @@ import graphics.scenery.backends.SceneryWindow
 import graphics.scenery.utils.LazyLogger
 import graphics.scenery.utils.SceneryJPanel
 import graphics.scenery.utils.SceneryPanel
+import kool.IntBuffer
+import kool.LongBuffer
 import org.lwjgl.system.MemoryStack.stackPush
 import org.lwjgl.system.MemoryUtil
 import org.lwjgl.system.MemoryUtil.memFree
@@ -58,9 +60,9 @@ open class SwingSwapchain(open val device: VulkanDevice,
     override var format = VkFormat.UNDEFINED
 
     /** Swapchain image. */
-    var swapchainImage: IntBuffer = MemoryUtil.memAllocInt(1)
+    var swapchainImage = IntBuffer(1)
     /** Pointer to the current swapchain. */
-    var swapchainPointer: LongBuffer = MemoryUtil.memAllocLong(1)
+    var swapchainPointer = LongBuffer(1)
     /** Present info, allocated only once and reused. */
     var presentInfo: VkPresentInfoKHR = VkPresentInfoKHR.calloc()
     /** Vulkan queue used exclusively for presentation. */

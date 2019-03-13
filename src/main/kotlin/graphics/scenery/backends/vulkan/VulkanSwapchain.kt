@@ -5,11 +5,8 @@ import graphics.scenery.backends.RenderConfigReader
 import graphics.scenery.backends.SceneryWindow
 import graphics.scenery.utils.LazyLogger
 import graphics.scenery.utils.SceneryPanel
-import kool.free
-import kool.indices
+import kool.*
 import kool.lib.contains
-import kool.rem
-import kool.set
 import org.lwjgl.glfw.GLFW.*
 import org.lwjgl.glfw.GLFWVulkan
 import org.lwjgl.glfw.GLFWWindowSizeCallback
@@ -56,7 +53,7 @@ open class VulkanSwapchain(open val device: VulkanDevice,
     override var format = VkFormat.UNDEFINED
 
     /** Swapchain image. */
-    var swapchainImage: IntBuffer = MemoryUtil.memAllocInt(1)
+    var swapchainImage = IntBuffer(1)
     /** Present info, allocated only once and reused. */
     var presentInfo: VkPresentInfoKHR = VkPresentInfoKHR.calloc()
     /** Vulkan queue used exclusively for presentation. */

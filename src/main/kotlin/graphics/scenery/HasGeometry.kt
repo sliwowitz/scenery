@@ -5,7 +5,7 @@ import gnu.trove.map.hash.THashMap
 import gnu.trove.set.hash.TLinkedHashSet
 import graphics.scenery.utils.LazyLogger
 import graphics.scenery.utils.SystemHelpers
-import org.lwjgl.system.MemoryUtil.memAlloc
+import kool.FloatBuffer
 import java.io.BufferedInputStream
 import java.io.File
 import java.io.Serializable
@@ -329,10 +329,9 @@ interface HasGeometry : Serializable {
 
         vertexCountMap.forEach { objectName, objectVertexCount ->
             vertexBuffers[objectName] = Triple(
-                memAlloc(objectVertexCount * vertexSize * 4).order(ByteOrder.nativeOrder()).asFloatBuffer(),
-                memAlloc(objectVertexCount * vertexSize * 4).order(ByteOrder.nativeOrder()).asFloatBuffer(),
-                memAlloc(objectVertexCount * texcoordSize * 4).order(ByteOrder.nativeOrder()).asFloatBuffer()
-            )
+                FloatBuffer(objectVertexCount * vertexSize),
+                FloatBuffer(objectVertexCount * vertexSize),
+                FloatBuffer(objectVertexCount * texcoordSize))
 
             indexBuffers[objectName] = ArrayList<Int>(objectVertexCount)
             faceBuffers[objectName] = TIndexedHashSet<Vertex>(((faceCountMap[objectName]

@@ -2,10 +2,7 @@ package graphics.scenery.backends.vulkan
 
 import glm_.L
 import graphics.scenery.utils.LazyLogger
-import kool.Ptr
-import kool.adr
-import kool.cap
-import kool.free
+import kool.*
 import org.lwjgl.PointerBuffer
 import org.lwjgl.system.MemoryUtil
 import org.lwjgl.system.MemoryUtil.*
@@ -54,7 +51,7 @@ open class VulkanBuffer(val device: VulkanDevice, var size: VkDeviceSize,
     private var bufferReallocNeeded: Boolean = false
 
     /** Staging buffer, providing host memory */
-    var stagingBuffer: ByteBuffer = memAlloc(size.i)
+    var stagingBuffer: ByteBuffer = ByteBuffer(size.i)
         private set
 
     val vkDev get() = device.vulkanDevice
@@ -154,7 +151,7 @@ open class VulkanBuffer(val device: VulkanDevice, var size: VkDeviceSize,
      * override the buffer's default alignment by setting [align] to
      * the desired value. Returns the new position.
      */
-    fun advance(align: VkDeviceSize = this.alignment): Int {
+    fun advance(align: VkDeviceSize = this.alignment): VkDeviceSize {
         val pos = stagingBuffer.position()
         val rem = pos % align.L
 
@@ -163,7 +160,7 @@ open class VulkanBuffer(val device: VulkanDevice, var size: VkDeviceSize,
             stagingBuffer.position(newpos)
         }
 
-        return stagingBuffer.position()
+        return VkDeviceSize(stagingBuffer.position())
     }
 
     /**

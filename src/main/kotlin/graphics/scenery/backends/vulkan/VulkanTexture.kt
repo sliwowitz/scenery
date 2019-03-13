@@ -269,7 +269,7 @@ open class VulkanTexture(val device: VulkanDevice,
                     GLTypeEnum.Double -> 8
                 }
 
-                val storage = memAlloc(data.remaining() / 3 * 4)
+                val storage = ByteBuffer(data.remaining() / 3 * 4)
                 val view = data.duplicate()
                 val tmp = ByteArray(pixelByteSize * 3)
                 val alpha = (0 until pixelByteSize).map { 255.toByte() }.toByteArray()
@@ -748,14 +748,7 @@ open class VulkanTexture(val device: VulkanDevice,
             g.drawImage(bufferedImage, 0, 0, null)
             g.dispose()
 
-            val data = (texImage.raster.dataBuffer as DataBufferByte).data
-
-            imageBuffer = memAlloc(data.size)
-            imageBuffer.order(ByteOrder.nativeOrder())
-            imageBuffer.put(data, 0, data.size)
-            imageBuffer.rewind()
-
-            return imageBuffer
+            return (texImage.raster.dataBuffer as DataBufferByte).data.toBuffer()
         }
 
         // the following three routines are from

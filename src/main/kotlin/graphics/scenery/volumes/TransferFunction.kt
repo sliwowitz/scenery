@@ -1,6 +1,7 @@
 package graphics.scenery.volumes
 
 import graphics.scenery.utils.LazyLogger
+import kool.ByteBuffer
 import org.lwjgl.system.MemoryUtil
 import java.nio.ByteBuffer
 import java.nio.ByteOrder
@@ -28,7 +29,7 @@ open class TransferFunction(val name: String = "") {
     val textureHeight = 16
 
     /** The auxiliary texture where the interpolated transfer function will be stored. */
-    protected val buffer: ByteBuffer = MemoryUtil.memAlloc(textureSize * 4 * textureHeight)
+    protected val buffer = ByteBuffer(textureSize * 4 * textureHeight)
 
     /** Indicator whether the auxiliary texture needs to be reuploaded. */
     var stale = true

@@ -9,6 +9,7 @@ import graphics.scenery.TextureUpdate
 import graphics.scenery.backends.ShaderType
 import graphics.scenery.utils.LazyLogger
 import graphics.scenery.volumes.Volume
+import kool.ByteBuffer
 import org.lwjgl.system.MemoryUtil
 import tpietzsch.backend.*
 import tpietzsch.cache.TextureCache
@@ -377,7 +378,7 @@ open class SceneryContext(val node: Volume) : GpuContext {
     override fun map(pbo: StagingBuffer): Buffer {
         logger.debug("Mapping $pbo... (${pboBackingStore.size} total)")
         return pboBackingStore.computeIfAbsent(pbo) {
-            MemoryUtil.memAlloc(pbo.sizeInBytes)
+            ByteBuffer(pbo.sizeInBytes)
         }
     }
 

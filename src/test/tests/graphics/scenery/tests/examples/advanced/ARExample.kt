@@ -8,8 +8,8 @@ import graphics.scenery.controls.Hololens
 import graphics.scenery.numerics.Random
 import graphics.scenery.utils.RingBuffer
 import graphics.scenery.volumes.Volume
+import kool.ByteBuffer
 import org.junit.Test
-import org.lwjgl.system.MemoryUtil.memAlloc
 import java.nio.ByteBuffer
 import kotlin.concurrent.thread
 
@@ -61,7 +61,7 @@ class ARExample : SceneryBase("AR Volume Rendering example", 1280, 720) {
             }
 
             val volumeSize = 64L
-            val volumeBuffer = RingBuffer<ByteBuffer>(2) { memAlloc((volumeSize * volumeSize * volumeSize * bitsPerVoxel / 8).toInt()) }
+            val volumeBuffer = RingBuffer<ByteBuffer>(2) { ByteBuffer((volumeSize * volumeSize * volumeSize * bitsPerVoxel / 8).toInt()) }
 
             val seed = Random.randomFromRange(0.0f, 133333337.0f).toLong()
             var shift = GLVector.getNullVector(3)

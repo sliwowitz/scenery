@@ -17,7 +17,6 @@ import kotlinx.coroutines.*
 import org.lwjgl.glfw.GLFW.glfwInit
 import org.lwjgl.glfw.GLFWVulkan.glfwVulkanSupported
 import org.lwjgl.system.Configuration
-import org.lwjgl.system.MemoryUtil.memAlloc
 import org.lwjgl.system.MemoryUtil.memByteBuffer
 import org.lwjgl.system.Platform
 import org.lwjgl.vulkan.*
@@ -1603,7 +1602,7 @@ open class VulkanRenderer(hub: Hub,
 
             if (imageBuffer == null || imageBuffer?.capacity() != imageByteSize.i) {
                 logger.debug("Reallocating image buffer")
-                imageBuffer = memAlloc(imageByteSize.i)
+                imageBuffer = ByteBuffer(imageByteSize.i)
             }
 
             // finish encoding if a resize was performed
@@ -2738,28 +2737,28 @@ open class VulkanRenderer(hub: Hub,
                 ubo.offsets.limit(1)
 
                 var bufferOffset = ubo.backingBuffer!!.advance()
-                ubo.offsets.put(0, bufferOffset)
+                ubo.offsets[0] = bufferOffset.i
                 ubo.offsets.limit(1)
 
 //                node.projection.copyFrom(cam.projection.applyVulkanCoordinateSystem())
 
                 node.view.copyFrom(cam.view)
 
-                nodeUpdated = ubo.populate(offset = bufferOffset.toLong())
+                nodeUpdated = ubo.populate(offset = bufferOffset)
 
                 val materialUbo = s.UBOs["MaterialProperties"]!!.second
                 bufferOffset = ubo.backingBuffer!!.advance()
-                materialUbo.offsets.put(0, bufferOffset)
+                materialUbo.offsets[0] = bufferOffset.i
                 materialUbo.offsets.limit(1)
 
-                nodeUpdated = materialUbo.populate(offset = bufferOffset.toLong())
+                nodeUpdated = materialUbo.populate(offset = bufferOffset)
 
                 s.UBOs.filter { it.key.contains("ShaderProperties") && it.value.second.memberCount() > 0 }.forEach {
                     //                if(s.requiredDescriptorSets.keys.any { it.contains("ShaderProperties") }) {
                     val propertyUbo = it.value.second
                     val offset = propertyUbo.backingBuffer!!.advance()
-                    nodeUpdated = propertyUbo.populate(offset = offset.toLong())
-                    propertyUbo.offsets[0] = offset
+                    nodeUpdated = propertyUbo.populate(offset = offset)
+                    propertyUbo.offsets[0] = offset.i
                     propertyUbo.offsets.limit(1)
                 }
 

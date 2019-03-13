@@ -7,13 +7,13 @@ import graphics.scenery.*
 import graphics.scenery.backends.Display
 import graphics.scenery.backends.vulkan.*
 import graphics.scenery.utils.LazyLogger
+import kool.LongBuffer
+import kool.intBufferOf
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import org.lwjgl.system.MemoryStack
-import org.lwjgl.system.MemoryUtil.memAllocInt
-import org.lwjgl.system.MemoryUtil.memAllocLong
 import org.lwjgl.vulkan.*
 import org.lwjgl.vulkan.NVDedicatedAllocation.VK_STRUCTURE_TYPE_DEDICATED_ALLOCATION_IMAGE_CREATE_INFO_NV
 import org.lwjgl.vulkan.NVDedicatedAllocation.VK_STRUCTURE_TYPE_DEDICATED_ALLOCATION_MEMORY_ALLOCATE_INFO_NV
@@ -33,6 +33,7 @@ import vkk.entities.VkImage
 import java.math.BigInteger
 import java.nio.ByteBuffer
 import java.nio.ByteOrder
+import java.nio.LongBuffer
 import java.util.*
 
 /**
@@ -68,10 +69,10 @@ class Hololens : TrackerInput, Display, Hubable {
     private var d3dImages: List<Pair<VulkanTexture.VulkanImage, Long>?> = emptyList()
     private var currentImageIndex: Int = 0
 
-    private val acqKeys = memAllocLong(1).put(0, 0)
-    private val releaseKeys = memAllocLong(1).put(0, 0)
-    private val memoryHandleBuffer = memAllocLong(1)
-    private val acquireTimeout = memAllocInt(1).put(0, 1)
+    private val acqKeys = LongBuffer(1)
+    private val releaseKeys = LongBuffer(1)
+    private val memoryHandleBuffer = LongBuffer(1)
+    private val acquireTimeout = intBufferOf(1)
 
     private var leftProjection: GLMatrix? = null
     private var rightProjection: GLMatrix? = null
