@@ -8,9 +8,9 @@ import graphics.scenery.utils.SceneryJPanel
 import graphics.scenery.utils.SceneryPanel
 import kool.IntBuffer
 import kool.LongBuffer
+import kool.free
 import org.lwjgl.system.MemoryStack.stackPush
 import org.lwjgl.system.MemoryUtil
-import org.lwjgl.system.MemoryUtil.memFree
 import org.lwjgl.vulkan.*
 import org.lwjgl.vulkan.KHRSwapchain.VK_ERROR_OUT_OF_DATE_KHR
 import org.lwjgl.vulkan.KHRSwapchain.vkAcquireNextImageKHR
@@ -295,10 +295,10 @@ open class SwingSwapchain(open val device: VulkanDevice,
             this.imageViews = VkImageView_Array(imageViews)
             this.format = VkFormat(colorFormatAndSpace.colorFormat)
 
-            memFree(swapchainImages)
-            memFree(imageCount)
-            memFree(presentModeCount)
-            memFree(presentModes)
+            swapchainImages.free()
+            imageCount.free()
+            presentModeCount.free()
+            presentModes.free()
 
             this
         }
@@ -393,7 +393,7 @@ open class SwingSwapchain(open val device: VulkanDevice,
                 surfFormats.get(0).colorSpace()
             }
 
-            memFree(formatCount)
+            formatCount.free()
 
             ColorFormatAndSpace(colorFormat, colorSpace)
         }
@@ -494,7 +494,7 @@ open class SwingSwapchain(open val device: VulkanDevice,
         KHRSwapchain.vkDestroySwapchainKHR(device.vulkanDevice, handle.L, null)
 
         presentInfo.free()
-        MemoryUtil.memFree(swapchainImage)
-        MemoryUtil.memFree(swapchainPointer)
+        swapchainImage.free()
+        swapchainPointer.free()
     }
 }

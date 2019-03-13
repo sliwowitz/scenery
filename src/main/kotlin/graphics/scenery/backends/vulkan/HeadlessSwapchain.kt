@@ -285,7 +285,7 @@ open class HeadlessSwapchain(device: VulkanDevice,
 
         presentInfo.free()
 
-        MemoryUtil.memFree(imageBuffer)
+        imageBuffer.free()
 
         sharingBuffer.close()
     }

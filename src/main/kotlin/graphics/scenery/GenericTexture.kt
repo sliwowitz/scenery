@@ -2,6 +2,7 @@ package graphics.scenery
 
 import cleargl.GLTypeEnum
 import cleargl.GLVector
+import kool.free
 import org.lwjgl.system.MemoryUtil
 import java.io.Serializable
 import java.nio.ByteBuffer
@@ -54,7 +55,7 @@ data class GenericTexture @JvmOverloads constructor(
     fun clearConsumedUpdates() {
         updates.forEach {
             if (it.consumed && it.deallocate) {
-                MemoryUtil.memFree(it.contents)
+                it.contents.free()
             }
         }
         updates.removeIf { it.consumed }

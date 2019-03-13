@@ -19,6 +19,7 @@ import javafx.scene.paint.Color
 import javafx.scene.text.TextAlignment
 import javafx.stage.Stage
 import javafx.stage.Window
+import kool.free
 import org.lwjgl.system.MemoryUtil
 import org.lwjgl.system.MemoryUtil.memByteBuffer
 import org.lwjgl.vulkan.VkQueue
@@ -244,7 +245,7 @@ class FXSwapchain(device: VulkanDevice,
      * Closes the swapchain, deallocating all resources.
      */
     override fun close() {
-        MemoryUtil.memFree(imageBuffer)
+        imageBuffer.free()
 
         sharingBuffer.close()
     }

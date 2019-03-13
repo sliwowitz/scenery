@@ -6,6 +6,7 @@ import graphics.scenery.backends.UBO
 import graphics.scenery.numerics.Random
 import graphics.scenery.utils.LazyLogger
 import kool.ByteBuffer
+import kool.free
 import org.junit.Assert.assertEquals
 import org.junit.Test
 import org.lwjgl.system.MemoryUtil
@@ -57,7 +58,7 @@ class UBOTests {
         // storage buffer should be at it's end now
         assertEquals(96, storage.position())
 
-        MemoryUtil.memFree(storage)
+        storage.free()
     }
 
     /**
@@ -86,7 +87,7 @@ class UBOTests {
         // storage buffer should be at it's end now
         assertEquals(storage.capacity(), storage.position())
 
-        MemoryUtil.memFree(storage)
+        storage.free()
     }
 
     /**
@@ -147,6 +148,6 @@ class UBOTests {
 
         verifyData(v = newVector)
 
-        MemoryUtil.memFree(storage)
+        storage.free()
     }
 }

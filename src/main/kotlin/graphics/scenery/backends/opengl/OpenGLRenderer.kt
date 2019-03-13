@@ -13,6 +13,7 @@ import graphics.scenery.spirvcrossj.Loader
 import graphics.scenery.spirvcrossj.libspirvcrossj
 import graphics.scenery.utils.*
 import kool.ByteBuffer
+import kool.free
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.async
 import kotlinx.coroutines.launch
@@ -1990,7 +1991,7 @@ open class OpenGLRenderer(hub: Hub,
                     gl.glBufferData(GL4.GL_PIXEL_PACK_BUFFER, window.width * window.height * 4L, null, GL4.GL_STREAM_READ)
 
                     if (pboBuffers[index] != null) {
-                        MemoryUtil.memFree(pboBuffers[index])
+                        pboBuffers[index]!!.free()
                         pboBuffers[index] = null
                     }
                 }
@@ -2307,7 +2308,7 @@ open class OpenGLRenderer(hub: Hub,
         logger.info("Written $texture to $stream")
         outChannel.close()
         stream.close()
-        MemoryUtil.memFree(buffer)
+        buffer.free()
     }
 
     /**

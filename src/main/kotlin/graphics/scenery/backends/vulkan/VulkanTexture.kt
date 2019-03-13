@@ -682,7 +682,7 @@ open class VulkanTexture(val device: VulkanDevice,
                 }, mipmapLevels, linearMin, linearMax)
 
             tex.copyFrom(imageData)
-            memFree(imageData)
+            imageData.free()
 
             return tex
         }
