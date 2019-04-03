@@ -365,8 +365,13 @@ open class VulkanRenderer(hub: Hub,
             glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API)
         }
 
-
+        glfwSetErrorCallback({ code, other -> logger.error("GLFW error: ${code} / $other")})
         window.glfwWindow = glfwCreateWindow(window.width, window.height, "scenery", NULL, NULL)
+
+        if(window.glfwWindow == null) {
+            logger.error("Could not create window")
+        }
+
         glfwSetWindowPos(window.glfwWindow!!, 100, 100)
 
         surface = VU.run(memAllocLong(1), "glfwCreateWindowSurface") {

@@ -35,7 +35,7 @@ import kotlin.streams.toList
  *
  * @author Ulrik Günther <hello@ulrik.is>
  */
-class DirectVolumeFullscreen(var autosetProperties: Boolean = true) : Mesh("DirectVolume") {
+class DirectVolumeFullscreen    (var autosetProperties: Boolean = true) : Mesh("DirectVolume") {
     data class VolumeDescriptor(val path: Path,
                                 val width: Long,
                                 val height: Long,
@@ -320,7 +320,8 @@ class DirectVolumeFullscreen(var autosetProperties: Boolean = true) : Mesh("Dire
 //                }
             }
 //            this.material.textures.put("normal", this.javaClass.getResource("colormap-viridis.png").file)
-            this.material.textures.put("normal", "m:/colormaps/colormap-hot.png")
+            val driveLetter = System.getProperty("scenery.DriveLetter", "E")
+            this.material.textures.put("normal", "$driveLetter:/ssd-backup-inauguration/colormaps/colormap-hot.png")
             this.material.needsTextureReload = true
 
             this.lock.unlock()

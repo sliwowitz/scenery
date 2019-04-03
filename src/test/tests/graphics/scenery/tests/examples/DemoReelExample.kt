@@ -29,6 +29,12 @@ class DemoReelExample: SceneryDefaultApplication("Demo Reel") {
     var bileScene = Mesh(name = "bile")
     var histoneScene = Mesh(name = "histone")
     var drosophilaScene = Mesh(name = "drosophila")
+    var retinaScene = Mesh(name = "retina")
+
+    lateinit var goto_scene_bile: ClickBehaviour
+    lateinit var goto_scene_drosophila: ClickBehaviour
+    lateinit var goto_scene_histone: ClickBehaviour
+    lateinit var goto_scene_retina: ClickBehaviour
 
     override fun init() {
         hmd = TrackedStereoGlasses("DTrack@10.1.2.201", screenConfig = "CAVEExample.yml")
@@ -78,10 +84,11 @@ class DemoReelExample: SceneryDefaultApplication("Demo Reel") {
         }
 
         // scene setup
-
+        val driveLetter = System.getProperty("scenery.DriveLetter", "E")
         val volumes = HashMap<String, List<String>>()
-        volumes.put(histoneScene.name, getVolumes("M:/CAVE_DATA/histones-isonet/stacks/default/"))
-        volumes.put(drosophilaScene.name, getVolumes("M:/CAVE_DATA/droso-royer-autopilot-transposed/"))
+        volumes.put(histoneScene.name, getVolumes("$driveLetter:/ssd-backup-inauguration/CAVE_DATA/histones-isonet/stacks/default/"))
+        volumes.put(retinaScene.name, getVolumes("$driveLetter:/ssd-backup-inauguration/CAVE_DATA/retina_test2/"))
+        volumes.put(drosophilaScene.name, getVolumes("$driveLetter:/ssd-backup-inauguration/CAVE_DATA/droso-royer-autopilot-transposed/"))
 
         val histoneVolume = DirectVolumeFullscreen(autosetProperties = false)
         //histoneVolume.
@@ -95,23 +102,29 @@ class DemoReelExample: SceneryDefaultApplication("Demo Reel") {
         drosophilaScene.visible = false
         scene.addChild(drosophilaScene)
 
+        val retinaVolume = DirectVolumeFullscreen(autosetProperties = false)
+        //retinaVolume.rotation.rotateByAngleX(1.57f)
+        retinaScene.addChild(retinaVolume)
+        retinaScene.visible = false
+        scene.addChild(retinaScene)
+
         val bile = Mesh()
         val canaliculi = Mesh()
-        canaliculi.readFrom("M:/meshes/bile-canaliculi.obj")
+        canaliculi.readFrom("$driveLetter:/ssd-backup-inauguration/meshes/bile-canaliculi.obj")
         canaliculi.position = GLVector(-600.0f, -800.0f, -20.0f)
         canaliculi.scale = GLVector(0.1f, 0.1f, 0.1f)
         canaliculi.material.diffuse = GLVector(0.5f, 0.7f, 0.1f)
         bile.addChild(canaliculi)
 
         val nuclei = Mesh()
-        nuclei.readFrom("M:/meshes/bile-nuclei.obj")
+        nuclei.readFrom("$driveLetter:/ssd-backup-inauguration/meshes/bile-nuclei.obj")
         nuclei.position = GLVector(-600.0f, -800.0f, -20.0f)
         nuclei.scale = GLVector(0.1f, 0.1f, 0.1f)
         nuclei.material.diffuse = GLVector(0.8f, 0.8f, 0.8f)
         bile.addChild(nuclei)
 
         val sinusoidal = Mesh()
-        sinusoidal.readFrom("M:/meshes/bile-sinus.obj")
+        sinusoidal.readFrom("$driveLetter:/ssd-backup-inauguration/meshes/bile-sinus.obj")
         sinusoidal.position = GLVector(-600.0f, -800.0f, -20.0f)
         sinusoidal.scale = GLVector(0.1f, 0.1f, 0.1f)
         sinusoidal.material.ambient = GLVector(0.1f, 0.0f, 0.0f)
@@ -121,12 +134,17 @@ class DemoReelExample: SceneryDefaultApplication("Demo Reel") {
         bileScene.addChild(bile)
         scene.addChild(bileScene)
 
+        scene.findObserver().position = GLVector(-6.3036857f, 0.0f, 18.837109f);
+
         publishedNodes.add(cam)
         publishedNodes.add(drosophilaVolume)
         publishedNodes.add(drosophilaScene)
 
         publishedNodes.add(histoneVolume)
         publishedNodes.add(histoneScene)
+
+        publishedNodes.add(retinaVolume)
+        publishedNodes.add(retinaScene)
 
         publishedNodes.add(bile)
         publishedNodes.add(canaliculi)
@@ -155,7 +173,7 @@ class DemoReelExample: SceneryDefaultApplication("Demo Reel") {
                     var sleepDuration = 50L
 
 
-                    arrayOf(drosophilaScene, histoneScene).forEach {
+                    arrayOf(drosophilaScene, histoneScene, retinaScene).forEach {
                         if(it.visible) {
                             logger.info("Reading next volume for ${it.name} ...")
                             val start = System.currentTimeMillis()
@@ -193,6 +211,20 @@ class DemoReelExample: SceneryDefaultApplication("Demo Reel") {
                                         voxelSizeZ = 1.0f
                                     }
                                 }
+
+                                if(it.name == "retina") {
+                                    sleepDuration = Math.max(20300,min_delay-time_to_read)
+
+                                    with(it.children[0] as DirectVolumeFullscreen) {
+                                        trangemin = 0.005f
+                                        trangemax = 1.0f
+                                        alpha_blending = 0.02f
+                                        scale = GLVector(1.0f, 1.0f, 1.0f)
+                                        voxelSizeX = 1.0f
+                                        voxelSizeY = 1.0f
+                                        voxelSizeZ = 5.0f
+                                    }
+                                }
                             }
 
 
@@ -212,7 +244,24 @@ class DemoReelExample: SceneryDefaultApplication("Demo Reel") {
             logger.info("Preloading volumes")
             volumes["histone"]?.map { histoneVolume.preload(Paths.get(it)) }
             volumes["drosophila"]?.map { drosophilaVolume.preload(Paths.get(it)) }
+            volumes["retina"]?.map { retinaVolume.preload(Paths.get(it)) }
         }
+
+//        thread {
+//            while(true) {
+//                Thread.sleep(30000)
+//
+//                goto_scene_histone.click(0, 0)
+//
+//                Thread.sleep(30000)
+//
+//                goto_scene_drosophila.click(0, 0)
+//
+//                Thread.sleep(30000)
+//
+//                goto_scene_bile.click(0, 0)
+//            }
+//        }
     }
 
     fun getVolumes(path: String): List<String> {
@@ -283,18 +332,20 @@ class DemoReelExample: SceneryDefaultApplication("Demo Reel") {
         }
 
 
-        val goto_scene_bile = ClickBehaviour { _, _ ->
+        goto_scene_bile = ClickBehaviour { _, _ ->
             bileScene.showAll()
             histoneScene.hideAll()
             drosophilaScene.hideAll()
+            retinaScene.hideAll()
 
             scene.findObserver().position = GLVector(-6.3036857f, 0.0f, 18.837109f)
         }
 
-        val goto_scene_histone = ClickBehaviour { _, _ ->
+        goto_scene_histone = ClickBehaviour { _, _ ->
             bileScene.hideAll()
             histoneScene.showAll()
             drosophilaScene.hideAll()
+            retinaScene.hideAll()
 
             with(histoneScene.children[0] as DirectVolumeFullscreen) {
                 trangemin = 0.005f
@@ -310,10 +361,11 @@ class DemoReelExample: SceneryDefaultApplication("Demo Reel") {
             scene.findObserver().position = GLVector(-0.16273244f, -0.85279214f, 1.0995241f)
         }
 
-        val goto_scene_drosophila = ClickBehaviour { _, _ ->
+        goto_scene_drosophila = ClickBehaviour { _, _ ->
             bileScene.hideAll()
             histoneScene.hideAll()
             drosophilaScene.showAll()
+            retinaScene.hideAll()
 
             with(drosophilaScene.children[0] as DirectVolumeFullscreen) {
                 trangemin = 0.00f
@@ -330,6 +382,26 @@ class DemoReelExample: SceneryDefaultApplication("Demo Reel") {
 
         }
 
+        goto_scene_retina = ClickBehaviour { _, _ ->
+            bileScene.hideAll()
+            histoneScene.hideAll()
+            drosophilaScene.hideAll()
+            retinaScene.showAll()
+
+            with(retinaScene.children[0] as DirectVolumeFullscreen) {
+                trangemin = 0.00f
+                //trangemax = .006f
+                trangemax = .5f
+                alpha_blending = 0.01f
+                scale = GLVector(1.0f, 1.0f, 1.0f)
+                voxelSizeX = 1.0f
+                voxelSizeY = 1.0f
+                voxelSizeZ = 5.0f
+            }
+
+            //scene.findObserver().position = GLVector(-0.16273244f, -0.85279214f, 1.0995241f)
+            scene.findObserver().position = GLVector(0.0f,-1.1f, 2.0f);
+        }
 
         inputHandler.addBehaviour("toggle_control_mode", toggleControlMode)
         inputHandler.addKeyBinding("toggle_control_mode", "C")
@@ -337,10 +409,12 @@ class DemoReelExample: SceneryDefaultApplication("Demo Reel") {
         inputHandler.addBehaviour("goto_scene_bile", goto_scene_bile)
         inputHandler.addBehaviour("goto_scene_histone", goto_scene_histone)
         inputHandler.addBehaviour("goto_scene_drosophila", goto_scene_drosophila)
+        inputHandler.addBehaviour("goto_scene_retina", goto_scene_retina)
 
         inputHandler.addKeyBinding("goto_scene_bile", "shift 1")
         inputHandler.addKeyBinding("goto_scene_histone", "shift 2")
         inputHandler.addKeyBinding("goto_scene_drosophila", "shift 3")
+        inputHandler.addKeyBinding("goto_scene_retina", "shift 4")
     }
 
     @Test override fun main() {

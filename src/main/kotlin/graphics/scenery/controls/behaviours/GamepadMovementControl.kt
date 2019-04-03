@@ -15,7 +15,7 @@ class GamepadMovementControl(private val name: String,
                              override val axis: List<Component.Identifier>,
                              private val cam: Camera) : GamepadBehaviour {
     /** Speed multiplier for camera movement */
-    protected val speedMultiplier = 0.8f
+    protected val speedMultiplier = 0.01f
     /** Threshold below which the behaviour does not trigger */
     protected val threshold = 0.05f
 

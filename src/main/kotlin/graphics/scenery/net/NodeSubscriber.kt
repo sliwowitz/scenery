@@ -96,6 +96,14 @@ class NodeSubscriber(override var hub: Hub?, val address: String = "udp://localh
                             }
                         }
 
+                        if(o is PointLight && node is PointLight) {
+                            node.emissionColor = o.emissionColor
+                            node.intensity = o.intensity
+                            node.linear = o.linear
+                            node.quadratic = o.quadratic
+                            node.radius = o.radius
+                        }
+
                         input.close()
                         bin.close()
                     }
