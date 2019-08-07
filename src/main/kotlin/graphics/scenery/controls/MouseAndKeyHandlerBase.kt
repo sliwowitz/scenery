@@ -127,18 +127,17 @@ open class MouseAndKeyHandlerBase : ControllerListener, ExtractsNatives {
         java.util.logging.Logger.getLogger(ControllerEnvironment::class.java.name).parent.level = Level.SEVERE
 
         /** Returns the name of the DLL/so/dylib required by JInput on the given platform. */
-        fun ExtractsNatives.Platform.getPlatformJinputLibraryName(): String {
+        fun ExtractsNatives.Platform.getPlatformJinputLibraryName(): List<String> {
             return when(this) {
-                WINDOWS -> "jinput-raw_64.dll"
-                LINUX -> "libjinput-linux64.so"
-                MACOS -> "libjinput-osx.jnilib"
-                UNKNOWN -> "none"
+                WINDOWS -> listOf("jinput-raw_64.dll", "jinput-dx8_64.dll")
+                LINUX -> listOf("libjinput-linux64.so")
+                MACOS -> listOf("libjinput-osx.jnilib")
+                UNKNOWN -> listOf("none")
             }
         }
 
         try {
-            logger.debug("Native JARs for JInput: ${getNativeJars("jinput-platform").joinToString(", ")}")
-            extractLibrariesFromJar(getNativeJars("jinput-platform", hint = ExtractsNatives.getPlatform().getPlatformJinputLibraryName()))
+            loadNativeFromJar(ExtractsNatives.getPlatform().getPlatformJinputLibraryName(), setJInputPath = true)
 
             ControllerEnvironment.getDefaultEnvironment().controllers.forEach {
                 if (it.type == Controller.Type.STICK || it.type == Controller.Type.GAMEPAD) {

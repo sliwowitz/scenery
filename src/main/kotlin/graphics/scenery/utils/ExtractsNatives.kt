@@ -4,9 +4,6 @@ import org.slf4j.LoggerFactory
 import java.io.File
 import java.io.FileOutputStream
 import java.nio.file.Files
-import java.util.jar.JarFile
-import java.io.ByteArrayOutputStream
-
 
 
 /**
@@ -54,102 +51,44 @@ interface ExtractsNatives {
     }
 
     /**
-     * Utility function to extract native libraries from a given JAR, store them in a
-     * temporary directory and modify the JRE's library path such that it can find
-     * these libraries.
-     *
-     * @param[paths] A list of JAR paths to extract natives from.
-     * @param[replace] Whether or not the java.library.path should be replaced.
-     */
-    fun extractLibrariesFromJar(paths: List<String>, replace: Boolean = false) {
-        // FIXME: Kotlin bug, revert to LazyLogger as soon as https://youtrack.jetbrains.com/issue/KT-19690 is fixed.
-        // val logger by LazyLogger()
-        val logger = LoggerFactory.getLogger(this.javaClass.simpleName)
-
-        val lp = System.getProperty("java.library.path")
-        val tmpDir = Files.createTempDirectory("scenery-natives-tmp").toFile()
-        val lock = File(tmpDir, ".lock")
-        lock.createNewFile()
-        lock.deleteOnExit()
-
-        cleanTempFiles()
-
-        logger.debug("Got back ${paths.joinToString(", ")}")
-        paths.filter { it.toLowerCase().endsWith("jar") }.forEach {
-            logger.debug("Extracting $it...")
-
-            val jar = JarFile(it)
-            val enumEntries = jar.entries()
-
-            while (enumEntries.hasMoreElements()) {
-                val file = enumEntries.nextElement()
-                val f = File(tmpDir.absolutePath + File.separator + file.getName())
-
-                // create directory, if needed
-                if (file.isDirectory()) {
-                    f.mkdir()
-                    continue
-                }
-
-                val ins = jar.getInputStream(file)
-                val baos = ByteArrayOutputStream()
-                val fos = FileOutputStream(f)
-
-                val buffer = ByteArray(1024)
-                var len: Int = ins.read(buffer)
-
-                while (len > -1) {
-                    baos.write(buffer, 0, len)
-                    len = ins.read(buffer)
-                }
-
-                baos.flush()
-                fos.write(baos.toByteArray())
-
-                fos.close()
-                baos.close()
-                ins.close()
-            }
-        }
-
-        if (replace) {
-            System.setProperty("java.library.path", paths.joinToString(File.pathSeparator))
-        } else {
-            val newPath = "${lp}${File.pathSeparator}${tmpDir.absolutePath}"
-            logger.debug("New java.library.path is $newPath")
-            System.setProperty("java.library.path", newPath)
-        }
-
-        val fieldSysPath = ClassLoader::class.java.getDeclaredField("sys_paths")
-        fieldSysPath.setAccessible(true)
-        fieldSysPath.set(null, null)
-
-        logger.debug("java.library.path is now ${System.getProperty("java.library.path")}")
-    }
-
-    /**
      * Utility function to search the current class path for JARs with native libraries
      *
      * @param[searchName] The string to match the JAR's name against
      * @param[hint] A file name to look for, for the ImageJ classpath hack
      * @return A list of JARs matching [searchName]
      */
-    fun getNativeJars(searchName: String, hint: String = ""): List<String> {
-        val res = Thread.currentThread().contextClassLoader.getResource(hint)
+    fun loadNativeFromJar(names: List<String>, setJInputPath: Boolean = false): Boolean {
+        try {
+            cleanTempFiles()
+            val tmpDir = Files.createTempDirectory("scenery-natives-tmp").toFile()
+            val lockfile = File(tmpDir, ".lock")
+            lockfile.createNewFile()
+            lockfile.deleteOnExit()
 
-        if (res == null) {
-            LoggerFactory.getLogger(this.javaClass.simpleName).error("Could not find JAR with native libraries.")
-            return listOf()
+            if(setJInputPath) {
+                System.setProperty("net.java.games.input.librarypath", tmpDir.canonicalPath)
+            }
+
+            names.forEach { name ->
+                val res = Thread.currentThread().contextClassLoader.getResourceAsStream(name)
+
+                if (res == null) {
+                    LoggerFactory.getLogger(this.javaClass.simpleName).error("Could not find JAR with native libraries for $name")
+                    return false
+                }
+
+                val nativeFile = File(tmpDir, name)
+                val fos = FileOutputStream(nativeFile)
+                res.copyTo(fos)
+                fos.close()
+
+                System.load(nativeFile.canonicalPath)
+            }
+
+            return true
+        } catch (e: Exception) {
+            LoggerFactory.getLogger(this.javaClass.simpleName).error("Failed to extract native libraries ${names.joinToString(",")} with exception $e")
+            return false
         }
-
-        var jar = res.path
-        var pathOffset = 5
-
-        if (getPlatform() == Platform.WINDOWS) {
-            pathOffset = 6
-        }
-
-        jar = jar.substring(jar.indexOf("file:/") + pathOffset).substringBeforeLast("!")
-        return jar.split(File.pathSeparator)
     }
 }
