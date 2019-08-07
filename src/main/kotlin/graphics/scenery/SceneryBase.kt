@@ -45,7 +45,8 @@ open class SceneryBase @JvmOverloads constructor(var applicationName: String,
                        var windowWidth: Int = 1024,
                        var windowHeight: Int = 1024,
                        val wantREPL: Boolean = true,
-                       val scijavaContext: Context? = null) {
+                       val scijavaContext: Context? = null,
+                       var exitOnRendererTeardown: Boolean = true) {
 
     /** The scene used by the renderer in the application */
     protected val scene: Scene = Scene()
@@ -236,6 +237,11 @@ open class SceneryBase @JvmOverloads constructor(var applicationName: String,
         val frameTimeKeepCount = 16
 
         while (!shouldClose || gracePeriod > 0) {
+            val currentRenderer = renderer
+            if(currentRenderer != null && exitOnRendererTeardown && currentRenderer.teardownComplete && registerNewRenderer == null) {
+                shouldClose = true
+            }
+
             runtime = (System.nanoTime() - startTime) / 1000000f
             settings.set("System.Runtime", runtime)
 
