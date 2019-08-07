@@ -97,4 +97,11 @@ class FauxRenderer(override var hub: Hub?, var scene: Scene, preparedWindow: Sce
             logger.info("Stopped recording movie")
         }
     }
+
+    /**
+     * Reloads the renderer's current configuration, without tearing down windows, etc.
+     */
+    override fun reload() {
+        logger.info("Reloading renderer...")
+    }
 }

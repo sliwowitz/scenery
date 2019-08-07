@@ -247,5 +247,12 @@ open class OpenGLShaderModule(gl: GL4, entryPoint: String, sp: ShaderPackage) {
                 newModule
             }
         }
+
+        /**
+         * Clears the [OpenGLShaderModule] cache.
+         */
+        @JvmStatic fun clearCache() {
+            shaderModuleCache.clear()
+        }
     }
 }

@@ -105,6 +105,10 @@ sealed class Shaders {
          */
         companion object {
             protected val cache = ConcurrentHashMap<ShaderPaths, ShaderPackage>()
+
+            fun clearCache() {
+                cache.clear()
+            }
         }
     }
 

@@ -1499,6 +1499,8 @@ open class OpenGLRenderer(hub: Hub,
             } catch(e: ThreadDeath) {
                 logger.debug("Caught JOGL ThreadDeath, ignoring.")
             }
+
+            teardownComplete = true
             return@runBlocking
         }
 
@@ -2864,5 +2866,15 @@ open class OpenGLRenderer(hub: Hub,
         shouldClose = true
 
         encoder?.finish()
+    }
+
+    /**
+     * Reloads the renderer's current configuration, without tearing down windows, etc.
+     */
+    override fun reload() {
+        Shaders.ShadersFromFiles.clearCache()
+        OpenGLShaderModule.clearCache()
+        mustRecreateFramebuffers = true
+        logger.info("Reloading renderer...")
     }
 }

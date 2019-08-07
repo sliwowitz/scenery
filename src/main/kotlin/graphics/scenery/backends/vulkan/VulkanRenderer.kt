@@ -34,6 +34,7 @@ import java.nio.ByteBuffer
 import java.nio.ByteOrder
 import java.nio.IntBuffer
 import java.nio.LongBuffer
+import java.nio.file.FileSystems
 import java.util.*
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.ExecutorService
@@ -3212,6 +3213,7 @@ open class VulkanRenderer(hub: Hub,
 
         heartbeatTimer.cancel()
         logger.info("Renderer teardown complete.")
+        teardownComplete = true
     }
 
     override fun reshape(newWidth: Int, newHeight: Int) {
@@ -3269,4 +3271,18 @@ open class VulkanRenderer(hub: Hub,
             logger.warn("The current renderer config, $renderConfigFile, does not support setting quality options.")
         }
     }
+
+    /**
+     * Reloads the renderer's current configuration, without tearing down windows, etc.
+     */
+    override fun reload() {
+        if (swapchainRecreator != null) {
+            swapchainRecreator.mustRecreate = true
+            VulkanShaderModule.clearCache()
+            Shaders.ShadersFromFiles.clearCache()
+
+            logger.info("Reloading renderer...")
+        }
+    }
+
 }

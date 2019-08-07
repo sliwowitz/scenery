@@ -14,7 +14,12 @@ import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.async
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.runBlocking
+import java.nio.file.FileSystems
+import java.nio.file.Path
+import java.nio.file.StandardWatchEventKinds
 import java.util.concurrent.ConcurrentLinkedQueue
+import java.util.concurrent.atomic.AtomicBoolean
+import kotlin.concurrent.thread
 
 /**
  * Renderer interface. Defines the minimal set of functions a renderer has to implement.
@@ -106,6 +111,11 @@ abstract class Renderer : Hubable {
      * or input events). Push mode is activated if [pushMode] is true.
      */
     abstract var pushMode: Boolean
+
+    /**
+     * Reloads the renderer's current configuration, without tearing down windows etc.
+     */
+    abstract fun reload()
 
     /**
      * Whether the renderer manages it's own main loop. If false, [graphics.scenery.SceneryBase] will take
@@ -204,6 +214,93 @@ abstract class Renderer : Hubable {
         }
 
         result
+    }
+
+    /**
+     * Flag which is set when the renderer has completed teardown.
+     */
+    var teardownComplete: Boolean = false
+        protected set
+
+
+    private var shaderWatchThread: Thread? = null
+    private var shouldWatchShaders = AtomicBoolean(false)
+
+    private fun shaderTypeFromExtension(extension: String): ShaderType {
+        return when(extension) {
+            "vert" -> ShaderType.VertexShader
+            "geom" -> ShaderType.GeometryShader
+            "tese" -> ShaderType.TessellationEvaluationShader
+            "tesc" -> ShaderType.TessellationControlShader
+            "frag" -> ShaderType.FragmentShader
+            "comp" -> ShaderType.ComputeShader
+            else -> throw IllegalArgumentException("Don't know what shader type ends with $extension.")
+        }
+    }
+
+    fun watchShaders() {
+        shouldWatchShaders = AtomicBoolean(!shouldWatchShaders.get())
+
+        if(shaderWatchThread == null) {
+            shaderWatchThread = thread {
+                val resource = Renderer::class.java.getResource("shaders/generate-spirv.sh")?.path
+
+                if(resource == null) {
+                    logger.warn("Could not find required resource for shader watching")
+                    return@thread
+                }
+
+                try {
+                    val path = FileSystems.getDefault().getPath(resource.substringAfter(":")).parent
+                    val watchService = FileSystems.getDefault().newWatchService()
+                    val key = path.register(watchService, StandardWatchEventKinds.ENTRY_MODIFY)
+                    logger.info("Watching for shader changes now.")
+                    while (shouldWatchShaders.get()) {
+                        val wk = watchService.take()
+                        var needsReload = false
+                        wk.pollEvents().forEach { event ->
+                            val changed = (event.context() as Path).toString()
+                            if(changed.endsWith(".vert")
+                                || changed.endsWith(".geom")
+                                || changed.endsWith(".tesc")
+                                || changed.endsWith(".tese")
+                                || changed.endsWith(".comp")
+                                || changed.endsWith(".frag")) {
+                                logger.info("Shader $changed changed, reloading.")
+
+                                val target = if(this is OpenGLRenderer) {
+                                    Shaders.ShaderTarget.OpenGL
+                                } else {
+                                    Shaders.ShaderTarget.Vulkan
+                                }
+
+                                try {
+                                    Shaders.ShadersFromFiles(arrayOf(changed)).get(target, shaderTypeFromExtension(changed.substringAfterLast(".")))
+                                    needsReload = true
+                                } catch (e: Exception) {
+                                    logger.error("Will not reload shaders as shader recompilation failed: $e")
+                                    needsReload = false
+                                    return@forEach
+                                }
+                            }
+                        }
+
+                        wk.reset()
+
+                        if(needsReload) {
+                            reload()
+                        }
+
+                        Thread.sleep(1000)
+                    }
+                } catch (e: Exception) {
+                    logger.info("Cannot watch for shader changes: $e")
+                    return@thread
+                }
+            }
+        } else {
+            shaderWatchThread = null
+        }
     }
 
     /**
