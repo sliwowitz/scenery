@@ -15,7 +15,7 @@ import org.junit.Test
 import tpietzsch.example2.VolumeViewerOptions
 
 /**
- * BDV Rendering Example loading a RAII
+ * BDV Rendering Example loading a RAI
  *
  * @author Ulrik Günther <hello@ulrik.is>
  * @author Tobias Pietzsch <pietzsch@mpi-cbg.de>
