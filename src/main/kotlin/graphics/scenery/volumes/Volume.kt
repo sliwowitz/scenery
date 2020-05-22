@@ -439,7 +439,11 @@ open class Volume(val dataSource: VolumeDataSource, val options: VolumeViewerOpt
 
             val id = file.fileName.toString()
 
+<<<<<<< HEAD
             val reader = scifio.initializer().initializeReader(FileLocation(file.toFile()))
+=======
+            val reader = scifio.initializer().initializeReader(FileLocation(file.normalize().toString()))
+>>>>>>> Updates for scifio, ui-behaviour, and pom-scijava 29
 
             val dims = Vector3i()
             with(reader.openPlane(0, 0)) {
