@@ -105,7 +105,7 @@ class VolumeManager(override var hub : Hub?) : Node(), Hubable, HasGeometry, Req
         val converterSetup: ConverterSetup
     )
 
-    private val stackManager = SceneryStackManager()
+    val stackManager = SceneryStackManager()
 
     /** Whether to freeze the current set of blocks in-place. */
     var freezeRequiredBlocks = false
@@ -550,10 +550,12 @@ class VolumeManager(override var hub : Hub?) : Node(), Hubable, HasGeometry, Req
                             return@forEach
                         }
 
+
                         val tp = min(max(0, currentTimepoint), wrapped.timepoints.size-1)
+
                         TransformedBufferedSimpleStack3D(
                             stack,
-                            wrapped.timepoints.toList()[tp].second,
+                            wrapped.timepoints.toList()[tp].second,// ByteBuffer for tp
                             intArrayOf(wrapped.width, wrapped.height, wrapped.depth),
                             bdvNode,
                             sourceTransform
@@ -566,6 +568,8 @@ class VolumeManager(override var hub : Hub?) : Node(), Hubable, HasGeometry, Req
                     val colormap = colorMapTextures.getOrPut(bdvNode.viewerState.sources[i], { bdvNode.colormap.toTexture() })
                     logger.debug("TF for ${bdvNode.viewerState.sources[i]} is $tf")
                     stacks.add(StackState(o, tf, colormap, bdvNode.converterSetups[i]))
+                    if( stacks.size > 1 )
+                        stacks.removeAt(0)
                 }
 
                 bdvNode.converterSetups[i].setViewer(this)
