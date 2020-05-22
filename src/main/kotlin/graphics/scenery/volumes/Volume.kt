@@ -40,7 +40,10 @@ import org.joml.Matrix4f
 import org.joml.Vector3i
 import org.lwjgl.system.MemoryUtil
 import org.scijava.io.location.FileLocation
+<<<<<<< HEAD
 import org.scijava.io.location.Location
+=======
+>>>>>>> Updates for scifio, ui-behaviour, and pom-scijava 29
 import tpietzsch.example2.VolumeViewerOptions
 import java.io.FileInputStream
 import java.nio.ByteBuffer
@@ -440,7 +443,11 @@ open class Volume(val dataSource: VolumeDataSource, val options: VolumeViewerOpt
             val id = file.fileName.toString()
 
 <<<<<<< HEAD
+<<<<<<< HEAD
             val reader = scifio.initializer().initializeReader(FileLocation(file.toFile()))
+=======
+            val reader = scifio.initializer().initializeReader(FileLocation(file.normalize().toString()))
+>>>>>>> Updates for scifio, ui-behaviour, and pom-scijava 29
 =======
             val reader = scifio.initializer().initializeReader(FileLocation(file.normalize().toString()))
 >>>>>>> Updates for scifio, ui-behaviour, and pom-scijava 29
