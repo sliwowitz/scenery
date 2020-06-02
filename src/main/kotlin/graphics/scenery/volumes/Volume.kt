@@ -41,9 +41,12 @@ import org.joml.Vector3i
 import org.lwjgl.system.MemoryUtil
 import org.scijava.io.location.FileLocation
 <<<<<<< HEAD
+<<<<<<< HEAD
 import org.scijava.io.location.Location
 =======
 >>>>>>> Updates for scifio, ui-behaviour, and pom-scijava 29
+=======
+>>>>>>> f55e46b4ede942bcbf9f28a9fe75fd98ca841e14
 import tpietzsch.example2.VolumeViewerOptions
 import java.io.FileInputStream
 import java.nio.ByteBuffer
@@ -441,7 +444,6 @@ open class Volume(val dataSource: VolumeDataSource, val options: VolumeViewerOpt
             }
 
             val id = file.fileName.toString()
-
 
             val reader = scifio.initializer().initializeReader(FileLocation(file.toFile()))
 

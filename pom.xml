@@ -110,7 +110,7 @@
         <kotlin.compiler.incremental>true</kotlin.compiler.incremental>
         <dokka.version>0.10.0</dokka.version>
         <dokka.skip>true</dokka.skip>
-
+        
         <bigdataviewer-core.version>9.0.2</bigdataviewer-core.version>
         <bigvolumeviewer.version>0.1.8</bigvolumeviewer.version>
         <cleargl.version>2.2.10</cleargl.version>
