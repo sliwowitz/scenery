@@ -258,6 +258,33 @@ class Curve(spline: Spline, private val firstPerpendicularVector: Vector3f = Vec
                     verticesVectors.add(curveGeometry[shapeIndex][shape.lastIndex])
                     verticesVectors.add(curveGeometry[shapeIndex][0])
                 }
+                curveGeometry.dropLast(1).forEachIndexed{ shapeIndex, shape ->
+                    //initialize the triangleStrip
+                    when (shapeIndex) {
+                        0 -> {
+                            //add the first triangle for the strip
+                            verticesVectors.add(curveGeometry[0][0])
+                            verticesVectors.add(curveGeometry[1][0])
+                            verticesVectors.add(curveGeometry[0][1])
+                            //add the remaining triangles, except for the last three
+                            shape.drop(1).dropLast(1).forEachIndexed { vertexIndex, _ ->
+                                verticesVectors.add(curveGeometry[1][vertexIndex])
+                                verticesVectors.add(curveGeometry[0][vertexIndex + 1])
+                            }
+                            //add last three triangles
+                            verticesVectors.add(curveGeometry[1][shape.lastIndex])
+                            verticesVectors.add(curveGeometry[0][0])
+                            verticesVectors.add(curveGeometry[1][0])
+                        }
+                        //add the rest of the triangles
+                        else -> {
+                            shape.drop(1).forEachIndexed{ vertexIndex, _ ->
+                                verticesVectors.add(curveGeometry[shapeIndex][vertexIndex])
+                                verticesVectors.add(curveGeometry[shapeIndex + 1][vertexIndex + 1])
+                            }
+                        }
+                    }
+                }
             } else {
                 throw IllegalArgumentException("The baseShapes must not differ in size!")
             }
