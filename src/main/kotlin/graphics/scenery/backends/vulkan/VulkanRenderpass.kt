@@ -374,9 +374,9 @@ open class VulkanRenderpass(val name: String, var config: RenderConfigReader.Ren
         }
     }
 
-    fun getDescriptorSetLayoutForTexture(name: String, node: Node): Pair<Long, List<VulkanShaderModule.UBOSpec>>? {
+    fun getDescriptorSetLayoutForTexture(name: String, outputNode: Node): Pair<Long, List<VulkanShaderModule.UBOSpec>>? {
         logger.debug("Looking for texture name $name in descriptor specs")
-        val set = getActivePipeline(node).descriptorSpecs.entries
+        val set = getActivePipeline(outputNode).descriptorSpecs.entries
             .groupBy { it.value.set }
             .toSortedMap()
             .filter { it.value.any { spec -> spec.value.name == name } }
@@ -391,12 +391,12 @@ open class VulkanRenderpass(val name: String, var config: RenderConfigReader.Ren
     }
 
     /**
-     * Returns the order of shader properties as a map for a given [node] as required by the shader file.
+     * Returns the order of shader properties as a map for a given [outputNode] as required by the shader file.
      */
-    fun getShaderPropertyOrder(node: Node): Map<String, Int> {
+    fun getShaderPropertyOrder(outputNode: Node): Map<String, Int> {
         // this creates a shader property UBO for items marked @ShaderProperty in node
-        logger.debug("specs: ${this.pipelines.getValue("preferred-${node.uuid}").descriptorSpecs}")
-        val shaderPropertiesSpec = this.pipelines.getValue("preferred-${node.uuid}").descriptorSpecs.filter { it.key == "ShaderProperties" }.map { it.value.members }
+        logger.debug("specs: ${this.pipelines.getValue("preferred-${outputNode.uuid}").descriptorSpecs}")
+        val shaderPropertiesSpec = this.pipelines.getValue("preferred-${outputNode.uuid}").descriptorSpecs.filter { it.key == "ShaderProperties" }.map { it.value.members }
 
         if(shaderPropertiesSpec.count() == 0) {
             logger.debug("Warning: Shader file uses no declared shader properties, despite the class declaring them.")
@@ -648,18 +648,18 @@ open class VulkanRenderpass(val name: String, var config: RenderConfigReader.Ren
     fun getWritePosition() = commandBufferBacking.currentWritePosition - 1
 
     /**
-     * Returns the active [VulkanPipeline] for [forNode], if it has a preferred pipeline,
+     * Returns the active [VulkanPipeline] for [forOutputNode], if it has a preferred pipeline,
      * or the default one if not.
      */
-    fun getActivePipeline(forNode: Node): VulkanPipeline {
-        return pipelines.getOrDefault("preferred-${forNode.uuid}", getDefaultPipeline())
+    fun getActivePipeline(forOutputNode: Node): VulkanPipeline {
+        return pipelines.getOrDefault("preferred-${forOutputNode.uuid}", getDefaultPipeline())
     }
 
     /**
-     * Removes any preferred [VulkanPipeline] for the node given in [forNode].
+     * Removes any preferred [VulkanPipeline] for the node given in [forOutputNode].
      */
-    fun removePipeline(forNode: Node): Boolean {
-        return pipelines.remove("preferred-${forNode.uuid}") != null
+    fun removePipeline(forOutputNode: Node): Boolean {
+        return pipelines.remove("preferred-${forOutputNode.uuid}") != null
     }
 
     /**

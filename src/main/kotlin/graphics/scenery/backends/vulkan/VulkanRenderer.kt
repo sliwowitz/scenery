@@ -760,8 +760,9 @@ open class VulkanRenderer(hub: Hub,
     }
 
     fun updateNodeGeometry(node: Node) {
-        if (node is HasGeometry && node.vertices.remaining() > 0) {
-            node.rendererMetadata()?.let { s ->
+        val outputNode = node.outputNode() ?: return
+        if (outputNode is HasGeometry && outputNode.vertices.remaining() > 0) {
+            outputNode.rendererMetadata()?.let { s ->
                 VulkanNodeHelpers.createVertexBuffers(device, node, s, stagingPool, geometryPool, commandPools, queue)
             }
         }
@@ -798,22 +799,22 @@ open class VulkanRenderer(hub: Hub,
     /**
      * Initialises a given [Node] with the metadata required by the [VulkanRenderer].
      */
-    fun initializeNode(n: Node): Boolean {
-        val node = n.outputNode() ?: return false
-        if(n is DelegatesRendering) {
-            logger.debug("Initialising node $n with delegate $node (state=${node.state})")
+    fun initializeNode(node: Node): Boolean {
+        val outputNode = node.outputNode() ?: return false
+        if(node is DelegatesRendering) {
+            logger.debug("Initialising node $node with delegate $outputNode (state=${outputNode.state})")
         } else {
-            logger.debug("Initialising node $n")
+            logger.debug("Initialising node $node")
         }
 
-        if(node.rendererMetadata() == null) {
-            node.metadata["VulkanRenderer"] = VulkanObjectState()
+        if(outputNode.rendererMetadata() == null) {
+            outputNode.metadata["VulkanRenderer"] = VulkanObjectState()
         }
 
-        var s: VulkanObjectState = node.rendererMetadata() ?: throw IllegalStateException("Node ${node.name} does not contain metadata object")
+        var s: VulkanObjectState = outputNode.rendererMetadata() ?: throw IllegalStateException("Node ${outputNode.name} does not contain metadata object")
 
-        if(node.state != State.Ready) {
-            logger.info("Not initialising node $node because state=${node.state}")
+        if(outputNode.state != State.Ready) {
+            logger.info("Not initialising node $outputNode because state=${outputNode.state}")
             return false
         }
 
@@ -821,13 +822,13 @@ open class VulkanRenderer(hub: Hub,
 
         s.flags.add(RendererFlags.Seen)
 
-        if(n is HasGeometry) {
-            logger.debug("Initializing geometry for ${node.name} (${(node as HasGeometry).vertices.remaining() / node.vertexSize} vertices/${node.indices.remaining()} indices)")
+        if(outputNode is HasGeometry) {
+            logger.debug("Initializing geometry for ${outputNode.name} (${(outputNode as HasGeometry).vertices.remaining() / outputNode.vertexSize} vertices/${outputNode.indices.remaining()} indices)")
             // determine vertex input type
             s.vertexInputType = when {
-                node.vertices.remaining() > 0 && node.normals.remaining() > 0 && node.texcoords.remaining() > 0 -> VertexDataKinds.PositionNormalTexcoord
-                node.vertices.remaining() > 0 && node.normals.remaining() > 0 && node.texcoords.remaining() == 0 -> VertexDataKinds.PositionNormal
-                node.vertices.remaining() > 0 && node.normals.remaining() == 0 && node.texcoords.remaining() > 0 -> VertexDataKinds.PositionTexcoords
+                outputNode.vertices.remaining() > 0 && outputNode.normals.remaining() > 0 && outputNode.texcoords.remaining() > 0 -> VertexDataKinds.PositionNormalTexcoord
+                outputNode.vertices.remaining() > 0 && outputNode.normals.remaining() > 0 && outputNode.texcoords.remaining() == 0 -> VertexDataKinds.PositionNormal
+                outputNode.vertices.remaining() > 0 && outputNode.normals.remaining() == 0 && outputNode.texcoords.remaining() > 0 -> VertexDataKinds.PositionTexcoords
                 else -> VertexDataKinds.PositionNormalTexcoord
             }
 
@@ -865,9 +866,9 @@ open class VulkanRenderer(hub: Hub,
         val matricesUbo = VulkanUBO(device, backingBuffer = buffers.UBOs)
         with(matricesUbo) {
             name = "Matrices"
-            add("ModelMatrix", { node.world })
-            add("NormalMatrix", { Matrix4f(node.world).invert().transpose() })
-            add("isBillboard", { node.isBillboard.toInt() })
+            add("ModelMatrix", { outputNode.world })
+            add("NormalMatrix", { Matrix4f(outputNode.world).invert().transpose() })
+            add("isBillboard", { outputNode.isBillboard.toInt() })
 
             createUniformBuffer()
             sceneUBOs.add(node)
@@ -876,35 +877,35 @@ open class VulkanRenderer(hub: Hub,
         }
 
         try {
-            VulkanNodeHelpers.initializeCustomShadersForNode(device, node, true, renderpasses, lateResizeInitializers, buffers)
+            VulkanNodeHelpers.initializeCustomShadersForNode(device, outputNode, true, renderpasses, lateResizeInitializers, buffers)
         } catch (e: ShaderCompilationException) {
             logger.error("Compilation of custom shader failed: ${e.message}")
-            logger.error("Node ${node.name} will use default shader for render pass.")
+            logger.error("Node ${outputNode.name} will use default shader for render pass.")
 
             if (logger.isDebugEnabled) {
                 e.printStackTrace()
             }
         }
 
-        val (_, descriptorUpdated) = VulkanNodeHelpers.loadTexturesForNode(device, node, s, defaultTextures, textureCache, commandPools, queue)
+        val (_, descriptorUpdated) = VulkanNodeHelpers.loadTexturesForNode(device, outputNode, s, defaultTextures, textureCache, commandPools, queue)
         if(descriptorUpdated) {
             s.texturesToDescriptorSets(device,
                 renderpasses.filter { it.value.passConfig.type != RenderConfigReader.RenderpassType.quad },
-                node)
+                outputNode)
         }
 
-        s.materialHashCode = node.material.materialHashCode()
+        s.materialHashCode = outputNode.material.materialHashCode()
 
         val materialUbo = VulkanUBO(device, backingBuffer = buffers.UBOs)
         with(materialUbo) {
             name = "MaterialProperties"
-            add("materialType", { node.materialTypeFromTextures(s) })
-            add("Ka", { node.material.ambient })
-            add("Kd", { node.material.diffuse })
-            add("Ks", { node.material.specular })
-            add("Roughness", { node.material.roughness})
-            add("Metallic", { node.material.metallic})
-            add("Opacity", { node.material.blending.opacity })
+            add("materialType", { outputNode.materialTypeFromTextures(s) })
+            add("Ka", { outputNode.material.ambient })
+            add("Kd", { outputNode.material.diffuse })
+            add("Ks", { outputNode.material.specular })
+            add("Roughness", { outputNode.material.roughness})
+            add("Metallic", { outputNode.material.metallic})
+            add("Opacity", { outputNode.material.blending.opacity })
 
             createUniformBuffer()
             s.UBOs.put("MaterialProperties", materialPropertiesDescriptorSet.contents to this)
@@ -912,30 +913,31 @@ open class VulkanRenderer(hub: Hub,
 
         s.initialized = true
         s.flags.add(RendererFlags.Initialised)
-        node.initialized = true
-        node.metadata["VulkanRenderer"] = s
+        outputNode.initialized = true
+        outputNode.metadata["VulkanRenderer"] = s
 
         return true
     }
 
     fun destroyNode(node: Node) {
         logger.trace("Destroying node ${node.name}...")
-        if (!node.metadata.containsKey("VulkanRenderer")) {
+        val outputNode = node.outputNode()
+        if (!(outputNode?.metadata?.containsKey("VulkanRenderer") ?: false)) {
             return
         }
 
         lateResizeInitializers.remove(node)
         node.initialized = false
 
-        node.rendererMetadata()?.UBOs?.forEach { it.value.second.close() }
+        outputNode?.rendererMetadata()?.UBOs?.forEach { it.value.second.close() }
 
-        if (node is HasGeometry) {
-            node.rendererMetadata()?.vertexBuffers?.forEach {
+        if (outputNode is HasGeometry) {
+            outputNode.rendererMetadata()?.vertexBuffers?.forEach {
                 it.value.close()
             }
         }
 
-        node.metadata.remove("VulkanRenderer")
+        outputNode?.metadata?.remove("VulkanRenderer")
     }
 
     protected fun prepareDefaultDescriptorSetLayouts(device: VulkanDevice): ConcurrentHashMap<String, Long> {
@@ -1544,59 +1546,59 @@ open class VulkanRenderer(hub: Hub,
 
         if (renderpasses.filter { it.value.passConfig.type != RenderConfigReader.RenderpassType.quad }.any()) {
             sceneNodes.forEach { node ->
-                val it = node.outputNode() ?: return@forEach
+                val outputNode = node.outputNode() ?: return@forEach
 
                 // if a node is not initialized yet, it'll be initialized here and it's UBO updated
                 // in the next round
-                if (it.rendererMetadata() == null || it.state == State.Created || it.rendererMetadata()?.initialized == false) {
-                    logger.debug("${it.name} is not initialized, doing that now")
-                    it.metadata["VulkanRenderer"] = VulkanObjectState()
-                    initializeNode(it)
+                if (outputNode.rendererMetadata() == null || outputNode.state == State.Created || outputNode.rendererMetadata()?.initialized == false) {
+                    logger.debug("${outputNode.name} is not initialized, doing that now")
+                    outputNode.metadata["VulkanRenderer"] = VulkanObjectState()
+                    initializeNode(node)
 
                     return@forEach
                 }
 
-                if(!it.preDraw()) {
-                    it.rendererMetadata()?.preDrawSkip = true
+                if(!outputNode.preDraw()) {
+                    outputNode.rendererMetadata()?.preDrawSkip = true
                     return@forEach
                 } else {
-                    it.rendererMetadata()?.preDrawSkip = false
+                    outputNode.rendererMetadata()?.preDrawSkip = false
                 }
 
                 // the current command buffer will be forced to be re-recorded if either geometry, blending or
                 // texturing of a given node have changed, as these might change pipelines or descriptor sets, leading
                 // to the original command buffer becoming obsolete.
-                it.rendererMetadata()?.let { metadata ->
-                    if (it.dirty) {
-                        logger.debug("Force command buffer re-recording, as geometry for {} has been updated", it.name)
+                outputNode.rendererMetadata()?.let { metadata ->
+                    if (outputNode.dirty) {
+                        logger.debug("Force command buffer re-recording, as geometry for {} has been updated", outputNode.name)
 
-                        it.preUpdate(this@VulkanRenderer, hub)
-                        updateNodeGeometry(it)
-                        it.dirty = false
+                        outputNode.preUpdate(this@VulkanRenderer, hub)
+                        updateNodeGeometry(node)
+                        outputNode.dirty = false
 
-                        rerecordingCauses.add(it.name)
+                        rerecordingCauses.add(outputNode.name)
                         forceRerecording = true
                     }
 
                     // this covers cases where a master node is not given any instanced properties in the beginning
                     // but only later, or when instancing is removed at some point.
-                    if((!metadata.instanced && (it.instancedProperties.size > 0 && it.instances.size > 0)) ||
-                        metadata.instanced && it.instancedProperties.size == 0 && it.instances.size == 0) {
+                    if((!metadata.instanced && (node.instancedProperties.size > 0 && node.instances.size > 0)) ||
+                        metadata.instanced && node.instancedProperties.size == 0 && node.instances.size == 0) {
                         metadata.initialized = false
-                        initializeNode(it)
+                        initializeNode(node)
                         return@forEach
                     }
 
-                    val material = it.material
+                    val material = outputNode.material
                     val reloadTime = measureTimeMillis {
-                        val (texturesUpdatedForNode, descriptorUpdated) = VulkanNodeHelpers.loadTexturesForNode(device, it, metadata, defaultTextures, textureCache, commandPools, queue)
+                        val (texturesUpdatedForNode, descriptorUpdated) = VulkanNodeHelpers.loadTexturesForNode(device, outputNode, metadata, defaultTextures, textureCache, commandPools, queue)
                         if(descriptorUpdated) {
                             metadata.texturesToDescriptorSets(device,
                                 renderpasses.filter { it.value.passConfig.type != RenderConfigReader.RenderpassType.quad },
-                                it)
+                                outputNode)
 
-                            logger.trace("Force command buffer re-recording, as reloading textures for ${it.name}")
-                            rerecordingCauses.add(it.name)
+                            logger.trace("Force command buffer re-recording, as reloading textures for ${outputNode.name}")
+                            rerecordingCauses.add(outputNode.name)
                             forceRerecording = true
                         }
 
@@ -1608,18 +1610,18 @@ open class VulkanRenderer(hub: Hub,
                     }
 
                     if (material.materialHashCode() != metadata.materialHashCode || (material is ShaderMaterial && material.shaders.stale)) {
-                        val reloaded = VulkanNodeHelpers.initializeCustomShadersForNode(device, it, true, renderpasses, lateResizeInitializers, buffers)
+                        val reloaded = VulkanNodeHelpers.initializeCustomShadersForNode(device, outputNode, true, renderpasses, lateResizeInitializers, buffers)
                         logger.debug("{}: Material is stale, re-recording, reloaded={}", node.name, reloaded)
-                        metadata.materialHashCode = it.material.materialHashCode()
+                        metadata.materialHashCode = outputNode.material.materialHashCode()
 
                         // if we reloaded the node's shaders, we might need to recreate its texture descriptor sets
                         if(reloaded) {
-                            it.rendererMetadata()?.texturesToDescriptorSets(device,
+                            outputNode.rendererMetadata()?.texturesToDescriptorSets(device,
                                 renderpasses.filter { pass -> pass.value.passConfig.type != RenderConfigReader.RenderpassType.quad },
-                                it)
+                                outputNode)
                         }
 
-                        rerecordingCauses.add(it.name)
+                        rerecordingCauses.add(outputNode.name)
                         forceRerecording = true
 
                         (material as? ShaderMaterial)?.shaders?.stale = false
@@ -1937,13 +1939,13 @@ open class VulkanRenderer(hub: Hub,
     }
 
     private fun updateInstanceBuffers(sceneObjects: List<Node>) = runBlocking {
-        val instanceMasters = sceneObjects.filter { it.instances.size > 0 }
+        val instanceMasters = sceneObjects.filter { node -> node.instances.size > 0 }
 
         instanceMasters.forEach { parent ->
-            val metadata = parent.rendererMetadata()
+            val metadata = parent.outputNode()?.rendererMetadata()
 
             if(metadata != null && metadata.initialized) {
-                VulkanNodeHelpers.updateInstanceBuffer(device, parent, parent.rendererMetadata()!!, commandPools, queue)
+                VulkanNodeHelpers.updateInstanceBuffer(device, parent, metadata, commandPools, queue)
             }
         }
 
@@ -2027,14 +2029,15 @@ open class VulkanRenderer(hub: Hub,
         buffers.ShaderProperties.reset()
 
         sceneUBOs.forEach { node ->
-            node.lock.withLock {
+            val outputNode = node.outputNode() ?: return@forEach
+            outputNode.lock.withLock {
                 var nodeUpdated: Boolean by StickyBoolean(initial = false)
 
-                if (!node.metadata.containsKey("VulkanRenderer")) {
+                if (!outputNode.metadata.containsKey("VulkanRenderer")) {
                     return@forEach
                 }
 
-                val s = node.rendererMetadata() ?: return@forEach
+                val s = outputNode.rendererMetadata() ?: return@forEach
 
                 val ubo = s.UBOs["Matrices"]!!.second
 
@@ -2044,9 +2047,9 @@ open class VulkanRenderer(hub: Hub,
                 ubo.offsets.put(0, bufferOffset)
                 ubo.offsets.limit(1)
 
-//                node.projection.copyFrom(cam.projection.applyVulkanCoordinateSystem())
+//                outputNode.projection.copyFrom(cam.projection.applyVulkanCoordinateSystem())
 
-                node.view.set(cam.view)
+                outputNode.view.set(cam.view)
 
                 nodeUpdated = ubo.populate(offset = bufferOffset.toLong())
 
@@ -2066,8 +2069,8 @@ open class VulkanRenderer(hub: Hub,
                     propertyUbo.offsets.limit(1)
                 }
 
-                if(nodeUpdated && node.getScene()?.onNodePropertiesChanged?.isNotEmpty() == true) {
-                    GlobalScope.launch { node.getScene()?.onNodePropertiesChanged?.forEach { it.value.invoke(node) } }
+                if(nodeUpdated && outputNode.getScene()?.onNodePropertiesChanged?.isNotEmpty() == true) {
+                    GlobalScope.launch { outputNode.getScene()?.onNodePropertiesChanged?.forEach { it.value.invoke(outputNode) } }
                 }
 
                 updated = nodeUpdated
