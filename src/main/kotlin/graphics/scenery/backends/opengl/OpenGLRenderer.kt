@@ -1784,20 +1784,9 @@ open class OpenGLRenderer(hub: Hub,
 
                 val seenDelegates = ArrayList<Node>(5)
                 actualObjects.forEach renderLoop@ { node ->
-                    val n = if(node is DelegatesRendering) {
-                        val delegate = node.delegate
-                        if(node.delegationType == DelegationType.OncePerDelegate && delegate != null) {
-                            if(delegate in seenDelegates) {
-                                return@renderLoop
-                            } else {
-                                seenDelegates.add(delegate)
-                                delegate
-                            }
-                        } else {
-                            node.delegate ?: return@renderLoop
-                        }
-                    } else {
-                        node
+                    val n = node.outputNode(seenDelegates) ?: return@renderLoop
+                    if(node is DelegatesRendering && node.delegationType == DelegationType.OncePerDelegate) {
+                        seenDelegates.add(n)
                     }
 
                     if (pass.passConfig.renderOpaque && n.material.blending.transparent && pass.passConfig.renderOpaque != pass.passConfig.renderTransparent) {
@@ -2269,11 +2258,7 @@ open class OpenGLRenderer(hub: Hub,
      * @return True if the initialisation went alright, False if it failed.
      */
     @Synchronized fun initializeNode(n: Node): Boolean {
-        val node = if(n is DelegatesRendering) {
-            n.delegate ?: return false
-        } else {
-            n
-        }
+        val node = n.outputNode() ?: return false
 
         if(!node.lock.tryLock()) {
             return false

@@ -64,20 +64,9 @@ object VulkanScenePass {
         // (e.g. to discern geometry from lighting passes)
         val seenDelegates = ArrayList<Node>(5)
         sceneObjects.filter { customNodeFilter?.invoke(it) ?: true }.forEach { node ->
-            val n = if(node is DelegatesRendering) {
-                val delegate = node.delegate
-                if(node.delegationType == DelegationType.OncePerDelegate && delegate != null) {
-                    if(delegate in seenDelegates) {
-                        return@forEach
-                    } else {
-                        seenDelegates.add(delegate)
-                        delegate
-                    }
-                } else {
-                    node.delegate ?: return@forEach
-                }
-            } else {
-                node
+            val n = node.outputNode(seenDelegates) ?: return@forEach
+            if(node is DelegatesRendering && node.delegationType == DelegationType.OncePerDelegate) {
+                seenDelegates.add(n)
             }
 
             if(n.state != State.Ready || n.rendererMetadata()?.preDrawSkip == true) {

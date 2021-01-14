@@ -948,6 +948,14 @@ open class Node(open var name: String = "Node") : Renderable, Serializable, Real
         setPosition(position.toFloat(), d)
     }
 
+    open fun outputNode() : Node? {
+        return this
+    }
+
+    open fun outputNode(seenDelegates : List<Node>) : Node? {
+        return this
+    }
+
     companion object NodeHelpers {
         /**
          * Depth-first search for elements in a Scene.

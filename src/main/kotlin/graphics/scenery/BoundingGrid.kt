@@ -1,7 +1,6 @@
 package graphics.scenery
 
 import graphics.scenery.utils.extensions.*
-import graphics.scenery.volumes.Volume
 import org.joml.Vector3f
 import org.joml.Vector4f
 import java.util.*
@@ -108,8 +107,8 @@ open class BoundingGrid : Mesh("Bounding Grid") {
             var min = maxBoundingBox.min
             var max = maxBoundingBox.max
 
-            logger.debug("Node ${node.name} is transparent: ${node.material.blending.transparent}")
-            if(node.material.blending.transparent || (node is DelegatesRendering && node.delegate?.material?.blending?.transparent == true)) {
+            logger.debug("Node ${node.name} is transparent: ${node.outputNode()?.material?.blending?.transparent}")
+            if(node.outputNode()?.material?.blending?.transparent?: false) {
                 min = min * (1.0f + slack)
                 max = max * (1.0f + slack)
             }

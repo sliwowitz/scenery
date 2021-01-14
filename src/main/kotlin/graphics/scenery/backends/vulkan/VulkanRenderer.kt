@@ -799,14 +799,11 @@ open class VulkanRenderer(hub: Hub,
      * Initialises a given [Node] with the metadata required by the [VulkanRenderer].
      */
     fun initializeNode(n: Node): Boolean {
-        val node = if(n is DelegatesRendering) {
-            val delegate = n.delegate ?: return false
-
-            logger.debug("Initialising node $n with delegate $delegate (state=${delegate.state})")
-            delegate
+        val node = n.outputNode() ?: return false
+        if(n is DelegatesRendering) {
+            logger.debug("Initialising node $n with delegate $node (state=${node.state})")
         } else {
             logger.debug("Initialising node $n")
-            n
         }
 
         if(node.rendererMetadata() == null) {
@@ -1547,11 +1544,7 @@ open class VulkanRenderer(hub: Hub,
 
         if (renderpasses.filter { it.value.passConfig.type != RenderConfigReader.RenderpassType.quad }.any()) {
             sceneNodes.forEach { node ->
-                val it = if(node is DelegatesRendering) {
-                    node.delegate ?: return@forEach
-                } else {
-                    node
-                }
+                val it = node.outputNode() ?: return@forEach
 
                 // if a node is not initialized yet, it'll be initialized here and it's UBO updated
                 // in the next round
