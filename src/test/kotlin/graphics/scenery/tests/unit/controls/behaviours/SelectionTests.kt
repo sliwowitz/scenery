@@ -4,18 +4,15 @@ import graphics.scenery.Box
 import graphics.scenery.DetachedHeadCamera
 import graphics.scenery.Hub
 import graphics.scenery.InstancedNode
-import graphics.scenery.Mesh
 import graphics.scenery.Scene
 import graphics.scenery.SceneryBase
 import graphics.scenery.SceneryElement
 import graphics.scenery.Settings
-import graphics.scenery.ShaderMaterial
 import graphics.scenery.backends.Renderer
 import graphics.scenery.controls.behaviours.SelectCommand
 import graphics.scenery.tests.unit.backends.FauxRenderer
 import graphics.scenery.utils.LazyLogger
 import org.joml.Vector3f
-import org.junit.Ignore
 import org.junit.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertNotNull
@@ -50,7 +47,9 @@ class SelectionTests {
     fun testSelection() {
         logger.info("Testing SelectCommand...")
         val scene = Scene()
-        val box = Box(Vector3f(1.0f, 1.0f, 1.0f), insideNormals = true)
+        val box = Box(Vector3f(1.0f, 1.0f, 1.0f))
+        box.position = Vector3f(-1.0f, 0.0f, 0.0f)
+        box.updateWorld(false)
         scene.addChild(box)
         val camera = DetachedHeadCamera()
         camera.position = Vector3f(0.0f, 0.0f, 5.0f)
@@ -68,21 +67,23 @@ class SelectionTests {
                 matches.clear()
                 matches.addAll(raycastResult.matches);
             })
-        selection.click(256, 256)
+        selection.click(130, 250)
         assertSame(1, matches.size)
         assertEquals(box, matches.get(0).node)
     }
 
     @Test
-    @Ignore // until selecting instances works
     fun testSelectionInstance() {
         logger.info("Testing SelectCommand on an instance...")
         val scene = Scene()
-        val boxInstanced = InstancedNode(Box())
+        val template = Box()
+        template.updateWorld(false)
+        val boxInstanced = InstancedNode(template)
 
         val instanceNode = boxInstanced.addInstance()
         instanceNode.name = "agent"
-        instanceNode.position = Vector3f(1.0f, 0.0f, 0.0f)
+        instanceNode.position = Vector3f(-1.0f, 0.0f, 0.0f)
+        instanceNode.updateWorld(false)
         scene.addChild(boxInstanced)
         val camera = DetachedHeadCamera()
         camera.position = Vector3f(0.0f, 0.0f, 5.0f)
