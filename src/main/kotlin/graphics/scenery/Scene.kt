@@ -11,7 +11,9 @@ import kotlinx.coroutines.runBlocking
 import java.util.*
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.atomic.AtomicLong
+import java.util.stream.Stream
 import kotlin.collections.ArrayList
+import kotlin.streams.asSequence
 
 /**
  * Scene class. A Scene is a special kind of [Node] that can only exist once per graph,
@@ -210,8 +212,15 @@ open class Scene : Node("RootNode") {
 
         val matches = this.discover(this, { node ->
             node.visible && !ignoredObjects.contains(node.javaClass)
-        }).map {
+        }).flatMap { (
+            if (it is InstancedNode)
+                Stream.concat(Stream.of(it as Node), it.instances.map { instanceNode -> instanceNode as Node }.stream())
+            else
+                Stream.of(it)).asSequence()
+        }.map {
             Pair(it, it.intersectAABB(position, direction))
+        }.filter {
+            it.first !is InstancedNode
         }.filter {
             it.second is MaybeIntersects.Intersection && (it.second as MaybeIntersects.Intersection).distance > 0.0f
         }.map {
