@@ -327,7 +327,7 @@ object VulkanScenePass {
                 pass.vulkanMetadata.vertexBufferOffsets.limit(1)
                 pass.vulkanMetadata.vertexBuffers.limit(1)
 
-                if(node.instancedProperties.size > 0) {
+                if(node is InstancedNode) {
                     if (node.instances.size > 0 && instanceBuffer != null) {
                         pass.vulkanMetadata.vertexBuffers.limit(2)
                         pass.vulkanMetadata.vertexBufferOffsets.limit(2)

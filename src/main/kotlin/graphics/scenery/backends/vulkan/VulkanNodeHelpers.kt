@@ -52,7 +52,7 @@ object VulkanNodeHelpers {
             return state
         }
 
-        if (texcoords.remaining() == 0 && node.instances.size > 0) {
+        if (texcoords.remaining() == 0 && node is InstancedNode) {
             val buffer = JEmalloc.je_calloc(1, 4L * vertices.remaining() / outputNode.vertexSize * outputNode.texcoordSize)
 
             if(buffer == null) {
@@ -156,7 +156,7 @@ object VulkanNodeHelpers {
      * Updates instance buffers for a given [node] on [device]. Modifies the [node]'s [state]
      * and allocates necessary command buffers from [commandPools] and submits to [queue]. Returns the [node]'s modified [VulkanObjectState].
      */
-    fun updateInstanceBuffer(device: VulkanDevice, node: Node, state: VulkanObjectState, commandPools: VulkanRenderer.CommandPools, queue: VkQueue): VulkanObjectState {
+    fun updateInstanceBuffer(device: VulkanDevice, node: InstancedNode, state: VulkanObjectState, commandPools: VulkanRenderer.CommandPools, queue: VkQueue): VulkanObjectState {
         logger.trace("Updating instance buffer for ${node.name}")
 
         // parentNode.instances is a CopyOnWrite array list, and here we keep a reference to the original.
@@ -198,7 +198,7 @@ object VulkanNodeHelpers {
                 instanceNode.updateWorld(true, false)
 
                 stagingBuffer.stagingBuffer.duplicate().order(ByteOrder.LITTLE_ENDIAN).run {
-                    ubo.populateParallel(this, offset = index.getAndIncrement() * ubo.getSize() * 1L, elements = instanceNode.instancedProperties)
+                    ubo.populateParallel(this, offset = index.getAndIncrement() * ubo.getSize() * 1L, elements = instanceNode.properties)
                 }
             }
         }

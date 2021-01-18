@@ -1,15 +1,12 @@
 package graphics.scenery
 
+import java.util.concurrent.CopyOnWriteArrayList
+
 open class InstancedNode(template: Node, override var name: String = "InstancedNode") : DelegatesRendering(DelegationType.ForEachNode, template) {
-    init {
-        boundingBox = template.generateBoundingBox()
-        template.also { this.template = it }
-    }
-
-    //    val instances = CopyOnWriteArrayList<Instance>()
-    //    var properties = LinkedHashMap<String, () -> Any>()
-
-    //    val updateStrategy = // TODO make enum for different strategies -> one time, every second (or fixed time interval), each frame
+    /** instances */
+    val instances = CopyOnWriteArrayList<Instance>()
+    /** instanced properties */
+    val properties = LinkedHashMap<String, () -> Any>()
     private var template: Node = template
         set(node) {
             field = node
@@ -18,12 +15,18 @@ open class InstancedNode(template: Node, override var name: String = "InstancedN
                 node.material = instancedMaterial
             }
             delegate = node
-            instancedProperties.put("ModelMatrix", template::model)
+            properties.put("ModelMatrix", node::model)
         }
+    //    val updateStrategy = // TODO make enum for different strategies -> one time, every second (or fixed time interval), each frame
+
+    init {
+        boundingBox = this.template.generateBoundingBox()
+        this.template = template
+    }
 
     fun addInstance(): Node {
         val node = Instance()
-        node.instancedProperties.put("ModelMatrix", node::world)
+        node.properties.put("ModelMatrix", node::world)
         instances.add(node)
         return node
     }
@@ -39,6 +42,6 @@ open class InstancedNode(template: Node, override var name: String = "InstancedN
     }
 
     class Instance(override var name: String = "Instance") : Mesh(name) {
-//        var properties = LinkedHashMap<String, () -> Any>()
+        var properties = LinkedHashMap<String, () -> Any>()
     }
 }

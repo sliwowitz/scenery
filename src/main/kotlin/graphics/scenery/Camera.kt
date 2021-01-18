@@ -288,7 +288,7 @@ open class Camera : Node("Camera") {
      */
     fun canSee(node: Node): Boolean {
         // TODO: Figure out how to efficiently cull instances
-        if(disableCulling || node.instances.size > 0 || node is DisableFrustumCulling) {
+        if(disableCulling || node is InstancedNode || node is DisableFrustumCulling) {
             return true
         }
 

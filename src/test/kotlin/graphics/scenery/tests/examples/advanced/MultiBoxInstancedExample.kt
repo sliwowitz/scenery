@@ -29,33 +29,27 @@ class MultiBoxInstancedExample : SceneryBase("MultiBoxInstancedExample") {
         val container = Mesh()
 
         val b = Box(Vector3f(0.7f, 0.7f, 0.7f))
-        b.name = "boxmaster"
-        b.instancedProperties.put("ModelMatrix", { b.model })
+        b.name = "boxtemplate"
         b.material = ShaderMaterial.fromFiles("DefaultDeferredInstanced.vert", "DefaultDeferred.frag")
         b.material.diffuse = Vector3f(1.0f, 1.0f, 1.0f)
         b.material.ambient = Vector3f(1.0f, 1.0f, 1.0f)
         b.material.specular = Vector3f(1.0f, 1.0f, 1.0f)
         b.material.metallic = 0.0f
         b.material.roughness = 1.0f
-
-        scene.addChild(b)
+        val bInstanced = InstancedNode(b)
+        scene.addChild(bInstanced)
 
         (0 until (boundaryWidth * boundaryHeight * boundaryHeight).toInt()).map {
-            val inst = Mesh()
+            val inst = bInstanced.addInstance()
             inst.name = "Box_$it"
             inst.material = b.material
-
-            inst.instancedProperties["ModelMatrix"] = { inst.world }
 
             val k: Double = it.rem(boundaryWidth)
             val j: Double = (it / boundaryWidth).rem(boundaryHeight)
             val i: Double = it / (boundaryWidth * boundaryHeight)
 
             inst.position = Vector3f(Math.floor(i).toFloat(), Math.floor(j).toFloat(), Math.floor(k).toFloat())
-
-            b.instances.add(inst)
             inst.parent = container
-            inst
         }
 
         val lights = (0..20).map {
@@ -86,12 +80,10 @@ class MultiBoxInstancedExample : SceneryBase("MultiBoxInstancedExample") {
                 container.needsUpdate = true
                 container.updateWorld(true, false)
 
-                val inst = Mesh()
-                inst.instancedProperties["ModelMatrix"] = { inst.world }
+                val inst = bInstanced.addInstance()
                 inst.position = Random.random3DVectorFromRange(-40.0f, 40.0f)
                 inst.parent = container
-                b.instances.add(inst)
-                b.instances.removeAt(kotlin.random.Random.nextInt(b.instances.size - 1))
+                bInstanced.instances.removeAt(kotlin.random.Random.nextInt(bInstanced.instances.size - 1))
 
                 Thread.sleep(20)
             }

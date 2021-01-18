@@ -63,8 +63,6 @@ open class Node(open var name: String = "Node") : Renderable, Serializable, Real
             children.forEach { it.visible = v }
             field = v
         }
-    /** instanced properties */
-    var instancedProperties = LinkedHashMap<String, () -> Any>()
     /** The Node's lock. */
     override var lock: ReentrantLock = ReentrantLock()
 
@@ -146,8 +144,6 @@ open class Node(open var name: String = "Node") : Renderable, Serializable, Real
     var needsUpdateWorld = true
 
     var discoveryBarrier = false
-
-    val instances = CopyOnWriteArrayList<Node>()
 
     @Suppress("UNUSED_PARAMETER")
     protected fun <R> propertyChanged(property: KProperty<*>, old: R, new: R, custom: String = "") {

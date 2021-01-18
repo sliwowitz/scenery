@@ -833,7 +833,7 @@ open class VulkanRenderer(hub: Hub,
             }
 
             // create custom vertex description if necessary, else use one of the defaults
-            s.vertexDescription = if (node.instances.size > 0 || node.instancedProperties.size > 0) {
+            s.vertexDescription = if (node is InstancedNode) {
                 VulkanNodeHelpers.updateInstanceBuffer(device, node, s, commandPools, queue)
                 // TODO: Rewrite shader in case it does not conform to coord/normal/texcoord vertex description
                 s.vertexInputType = VertexDataKinds.PositionNormalTexcoord
@@ -1116,7 +1116,7 @@ open class VulkanRenderer(hub: Hub,
         }
     }
 
-    protected fun vertexDescriptionFromInstancedNode(node: Node, template: VertexDescription): VertexDescription {
+    protected fun vertexDescriptionFromInstancedNode(node: InstancedNode, template: VertexDescription): VertexDescription {
         logger.debug("Creating instanced vertex description for ${node.name}")
 
         if(template.attributeDescription == null || template.bindingDescription == null) {
@@ -1126,7 +1126,7 @@ open class VulkanRenderer(hub: Hub,
         val attributeDescs = template.attributeDescription
         val bindingDescs = template.bindingDescription
 
-        val formatsAndAttributeSizes = node.instancedProperties.getFormatsAndRequiredAttributeSize()
+        val formatsAndAttributeSizes = node.properties.getFormatsAndRequiredAttributeSize()
         val newAttributesNeeded = formatsAndAttributeSizes.map { it.elementCount }.sum()
 
         val newAttributeDesc = VkVertexInputAttributeDescription
@@ -1146,7 +1146,7 @@ open class VulkanRenderer(hub: Hub,
         position = 3
         offset = 0
 
-        formatsAndAttributeSizes.zip(node.instancedProperties.toList().reversed()).forEach {
+        formatsAndAttributeSizes.zip(node.properties.toList().reversed()).forEach {
             val attribInfo = it.first
             val property = it.second
 
@@ -1582,8 +1582,8 @@ open class VulkanRenderer(hub: Hub,
 
                     // this covers cases where a master node is not given any instanced properties in the beginning
                     // but only later, or when instancing is removed at some point.
-                    if((!metadata.instanced && (node.instancedProperties.size > 0 && node.instances.size > 0)) ||
-                        metadata.instanced && node.instancedProperties.size == 0 && node.instances.size == 0) {
+                    if((!metadata.instanced && node is InstancedNode) ||
+                        (metadata.instanced && node !is InstancedNode)) {
                         metadata.initialized = false
                         initializeNode(node)
                         return@forEach
@@ -1939,7 +1939,7 @@ open class VulkanRenderer(hub: Hub,
     }
 
     private fun updateInstanceBuffers(sceneObjects: List<Node>) = runBlocking {
-        val instanceMasters = sceneObjects.filter { node -> node.instances.size > 0 }
+        val instanceMasters = sceneObjects.filter { it is InstancedNode }.parallelMap { it as InstancedNode }
 
         instanceMasters.forEach { parent ->
             val metadata = parent.outputNode()?.rendererMetadata()

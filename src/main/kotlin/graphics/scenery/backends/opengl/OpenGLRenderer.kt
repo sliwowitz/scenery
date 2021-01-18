@@ -1372,7 +1372,7 @@ open class OpenGLRenderer(hub: Hub,
     }
 
     private fun updateInstanceBuffers(sceneObjects:List<Node>): Boolean {
-        val instanceMasters = sceneObjects.filter { it.instances.size > 0 }
+        val instanceMasters = sceneObjects.filter { it is InstancedNode }.map { it as InstancedNode }
 
         instanceMasters.forEach { parent ->
             val outputNode = parent.outputNode()
@@ -1390,7 +1390,7 @@ open class OpenGLRenderer(hub: Hub,
         return instanceMasters.isNotEmpty()
     }
 
-    private fun updateInstanceBuffer(parentNode: Node, state: OpenGLObjectState?): OpenGLObjectState {
+    private fun updateInstanceBuffer(parentNode: InstancedNode, state: OpenGLObjectState?): OpenGLObjectState {
         if(state == null) {
             throw IllegalStateException("Metadata for ${parentNode.name} is null at updateInstanceBuffer(${parentNode.name}). This is a bug.")
         }
@@ -1434,7 +1434,7 @@ open class OpenGLRenderer(hub: Hub,
                 stagingBuffer.duplicate().order(ByteOrder.LITTLE_ENDIAN).run {
                     ubo.populateParallel(this,
                         offset = index.getAndIncrement() * ubo.getSize() * 1L,
-                        elements = node.instancedProperties)
+                        elements = node.properties)
                 }
             }
         }
@@ -1455,12 +1455,12 @@ open class OpenGLRenderer(hub: Hub,
             val locationBase = 3
             var location = locationBase
             var baseOffset = 0L
-            val stride = parentNode.instances.first().instancedProperties.map {
+            val stride = parentNode.instances.first().properties.map {
                 val res = it.value.invoke()
                 ubo.getSizeAndAlignment(res).first
             }.sum()
 
-            parentNode.instances.first().instancedProperties.entries.forEachIndexed { locationOffset, element ->
+            parentNode.instances.first().properties.entries.forEachIndexed { locationOffset, element ->
                 val result = element.value.invoke()
                 val sizeAlignment = ubo.getSizeAndAlignment(result)
                 location += locationOffset
@@ -1965,7 +1965,7 @@ open class OpenGLRenderer(hub: Hub,
                         }
                     }
 
-                    if(node.instances.size > 0) {
+                    if(node is InstancedNode) {
                         drawNodeInstanced(outputNode)
                     } else {
                         drawNode(outputNode)

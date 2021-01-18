@@ -56,8 +56,8 @@ class BloodCellsExample : SceneryBase("BloodCellsExample", windowWidth = 1280, w
         erythrocyte.material.metallic = 0.01f
         erythrocyte.material.roughness = 0.9f
         erythrocyte.name = "Erythrocyte_Master"
-        erythrocyte.instancedProperties["ModelMatrix"] = { erythrocyte.model }
-        scene.addChild(erythrocyte)
+        val erythrocyteInstanced = InstancedNode(erythrocyte)
+        scene.addChild(erythrocyteInstanced)
 
         val leucocyte = Mesh()
         leucocyte.readFromOBJ(Mesh::class.java.getResource("models/leukocyte.obj").file)
@@ -68,15 +68,14 @@ class BloodCellsExample : SceneryBase("BloodCellsExample", windowWidth = 1280, w
         leucocyte.material.specular = Vector3f(0.05f, 0f, 0f)
         leucocyte.material.metallic = 0.01f
         leucocyte.material.roughness = 0.5f
-        leucocyte.instancedProperties["ModelMatrix"] = { leucocyte.model }
-        scene.addChild(leucocyte)
+        val leucocyteInstanced = InstancedNode(leucocyte)
+        scene.addChild(leucocyteInstanced)
 
         val container = Node("Cell container")
 
         val leucocytes = (0 until leucocyteCount).map {
-            val v = Mesh()
+            val v = leucocyteInstanced.addInstance()
             v.name = "leucocyte_$it"
-            v.instancedProperties["ModelMatrix"] = { v.world }
             v.metadata["axis"] = Vector3f(sin(0.1 * it).toFloat(), -cos(0.1 * it).toFloat(), sin(1.0f*it)*cos(1.0f*it)).normalize()
             v.parent = container
 
@@ -91,13 +90,11 @@ class BloodCellsExample : SceneryBase("BloodCellsExample", windowWidth = 1280, w
 
             v
         }
-        leucocyte.instances.addAll(leucocytes)
 
         // erythrocytes make up about 40% of human blood, while leucocytes make up about 1%
         val erythrocytes = (0 until leucocyteCount*40).map {
-            val v = Mesh()
+            val v = erythrocyteInstanced.addInstance()
             v.name = "erythrocyte_$it"
-            v.instancedProperties["ModelMatrix"] = { v.world }
             v.metadata["axis"] = Vector3f(sin(0.1 * it).toFloat(), -cos(0.1 * it).toFloat(), sin(1.0f*it)*cos(1.0f*it)).normalize()
             v.parent = container
 
@@ -112,7 +109,6 @@ class BloodCellsExample : SceneryBase("BloodCellsExample", windowWidth = 1280, w
 
             v
         }
-        erythrocyte.instances.addAll(erythrocytes)
 
         scene.addChild(container)
 
