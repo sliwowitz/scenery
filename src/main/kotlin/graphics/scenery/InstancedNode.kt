@@ -9,13 +9,13 @@ open class InstancedNode(template: Node, override var name: String = "InstancedN
     val properties = LinkedHashMap<String, () -> Any>()
     private var template: Node = template
         set(node) {
-            field = node
             val instancedMaterial = ShaderMaterial.fromFiles("DefaultDeferredInstanced.vert", "DefaultDeferred.frag")
-            if(node.material.materialHashCode() != instancedMaterial.materialHashCode() ) {
+            if(node.material.name.equals(Material.DefaultMaterial().name)) {
                 node.material = instancedMaterial
             }
-            delegate = node
             properties.put("ModelMatrix", node::model)
+            delegate = node
+            field = node
         }
     //    val updateStrategy = // TODO make enum for different strategies -> one time, every second (or fixed time interval), each frame
 
@@ -25,8 +25,9 @@ open class InstancedNode(template: Node, override var name: String = "InstancedN
     }
 
     fun addInstance(): Node {
-        val node = Instance()
+        val node = Instance(this)
         node.properties.put("ModelMatrix", node::world)
+        node.boundingBox = node.generateBoundingBox()
         instances.add(node)
         return node
     }
@@ -41,7 +42,11 @@ open class InstancedNode(template: Node, override var name: String = "InstancedN
         return boundingBox
     }
 
-    class Instance(override var name: String = "Instance") : Mesh(name) {
+    class Instance(val instancedParent : InstancedNode, override var name: String = "Instance") : Mesh(name) {
         var properties = LinkedHashMap<String, () -> Any>()
+
+        override fun generateBoundingBox(): OrientedBoundingBox? {
+            return instancedParent.template.generateBoundingBox()
+        }
     }
 }
