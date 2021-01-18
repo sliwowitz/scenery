@@ -18,10 +18,12 @@ class PickerExample: SceneryBase("PickerExample", wantREPL = true) {
     override fun init() {
         renderer = hub.add(Renderer.createRenderer(hub, applicationName, scene, 512, 512))
 
+        val template = Icosphere(Random.randomFromRange(0.04f, 0.2f), 2)
+        val templateInstance = InstancedNode(template)
+        scene.addChild(templateInstance)
         for(i in 0 until 200) {
-            val s = Icosphere(Random.randomFromRange(0.04f, 0.2f), 2)
+            val s = templateInstance.addInstance()
             s.position = Random.random3DVectorFromRange(-5.0f, 5.0f)
-            scene.addChild(s)
         }
 
         val box = Box(Vector3f(10.0f, 10.0f, 10.0f), insideNormals = true)
