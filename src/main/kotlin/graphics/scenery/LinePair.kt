@@ -7,7 +7,7 @@ import graphics.scenery.utils.extensions.toFloatArray
 import java.nio.FloatBuffer
 import java.nio.IntBuffer
 
-class LinePair @JvmOverloads constructor(var capacity: Int = 50, transparent: Boolean = false, val simple: Boolean = false) : Node("Line"), HasGeometry {
+class LinePair @JvmOverloads constructor(var capacity: Int = 50, transparent: Boolean = false, val simple: Boolean = false) : RenderableNode("Line"), HasGeometry {
     /** Size of one vertex (e.g. 3 in 3D) */
     override val vertexSize: Int = 3
     /** Size of one texcoord (e.g. 2 in 3D) */

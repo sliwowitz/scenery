@@ -71,7 +71,7 @@ class BloodCellsExample : SceneryBase("BloodCellsExample", windowWidth = 1280, w
         val leucocyteInstanced = InstancedNode(leucocyte)
         scene.addChild(leucocyteInstanced)
 
-        val container = Node("Cell container")
+        val container = RenderableNode("Cell container")
 
         val leucocytes = (0 until leucocyteCount).map {
             val v = leucocyteInstanced.addInstance()

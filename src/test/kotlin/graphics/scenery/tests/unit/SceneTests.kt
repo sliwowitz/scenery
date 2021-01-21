@@ -1,11 +1,11 @@
 package graphics.scenery.tests.unit
 
-import org.joml.Vector3f
 import graphics.scenery.Box
-import graphics.scenery.Node
+import graphics.scenery.RenderableNode
 import graphics.scenery.Scene
 import graphics.scenery.numerics.Random
 import graphics.scenery.utils.LazyLogger
+import org.joml.Vector3f
 import org.junit.Test
 import java.util.concurrent.atomic.AtomicInteger
 import kotlin.math.roundToInt
@@ -61,7 +61,7 @@ class SceneTests {
         }
         val nodeCount = Random.randomFromRange(2.0f, 10.0f).roundToInt()
         val nodes = (0 until nodeCount).map {
-            Node()
+            RenderableNode()
         }
 
         nodes.forEach { scene.addChild(it) }

@@ -50,7 +50,7 @@ class DistanceMeasurement: SceneryBase("RulerPick", wantREPL = true) {
     override fun inputSetup() {
         super.inputSetup()
 
-        var lastNode = Node()
+        var lastNode : Node = RenderableNode()
         val wiggle: (Scene.RaycastResult, Int, Int) -> Unit = { result, _, _ ->
             result.matches.firstOrNull()?.let { nearest ->
                 val originalPosition = Vector3f(nearest.node.position)

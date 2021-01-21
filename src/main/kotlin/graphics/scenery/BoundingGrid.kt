@@ -107,8 +107,8 @@ open class BoundingGrid : Mesh("Bounding Grid") {
             var min = maxBoundingBox.min
             var max = maxBoundingBox.max
 
-            logger.debug("Node ${node.name} is transparent: ${node.outputNode()?.material?.blending?.transparent}")
-            if(node.outputNode()?.material?.blending?.transparent?: false) {
+            logger.debug("Node ${node.name} is transparent: ${node.material.blending.transparent}")
+            if(node.material.blending.transparent) {
                 min = min * (1.0f + slack)
                 max = max * (1.0f + slack)
             }

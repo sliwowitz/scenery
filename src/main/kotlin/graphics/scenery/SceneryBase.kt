@@ -257,7 +257,7 @@ open class SceneryBase @JvmOverloads constructor(var applicationName: String,
 
         var sceneObjects: Deferred<List<Node>> = GlobalScope.async {
             scene.discover(scene, { n ->
-                    n.visible && n.state == State.Ready
+                    n.visible && n.renderable()?.state == State.Ready
             }, useDiscoveryBarriers = true)
                 .map { it.updateWorld(recursive = true, force = false); it }
         }
@@ -277,7 +277,7 @@ open class SceneryBase @JvmOverloads constructor(var applicationName: String,
             }
             sceneObjects = GlobalScope.async {
                 scene.discover(scene, { n ->
-                        n.visible && n.state == State.Ready
+                        n.visible && n.renderable()?.state == State.Ready
                 }, useDiscoveryBarriers = true)
                     .map { it.updateWorld(recursive = true, force = false); it }
             }

@@ -1,16 +1,22 @@
 package graphics.scenery.tests.unit
 
-import cleargl.GLMatrix.compare
-import org.joml.Matrix4f
-import org.joml.Vector3f
-import com.jogamp.opengl.math.Quaternion
-import graphics.scenery.*
+import graphics.scenery.BufferUtils
+import graphics.scenery.Group
+import graphics.scenery.Material
+import graphics.scenery.Mesh
+import graphics.scenery.Node
+import graphics.scenery.RenderableNode
+import graphics.scenery.Scene
+import graphics.scenery.ShaderProperty
+import graphics.scenery.Sphere
 import graphics.scenery.numerics.Random
 import graphics.scenery.utils.LazyLogger
 import graphics.scenery.utils.extensions.compare
 import graphics.scenery.utils.extensions.toFloatArray
 import net.imglib2.RealPoint
+import org.joml.Matrix4f
 import org.joml.Quaternionf
+import org.joml.Vector3f
 import org.junit.Assert.*
 import org.junit.Test
 import java.util.concurrent.ThreadLocalRandom
@@ -35,8 +41,8 @@ class NodeTests {
     fun testTransformationPropagation() {
         val scene = Scene()
 
-        val childOne = Node("first child")
-        val subChild = Node("child of first child")
+        val childOne = RenderableNode("first child")
+        val subChild = RenderableNode("child of first child")
 
         scene.addChild(childOne)
         childOne.addChild(subChild)
@@ -77,7 +83,7 @@ class NodeTests {
                 return totalNodes
             }
 
-            val n = Node("Sibling#$it/$currentLevel/$maxLevels")
+            val n = RenderableNode("Sibling#$it/$currentLevel/$maxLevels")
             n.position = Random.random3DVectorFromRange(-100.0f, 100.0f)
             n.scale = Random.random3DVectorFromRange(0.1f, 10.0f)
             n.rotation = Random.randomQuaternion()
@@ -245,8 +251,8 @@ class NodeTests {
     @Test
     fun testGetScene() {
         val scene = Scene()
-        val n1 = Node()
-        val n2 = Node()
+        val n1= RenderableNode()
+        val n2= RenderableNode()
         scene.addChild(n1)
 
         assertEquals(scene, n1.getScene(), "Expected node scene is attached to to be $scene, but is ${n1.getScene()}")
@@ -259,7 +265,7 @@ class NodeTests {
     @Test
     fun testPositionChangeTriggersUpdate() {
         val scene = Scene()
-        val node = Node()
+        val node= RenderableNode()
         scene.addChild(node)
 
         assertTrue(node.needsUpdate, "Expected node to need update after creation")
@@ -281,7 +287,7 @@ class NodeTests {
     @Test
     fun testScaleChangeTriggersUpdate() {
         val scene = Scene()
-        val node = Node()
+        val node= RenderableNode()
         scene.addChild(node)
 
         assertTrue(node.needsUpdate, "Expected node to need update after creation")
@@ -303,7 +309,7 @@ class NodeTests {
     @Test
     fun testRotationChangeTriggersUpdate() {
         val scene = Scene()
-        val node = Node()
+        val node= RenderableNode()
         scene.addChild(node)
 
         assertTrue(node.needsUpdate, "Expected node to need update after creation")
@@ -324,10 +330,10 @@ class NodeTests {
      */
     @Test
     fun testNodeRecursion() {
-        val parent = Node()
-        val child1 = Node()
-        val child2 = Node()
-        val grandchild = Node()
+        val parent= RenderableNode()
+        val child1= RenderableNode()
+        val child2= RenderableNode()
+        val grandchild= RenderableNode()
 
         val myShinyNewMaterial = Material()
 
@@ -355,10 +361,10 @@ class NodeTests {
      */
     @Test
     fun testNodeRecursionJavaConsumer() {
-        val parent = Node()
-        val child1 = Node()
-        val child2 = Node()
-        val grandchild = Node()
+        val parent= RenderableNode()
+        val child1= RenderableNode()
+        val child2= RenderableNode()
+        val grandchild= RenderableNode()
 
         val myShinyNewMaterial = Material()
 
@@ -401,14 +407,14 @@ class NodeTests {
     @Test
     fun testShaderProperties() {
         val randomInt = kotlin.random.Random.nextInt()
-        val n = object: Node("MyNode") {
+        val n = object: RenderableNode("MyNode") {
             @ShaderProperty val myShaderProperty = randomInt
         }
 
         assertEquals(randomInt, n.getShaderProperty("myShaderProperty"),
             "Expected value from shader property to be")
 
-        val m = object: Node("MyOtherNode") {
+        val m = object: RenderableNode("MyOtherNode") {
             @ShaderProperty val shaderProperties = HashMap<String, Any>()
         }
 
@@ -453,7 +459,7 @@ class NodeTests {
      */
     @Test
     fun testImglib2Implementations() {
-        val n = Node("testnode")
+        val n= RenderableNode("testnode")
 
         assertEquals( 3, n.numDimensions() )
 

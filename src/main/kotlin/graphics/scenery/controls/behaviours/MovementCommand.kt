@@ -61,7 +61,7 @@ open class MovementCommand(private val name: String, private val direction: Stri
         val axisProvider = node as? Camera ?: node?.getScene()?.findObserver() ?: return
 
         node?.let { node ->
-            if (node.lock.tryLock()) {
+            if (node.renderable()?.lock?.tryLock() ?: false) {
                 when (direction) {
                     "forward" -> node.position = node.position + axisProvider.forward * speed * axisProvider.deltaT
                     "back" -> node.position = node.position - axisProvider.forward * speed * axisProvider.deltaT
@@ -71,7 +71,7 @@ open class MovementCommand(private val name: String, private val direction: Stri
                     "down" -> node.position = node.position - axisProvider.up * speed * axisProvider.deltaT
                 }
 
-                node.lock.unlock()
+                node.renderable()?.lock?.unlock()
             }
         }
     }

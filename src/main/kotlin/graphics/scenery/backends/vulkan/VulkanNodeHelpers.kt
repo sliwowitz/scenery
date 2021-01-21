@@ -42,25 +42,25 @@ object VulkanNodeHelpers {
         commandPools: VulkanRenderer.CommandPools,
         queue: VkQueue
     ): VulkanObjectState {
-        val outputNode = node.outputNode() as HasGeometry
-        val vertices = outputNode.vertices.duplicate()
-        val normals = outputNode.normals.duplicate()
-        var texcoords = outputNode.texcoords.duplicate()
-        val indices = outputNode.indices.duplicate()
+        val renderable = node.renderable() as HasGeometry
+        val vertices = renderable.vertices.duplicate()
+        val normals = renderable.normals.duplicate()
+        var texcoords = renderable.texcoords.duplicate()
+        val indices = renderable.indices.duplicate()
 
         if(vertices.remaining() == 0) {
             return state
         }
 
         if (texcoords.remaining() == 0 && node is InstancedNode) {
-            val buffer = JEmalloc.je_calloc(1, 4L * vertices.remaining() / outputNode.vertexSize * outputNode.texcoordSize)
+            val buffer = JEmalloc.je_calloc(1, 4L * vertices.remaining() / renderable.vertexSize * renderable.texcoordSize)
 
             if(buffer == null) {
-                logger.error("Could not allocate texcoords buffer with ${4L * vertices.remaining() / outputNode.vertexSize * outputNode.texcoordSize} bytes for ${node.name}")
+                logger.error("Could not allocate texcoords buffer with ${4L * vertices.remaining() / renderable.vertexSize * renderable.texcoordSize} bytes for ${node.name}")
                 return state
             } else {
-                outputNode.texcoords = buffer.asFloatBuffer()
-                texcoords = outputNode.texcoords.asReadOnlyBuffer()
+                renderable.texcoords = buffer.asFloatBuffer()
+                texcoords = renderable.texcoords.asReadOnlyBuffer()
             }
         }
 
@@ -78,8 +78,8 @@ object VulkanNodeHelpers {
         val fb = stridedBuffer.asFloatBuffer()
         val ib = stridedBuffer.asIntBuffer()
 
-        state.vertexCount = vertices.remaining() / outputNode.vertexSize
-        logger.trace("${node.name} has ${vertices.remaining()} floats and ${texcoords.remaining() / outputNode.texcoordSize} remaining")
+        state.vertexCount = vertices.remaining() / renderable.vertexSize
+        logger.trace("${node.name} has ${vertices.remaining()} floats and ${texcoords.remaining() / renderable.texcoordSize} remaining")
 
         for (index in 0 until vertices.remaining() step 3) {
             fb.put(vertices.get())
@@ -144,7 +144,7 @@ object VulkanNodeHelpers {
             if(this != vertexBuffer) { close() }
         }
         state.indexOffset = vertexBuffer.bufferOffset + vertexAllocationBytes
-        state.indexCount = outputNode.indices.remaining()
+        state.indexCount = renderable.indices.remaining()
 
         JEmalloc.je_free(stridedBuffer)
         stagingBuffer.close()
@@ -244,31 +244,31 @@ object VulkanNodeHelpers {
     }
 
     /**
-     * Loads or reloads the textures for [outputNode], updating it's internal renderer state stored in [s].
+     * Loads or reloads the textures for [renderable], updating it's internal renderer state stored in [s].
      *
      * [defaultTextures] for fallback need to be given, as well as the [VulkanRenderer]'s [textureCache].
      * Necessary command buffers will be allocated from [commandPools] and submitted to [queue].
      *
      * Returns a [Pair] of [Boolean], indicating whether contents or descriptor set have changed.
      */
-    fun loadTexturesForNode(device: VulkanDevice, outputNode: Node, s: VulkanObjectState, defaultTextures: Map<String, VulkanTexture>, textureCache: MutableMap<Texture, VulkanTexture>, commandPools: VulkanRenderer.CommandPools, queue: VkQueue): Pair<Boolean, Boolean> {
+    fun loadTexturesForNode(device: VulkanDevice, renderable: Renderable, s: VulkanObjectState, defaultTextures: Map<String, VulkanTexture>, textureCache: MutableMap<Texture, VulkanTexture>, commandPools: VulkanRenderer.CommandPools, queue: VkQueue): Pair<Boolean, Boolean> {
         val defaultTexture = defaultTextures["DefaultTexture"] ?: throw IllegalStateException("Default fallback texture does not exist.")
         // if a node is not yet initialized, we'll definitely require a new DS
-        var descriptorUpdated = !outputNode.initialized
+        var descriptorUpdated = !renderable.initialized
         var contentUpdated = false
 
         val last = s.texturesLastSeen
         val now = System.nanoTime()
-        outputNode.material.textures.forEachChanged(last) { (type, texture) ->
+        renderable.material.textures.forEachChanged(last) { (type, texture) ->
             contentUpdated = true
             val slot = VulkanObjectState.textureTypeToSlot(type)
             val generateMipmaps = Texture.mipmappedObjectTextures.contains(type)
 
-            logger.debug("${outputNode.name} will have $type texture from $texture in slot $slot")
+            logger.debug("${renderable.name} will have $type texture from $texture in slot $slot")
 
             if (!textureCache.containsKey(texture)) {
                 try {
-                    logger.debug("Loading texture {} for {}", texture, outputNode.name)
+                    logger.debug("Loading texture {} for {}", texture, renderable.name)
 
                     val miplevels = if (generateMipmaps && texture.mipmap) {
                         floor(ln(min(texture.dimensions.x() * 1.0, texture.dimensions.y() * 1.0)) / ln(2.0)).toInt()
@@ -303,7 +303,7 @@ object VulkanNodeHelpers {
                         textureCache[texture] = t
                     }
                 } catch (e: Exception) {
-                    logger.warn("Could not load texture for ${outputNode.name}: $e")
+                    logger.warn("Could not load texture for ${renderable.name}: $e")
                 }
             } else {
                 s.textures[type] = textureCache[texture]!!
@@ -312,7 +312,7 @@ object VulkanNodeHelpers {
 
         s.texturesLastSeen = now
 
-        val isCompute = outputNode.material is ShaderMaterial && ((outputNode.material as? ShaderMaterial)?.isCompute() ?: false)
+        val isCompute = renderable.material is ShaderMaterial && ((renderable.material as? ShaderMaterial)?.isCompute() ?: false)
         if(!isCompute) {
             Texture.objectTextures.forEach {
                 if (!s.textures.containsKey(it)) {
@@ -326,42 +326,42 @@ object VulkanNodeHelpers {
     }
 
     /**
-     * Initialises custom shaders for a given [outputNode] on [device]. Adds optional initialisers e.g. for
+     * Initialises custom shaders for a given [renderable] on [device]. Adds optional initialisers e.g. for
      * resizing, if [addInitializer] is set to true. Such initialiser is added to [lateResizeInitializers].
      * [buffers] for UBO access need to be given.
      *
      * Returns true if the node has been given a custom shader, and false if not.
      */
-    fun initializeCustomShadersForNode(device: VulkanDevice, outputNode: Node, addInitializer: Boolean = true, renderpasses: Map<String, VulkanRenderpass>, lateResizeInitializers: MutableMap<Node, () -> Any>, buffers: VulkanRenderer.DefaultBuffers): Boolean {
+    fun initializeCustomShadersForNode(device: VulkanDevice, renderable: Renderable, addInitializer: Boolean = true, renderpasses: Map<String, VulkanRenderpass>, lateResizeInitializers: MutableMap<Node, () -> Any>, buffers: VulkanRenderer.DefaultBuffers): Boolean {
 
-        if(!(outputNode.material.blending.transparent || outputNode.material is ShaderMaterial || outputNode.material.cullingMode != Material.CullingMode.Back || outputNode.material.wireframe)) {
-            logger.debug("Using default renderpass material for ${outputNode.name}")
+        if(!(renderable.material.blending.transparent || renderable.material is ShaderMaterial || renderable.material.cullingMode != Material.CullingMode.Back || renderable.material.wireframe)) {
+            logger.debug("Using default renderpass material for ${renderable.name}")
             renderpasses
                 .filter { it.value.passConfig.type == RenderConfigReader.RenderpassType.geometry || it.value.passConfig.type == RenderConfigReader.RenderpassType.lights }
                 .forEach {
-                    it.value.removePipeline(outputNode)
+                    it.value.removePipeline(renderable)
                 }
 
-            lateResizeInitializers.remove(outputNode)
+            lateResizeInitializers.remove(renderable)
             return false
         }
 
         if(addInitializer) {
-            lateResizeInitializers.remove(outputNode)
+            lateResizeInitializers.remove(renderable)
         }
 
-        outputNode.rendererMetadata()?.let { s ->
+        renderable.rendererMetadata()?.let { s ->
 
 //            node.javaClass.kotlin.memberProperties.filter { it.findAnnotation<ShaderProperty>() != null }.forEach { logger.info("${node.name}.${it.name} is ShaderProperty!") }
-            val needsShaderPropertyUBO = if (outputNode.javaClass.kotlin.memberProperties.filter { it.findAnnotation<ShaderProperty>() != null }.count() > 0) {
+            val needsShaderPropertyUBO = if (renderable.javaClass.kotlin.memberProperties.filter { it.findAnnotation<ShaderProperty>() != null }.count() > 0) {
                 var dsl = 0L
 
                 renderpasses.filter {
                     (it.value.passConfig.type == RenderConfigReader.RenderpassType.geometry || it.value.passConfig.type == RenderConfigReader.RenderpassType.lights)
-                        && it.value.passConfig.renderTransparent == outputNode.material.blending.transparent
+                        && it.value.passConfig.renderTransparent == renderable.material.blending.transparent
                 }
                     .map { pass ->
-                        logger.debug("Initializing shader properties for ${outputNode.name}")
+                        logger.debug("Initializing shader properties for ${renderable.name}")
                         dsl = pass.value.initializeShaderPropertyDescriptorSetLayout()
                     }
 
@@ -378,9 +378,9 @@ object VulkanNodeHelpers {
             renderpasses.filter { it.value.passConfig.type == RenderConfigReader.RenderpassType.geometry || it.value.passConfig.type == RenderConfigReader.RenderpassType.lights }
                 .map { pass ->
                     val shaders = when {
-                        outputNode.material is ShaderMaterial -> {
-                            logger.debug("Initializing preferred pipeline for ${outputNode.name} from ShaderMaterial")
-                            (outputNode.material as ShaderMaterial).shaders
+                        renderable.material is ShaderMaterial -> {
+                            logger.debug("Initializing preferred pipeline for ${renderable.name} from ShaderMaterial")
+                            (renderable.material as ShaderMaterial).shaders
                         }
 
 //                        pass.value.passConfig.renderTransparent == node.material.blending.transparent -> {
@@ -395,7 +395,7 @@ object VulkanNodeHelpers {
 //                        }
 
                         else -> {
-                            logger.debug("Initializing pass-default shader preferred pipeline for ${outputNode.name}")
+                            logger.debug("Initializing pass-default shader preferred pipeline for ${renderable.name}")
                             Shaders.ShadersFromFiles(pass.value.passConfig.shaders.map { "shaders/$it" }.toTypedArray())
                         }
                     }
@@ -417,16 +417,16 @@ object VulkanNodeHelpers {
                     }
 
                     pass.value.initializeInputAttachmentDescriptorSetLayouts(shaderModules)
-                    pass.value.initializePipeline("preferred-${outputNode.uuid}",
+                    pass.value.initializePipeline("preferred-${renderable.getUuid()}",
                         shaderModules, settings = { pipeline ->
-                        when(outputNode.material.cullingMode) {
+                        when(renderable.material.cullingMode) {
                             Material.CullingMode.None -> pipeline.rasterizationState.cullMode(VK10.VK_CULL_MODE_NONE)
                             Material.CullingMode.Front -> pipeline.rasterizationState.cullMode(VK10.VK_CULL_MODE_FRONT_BIT)
                             Material.CullingMode.Back -> pipeline.rasterizationState.cullMode(VK10.VK_CULL_MODE_BACK_BIT)
                             Material.CullingMode.FrontAndBack -> pipeline.rasterizationState.cullMode(VK10.VK_CULL_MODE_FRONT_AND_BACK)
                         }
 
-                        when(outputNode.material.depthTest) {
+                        when(renderable.material.depthTest) {
                             Material.DepthTest.Equal -> pipeline.depthStencilState.depthCompareOp(VK10.VK_COMPARE_OP_EQUAL)
                             Material.DepthTest.Less -> pipeline.depthStencilState.depthCompareOp(VK10.VK_COMPARE_OP_LESS)
                             Material.DepthTest.Greater -> pipeline.depthStencilState.depthCompareOp(VK10.VK_COMPARE_OP_GREATER)
@@ -436,14 +436,14 @@ object VulkanNodeHelpers {
                             Material.DepthTest.Never -> pipeline.depthStencilState.depthCompareOp(VK10.VK_COMPARE_OP_NEVER)
                         }
 
-                        if(outputNode.material.wireframe) {
+                        if(renderable.material.wireframe) {
                             pipeline.rasterizationState.polygonMode(VK10.VK_POLYGON_MODE_LINE)
                         } else {
                             pipeline.rasterizationState.polygonMode(VK10.VK_POLYGON_MODE_FILL)
                         }
 
-                        if(outputNode.material.blending.transparent) {
-                            with(outputNode.material.blending) {
+                        if(renderable.material.blending.transparent) {
+                            with(renderable.material.blending) {
                                 val blendStates = pipeline.colorBlendState.pAttachments()
                                 for (attachment in 0 until (blendStates?.capacity() ?: 0)) {
                                     val state = blendStates?.get(attachment)
@@ -470,10 +470,10 @@ object VulkanNodeHelpers {
             if (needsShaderPropertyUBO) {
                 renderpasses.filter {
                     (it.value.passConfig.type == RenderConfigReader.RenderpassType.geometry || it.value.passConfig.type == RenderConfigReader.RenderpassType.lights) &&
-                        it.value.passConfig.renderTransparent == outputNode.material.blending.transparent
+                        it.value.passConfig.renderTransparent == renderable.material.blending.transparent
                 }.forEach { pass ->
-                    logger.debug("Initializing shader properties for ${outputNode.name} in pass ${pass.key}")
-                    val order = pass.value.getShaderPropertyOrder(outputNode)
+                    logger.debug("Initializing shader properties for ${renderable.name} in pass ${pass.key}")
+                    val order = pass.value.getShaderPropertyOrder(renderable)
 
                     val shaderPropertyUbo = VulkanUBO(device, backingBuffer = buffers.ShaderProperties)
                     with(shaderPropertyUbo) {
@@ -481,7 +481,7 @@ object VulkanNodeHelpers {
 
                         order.forEach { name, offset ->
                             // TODO: See whether returning 0 on non-found shader property has ill side effects
-                            add(name, { outputNode.getShaderProperty(name) ?: 0 }, offset)
+                            add(name, { renderable.getShaderProperty(name) ?: 0 }, offset)
                         }
 
                         this.createUniformBuffer()
@@ -492,13 +492,13 @@ object VulkanNodeHelpers {
             }
 
             if(addInitializer) {
-                lateResizeInitializers[outputNode] = {
-                    val reloaded = initializeCustomShadersForNode(device, outputNode, addInitializer = false, renderpasses, lateResizeInitializers, buffers)
+                lateResizeInitializers[renderable] = {
+                    val reloaded = initializeCustomShadersForNode(device, renderable, addInitializer = false, renderpasses, lateResizeInitializers, buffers)
 
                     if(reloaded) {
-                        outputNode.rendererMetadata()?.texturesToDescriptorSets(device,
+                        renderable.rendererMetadata()?.texturesToDescriptorSets(device,
                             renderpasses.filter { pass -> pass.value.passConfig.type != RenderConfigReader.RenderpassType.quad },
-                            outputNode)
+                            renderable)
                     }
                 }
             }
@@ -529,7 +529,7 @@ object VulkanNodeHelpers {
     /**
      * Returns a node's [VulkanRenderer] metadata, [VulkanObjectState], if available.
      */
-    fun Node.rendererMetadata(): VulkanObjectState? {
+    fun Renderable.rendererMetadata(): VulkanObjectState? {
         return this.metadata["VulkanRenderer"] as? VulkanObjectState
     }
 }

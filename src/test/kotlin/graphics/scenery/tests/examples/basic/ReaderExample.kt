@@ -84,7 +84,7 @@ class ReaderExample : SceneryBase("ReaderExample", 1280, 720) {
             }
         } else {
             logger.warn("No file selected, returning empty node.")
-            Node("empty")
+            RenderableNode("empty")
         }
 
         loadedFilename = files.firstOrNull()
@@ -110,7 +110,7 @@ class ReaderExample : SceneryBase("ReaderExample", 1280, 720) {
         }
 
         thread {
-            while(!loadedObject.initialized) {
+            while(!(loadedObject.renderable()?.initialized ?: false)) {
                 Thread.sleep(200)
             }
 

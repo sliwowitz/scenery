@@ -21,7 +21,7 @@ import kotlin.streams.asSequence
  *
  * @author Ulrik Günther <hello@ulrik.is>
  */
-open class Scene : Node("RootNode") {
+open class Scene : RenderableNode("RootNode") {
 
     /** Temporary storage of the active observer ([Camera]) of the Scene. */
     var activeObserver: Camera? = null

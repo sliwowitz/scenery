@@ -2,12 +2,12 @@ package graphics.scenery
 
 import java.util.concurrent.CopyOnWriteArrayList
 
-open class InstancedNode(template: Node, override var name: String = "InstancedNode") : DelegatesRendering(DelegationType.ForEachNode, template) {
+open class InstancedNode(template: Renderable, override var name: String = "InstancedNode") : DelegatesRendering(DelegationType.ForEachNode, template) {
     /** instances */
     val instances = CopyOnWriteArrayList<Instance>()
     /** instanced properties */
     val properties = LinkedHashMap<String, () -> Any>()
-    private var template: Node = template
+    private var template: Renderable = template
         set(node) {
             val instancedMaterial = ShaderMaterial.fromFiles("DefaultDeferredInstanced.vert", "DefaultDeferred.frag")
             if(node.material.name.equals(Material.DefaultMaterial().name)) {
@@ -24,16 +24,12 @@ open class InstancedNode(template: Node, override var name: String = "InstancedN
         this.template = template
     }
 
-    fun addInstance(): Node {
+    fun addInstance(): Instance {
         val node = Instance(this)
         node.properties.put("ModelMatrix", node::world)
         node.boundingBox = node.generateBoundingBox()
         instances.add(node)
         return node
-    }
-
-    override fun init(): Boolean {
-        return template.init()
     }
 
     override fun generateBoundingBox(): OrientedBoundingBox? {

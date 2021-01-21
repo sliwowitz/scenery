@@ -6,4 +6,4 @@ package graphics.scenery
  *
  * @author Ulrik Günther <hello@ulrik.is>
  */
-class Group : Node("Group")
+class Group : RenderableNode("Group")

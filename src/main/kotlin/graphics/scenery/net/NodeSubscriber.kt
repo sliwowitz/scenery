@@ -81,7 +81,7 @@ class NodeSubscriber(override var hub: Hub?, val address: String = "udp://localh
                         node.scale = o.scale
                         node.visible = o.visible
 
-                        if (o is Volume && node is Volume && node.initialized) {
+                        if (o is Volume && node is Volume && node.renderable()?.initialized ?: false) {
                             TODO("Reimplement changes for synchronising volumes")
                         }
 

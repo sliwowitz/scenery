@@ -30,7 +30,7 @@ class ComputeShaderExample : SceneryBase("ComputeShaderExample") {
         val helix = Texture.fromImage(Image.fromResource("textures/helix.png", TexturedCubeExample::class.java), usage = hashSetOf(Texture.UsageType.LoadStoreImage, Texture.UsageType.Texture))
         val buffer = MemoryUtil.memCalloc(helix.dimensions.x * helix.dimensions.y * helix.dimensions.z * 4)
 
-        val compute = Node()
+        val compute = RenderableNode()
         compute.name = "compute node"
         compute.material = ShaderMaterial(Shaders.ShadersFromFiles(arrayOf("BGRAMosaic.comp"), this::class.java))
         compute.material.textures["OutputViewport"] = Texture.fromImage(Image(buffer, helix.dimensions.x, helix.dimensions.y, helix.dimensions.z), usage = hashSetOf(Texture.UsageType.LoadStoreImage, Texture.UsageType.Texture))
@@ -82,7 +82,8 @@ class ComputeShaderExample : SceneryBase("ComputeShaderExample") {
         inputHandler?.addBehaviour("save_texture", ClickBehaviour { _, _ ->
             logger.info("Finding node")
             val node = scene.find("compute node") ?: return@ClickBehaviour
-            val texture = node.material.textures["OutputViewport"]!!
+            val renderable = node.renderable() ?: return@ClickBehaviour
+            val texture = renderable.material.textures["OutputViewport"]!!
             val r = renderer ?: return@ClickBehaviour
             logger.info("Node found, saving texture")
 

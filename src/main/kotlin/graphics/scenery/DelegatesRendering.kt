@@ -23,16 +23,8 @@ enum class DelegationType {
  *
  * @author Ulrik Guenther <hello@ulrik.is>
  */
-open class DelegatesRendering(val delegationType: DelegationType = DelegationType.OncePerDelegate, var delegate: Node? = null): Node("DelegatesRendering") {
-    override fun outputNode() : Node? {
+open class DelegatesRendering(val delegationType: DelegationType = DelegationType.OncePerDelegate, var delegate: Renderable? = null): AbstractNode("DelegatesRendering") {
+    override fun renderable() : Renderable? {
         return delegate
-    }
-
-    override fun outputNode(seenDelegates : List<Node>) : Node? {
-        if(delegationType == DelegationType.OncePerDelegate && delegate != null) {
-            return if(delegate in seenDelegates) null else delegate
-        } else {
-            return delegate
-        }
     }
 }

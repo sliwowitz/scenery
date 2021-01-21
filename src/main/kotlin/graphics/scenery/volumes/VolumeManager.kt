@@ -50,7 +50,7 @@ class VolumeManager(
     val useCompute: Boolean = false,
     val customSegments: Map<SegmentType, SegmentTemplate>? = null,
     val customBindings: BiConsumer<Map<SegmentType, SegmentTemplate>, Map<SegmentType, Segment>>? = null
-) : Node(), Hubable, HasGeometry, RequestRepaint {
+) : RenderableNode(), Hubable, HasGeometry, RequestRepaint {
     /** How many elements does a vertex store? */
     override val vertexSize : Int = 3
     /** How many elements does a texture coordinate store? */

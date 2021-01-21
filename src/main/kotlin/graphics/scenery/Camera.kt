@@ -21,7 +21,7 @@ import kotlin.math.tan
  * @constructor Creates a new camera with default position and right-handed
  *  coordinate system.
  */
-open class Camera : Node("Camera") {
+open class Camera : RenderableNode("Camera") {
 
     /** Enum class for camera projection types */
     enum class ProjectionType {

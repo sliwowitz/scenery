@@ -30,7 +30,7 @@ import java.util.HashMap
  *
  * @author Ulrik Günther <hello@ulrik.is>
  */
-open class Mesh(override var name: String = "Mesh") : Node(name), HasGeometry {
+open class Mesh(override var name: String = "Mesh") : RenderableNode(name), HasGeometry {
     /** Vertex storage array. Also see [HasGeometry] */
     @Transient final override var vertices: FloatBuffer = BufferUtils.allocateFloat(0)
     /** Normal storage array. Also see [HasGeometry] */
@@ -378,7 +378,7 @@ open class Mesh(override var name: String = "Mesh") : Node(name), HasGeometry {
                     'u' -> {
                         if (targetObject is Node && importMaterials) {
                             materials[tokens.substringAfter(" ").trim().trimEnd()]?.let {
-                                (targetObject as? Node)?.material = it
+                                (targetObject as? RenderableNode)?.material = it
                             }
                         }
                     }
