@@ -1,7 +1,7 @@
 package graphics.scenery.effectors
 
+import graphics.scenery.Node
 import graphics.scenery.Plane
-import graphics.scenery.RenderableNode
 import org.joml.Vector3f
 
 /**
@@ -11,5 +11,5 @@ import org.joml.Vector3f
  */
 class SlicingVolumeEffector : VolumeEffector() {
     /** Proxy plane for slicing */
-    override var proxy: RenderableNode = Plane(Vector3f(1.0f, 1.0f, 1.0f))
+    override var proxy: Node = Plane(Vector3f(1.0f, 1.0f, 1.0f))
 }

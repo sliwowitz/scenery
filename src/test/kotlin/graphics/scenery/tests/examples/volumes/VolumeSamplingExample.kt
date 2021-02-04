@@ -70,47 +70,65 @@ class VolumeSamplingExample: SceneryBase("Volume Sampling example", 1280, 720) {
 
         val cam: Camera = DetachedHeadCamera()
         with(cam) {
-            position = Vector3f(0.0f, 0.5f, 5.0f)
+            spatial {
+                position = Vector3f(0.0f, 0.5f, 5.0f)
+            }
             perspectiveCamera(50.0f, windowWidth, windowHeight)
 
             scene.addChild(this)
         }
 
         val shell = Box(Vector3f(10.0f, 10.0f, 10.0f), insideNormals = true)
-        shell.material.cullingMode = Material.CullingMode.None
-        shell.material.diffuse = Vector3f(0.2f, 0.2f, 0.2f)
-        shell.material.specular = Vector3f(0.0f)
-        shell.material.ambient = Vector3f(0.0f)
-        shell.position = Vector3f(0.0f, 4.0f, 0.0f)
+        shell.renderable {
+            material.cullingMode = Material.CullingMode.None
+            material.diffuse = Vector3f(0.2f, 0.2f, 0.2f)
+            material.specular = Vector3f(0.0f)
+            material.ambient = Vector3f(0.0f)
+        }
+        shell.spatial {
+            position = Vector3f(0.0f, 4.0f, 0.0f)
+        }
         scene.addChild(shell)
 
         val p1 = Icosphere(0.2f, 2)
-        p1.position = Vector3f(-0.5f, 0.0f, -2.0f)
-        p1.material.diffuse = Vector3f(0.3f, 0.3f, 0.8f)
+        p1.spatial {
+            position = Vector3f(-0.5f, 0.0f, -2.0f)
+        }
+        p1.renderable {
+            material.diffuse = Vector3f(0.3f, 0.3f, 0.8f)
+        }
         scene.addChild(p1)
 
         val p2 = Icosphere(0.2f, 2)
-        p2.position = Vector3f(0.0f, 0.5f, 2.0f)
-        p2.material.diffuse = Vector3f(0.3f, 0.8f, 0.3f)
+        p2.spatial {
+            position = Vector3f(0.0f, 0.5f, 2.0f)
+        }
+        p2.renderable {
+            material.diffuse = Vector3f(0.3f, 0.8f, 0.3f)
+        }
         scene.addChild(p2)
 
-        val connector = Cylinder.betweenPoints(p1.position, p2.position)
-        connector.material.diffuse = Vector3f(1.0f, 1.0f, 1.0f)
+        val connector = Cylinder.betweenPoints(p1.spatial().position, p2.spatial().position)
+        connector.renderable {
+            material.diffuse = Vector3f(1.0f, 1.0f, 1.0f)
+        }
         scene.addChild(connector)
 
         p1.update.add {
-            connector.orientBetweenPoints(p1.position, p2.position, true, true)
+            connector.spatial().orientBetweenPoints(p1.spatial().position, p2.spatial().position, true, true)
         }
 
         p2.update.add {
-            connector.orientBetweenPoints(p1.position, p2.position, true, true)
+            connector.spatial().orientBetweenPoints(p1.spatial().position, p2.spatial().position, true, true)
         }
 
         val volume = Volume.fromBuffer(emptyList(), volumeSize, volumeSize, volumeSize, UnsignedByteType(), hub)
         volume.name = "volume"
-        volume.position = Vector3f(0.0f, 0.0f, 0.0f)
+        volume.spatial {
+            position = Vector3f(0.0f, 0.0f, 0.0f)
+            scale = Vector3f(10.0f, 10.0f, 10.0f)
+        }
         volume.colormap = Colormap.get("viridis")
-        volume.scale = Vector3f(10.0f, 10.0f, 10.0f)
 //        volume.voxelSizeZ = 0.5f
         with(volume.transferFunction) {
             addControlPoint(0.0f, 0.0f)
@@ -131,14 +149,16 @@ class VolumeSamplingExample: SceneryBase("Volume Sampling example", 1280, 720) {
         }
 
         lights.mapIndexed { i, light ->
-            light.position = Vector3f(2.0f * i - 4.0f,  i - 1.0f, 0.0f)
+            light.spatial {
+                position = Vector3f(2.0f * i - 4.0f,  i - 1.0f, 0.0f)
+            }
             light.emissionColor = Vector3f(1.0f, 1.0f, 1.0f)
             light.intensity = 0.5f
             scene.addChild(light)
         }
 
         thread {
-            while(!scene.initialized) { Thread.sleep(200) }
+            while(!scene.renderable().initialized) { Thread.sleep(200) }
 
             val volumeSize = 128L
             val volumeBuffer = RingBuffer<ByteBuffer>(2) { memAlloc((volumeSize*volumeSize*volumeSize*bitsPerVoxel/8).toInt()) }
@@ -180,7 +200,7 @@ class VolumeSamplingExample: SceneryBase("Volume Sampling example", 1280, 720) {
                         }
                 }
 
-                val intersection = volume.intersectAABB(p1.position, (p2.position - p1.position).normalize())
+                val intersection = volume.spatial().intersectAABB(p1.spatial().position, (p2.spatial().position - p1.spatial().position).normalize())
                 if(intersection is MaybeIntersects.Intersection) {
                     val scale = volume.localScale()
                     val localEntry = (intersection.relativeEntry + Vector3f(1.0f)) * (1.0f/2.0f)
@@ -209,8 +229,12 @@ class VolumeSamplingExample: SceneryBase("Volume Sampling example", 1280, 720) {
                     diagram.clearPoints()
                     diagram.name = "diagram"
                     diagram.edgeWidth = 0.005f
-                    diagram.material.diffuse = Vector3f(0.05f, 0.05f, 0.05f)
-                    diagram.position = Vector3f(0.0f, 0.0f, -0.5f)
+                    diagram.renderable {
+                        material.diffuse = Vector3f(0.05f, 0.05f, 0.05f)
+                    }
+                    diagram.spatial {
+                        position = Vector3f(0.0f, 0.0f, -0.5f)
+                    }
                     diagram.addPoint(Vector3f(0.0f, 0.0f, 0.0f))
                     var point = Vector3f(0.0f)
                     samples.filterNotNull().forEachIndexed { i, sample ->

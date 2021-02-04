@@ -65,7 +65,7 @@ object VulkanScenePass {
         val seenDelegates = ArrayList<Renderable>(5)
         sceneObjects.filter { customNodeFilter?.invoke(it) ?: true }.forEach { node ->
             val renderable = node.renderable() ?: return@forEach
-            if(node is DelegatesRendering && node.delegationType == DelegationType.OncePerDelegate) {
+            if(node is DelegatesRendering && node.getDelegationType() == DelegationType.OncePerDelegate) {
                 if(seenDelegates.contains(renderable)) {
                     return@forEach
                 } else {
@@ -77,7 +77,7 @@ object VulkanScenePass {
                 return@forEach
             }
 
-            if(renderable is RenderingOrder) {
+            if(node is RenderingOrder) {
                 needsOrderSort = true
             }
 
@@ -161,7 +161,7 @@ object VulkanScenePass {
                 }
 
                 val specs = pipeline.orderedDescriptorSpecs()
-                val (sets, skip) = setRequiredDescriptorSetsForNode(pass, renderable, s, specs, descriptorSets)
+                val (sets, skip) = setRequiredDescriptorSetsForNode(pass, node, s, specs, descriptorSets)
 
                 if(skip || !metadata.active) {
                     return@computeLoop
@@ -273,6 +273,7 @@ object VulkanScenePass {
             var previousPipeline: VulkanRenderer.Pipeline? = null
             computeNodesGraphicsNodes.second.forEach drawLoop@ { node ->
                 val renderable = node.renderable() ?: return@drawLoop
+                val geometry = node.geometry() ?: return@drawLoop
                 val s = renderable.rendererMetadata() ?: return@drawLoop
 
                 // nodes that just have been initialised will also be skipped
@@ -304,12 +305,12 @@ object VulkanScenePass {
                     return@drawLoop
                 }
 
-                logger.trace("{} - Rendering {}, vertex+index buffer={}...", pass.name, renderable.name, vertexIndexBuffer.vulkanBuffer.toHexString())
+                logger.trace("{} - Rendering {}, vertex+index buffer={}...", pass.name, node.name, vertexIndexBuffer.vulkanBuffer.toHexString())
 //                if(rerecordingCauses.contains(node.name)) {
 //                    logger.debug("Using pipeline ${pass.getActivePipeline(node)} for re-recording")
 //                }
                 val p = pass.getActivePipeline(renderable)
-                val pipeline = p.getPipelineForGeometryType((renderable as HasGeometry).geometryType)
+                val pipeline = p.getPipelineForGeometryType(geometry.geometryType)
                 val specs = p.orderedDescriptorSpecs()
 
                 if(pipeline != previousPipeline) {
@@ -319,7 +320,7 @@ object VulkanScenePass {
                 }
 
                 if(logger.isTraceEnabled) {
-                    logger.trace("node {} has: {} / pipeline needs: {}", renderable.name, s.UBOs.keys.joinToString(", "), specs.joinToString { it.key })
+                    logger.trace("node {} has: {} / pipeline needs: {}", node.name, s.UBOs.keys.joinToString(", "), specs.joinToString { it.key })
                 }
 
                 pass.vulkanMetadata.descriptorSets.rewind()
@@ -343,14 +344,14 @@ object VulkanScenePass {
                     }
                 }
 
-                val (sets, skip) = setRequiredDescriptorSetsForNode(pass, renderable, s, specs, descriptorSets)
+                val (sets, skip) = setRequiredDescriptorSetsForNode(pass, node, s, specs, descriptorSets)
 
                 if(skip) {
                     return@drawLoop
                 }
 
                 if(logger.isDebugEnabled) {
-                    logger.debug("${renderable.name} requires DS ${specs.joinToString { "${it.key}, " }}")
+                    logger.debug("${node.name} requires DS ${specs.joinToString { "${it.key}, " }}")
                 }
 
                 val requiredSets = sets.filter { it !is VulkanRenderer.DescriptorSet.None }.map { it.id }.toLongArray()
@@ -382,7 +383,7 @@ object VulkanScenePass {
 
                 VK10.vkCmdBindVertexBuffers(this, 0, pass.vulkanMetadata.vertexBuffers, pass.vulkanMetadata.vertexBufferOffsets)
 
-                logger.debug("${pass.name}: now drawing {}, {} DS bound, {} textures, {} vertices, {} indices, {} instances", renderable.name, pass.vulkanMetadata.descriptorSets.limit(), s.textures.count(), s.vertexCount, s.indexCount, s.instanceCount)
+                logger.debug("${pass.name}: now drawing {}, {} DS bound, {} textures, {} vertices, {} indices, {} instances", node.name, pass.vulkanMetadata.descriptorSets.limit(), s.textures.count(), s.vertexCount, s.indexCount, s.instanceCount)
 
                 if (s.isIndexed) {
                     VK10.vkCmdBindIndexBuffer(this, pass.vulkanMetadata.vertexBuffers.get(0), s.indexOffset, VK10.VK_INDEX_TYPE_UINT32)
@@ -551,7 +552,7 @@ object VulkanScenePass {
         }
     }
 
-    private fun setRequiredDescriptorSetsForNode(pass: VulkanRenderpass, renderable: Renderable, s: VulkanObjectState, specs: List<MutableMap.MutableEntry<String, VulkanShaderModule.UBOSpec>>, descriptorSets: Map<String, Long>): Pair<List<VulkanRenderer.DescriptorSet>, Boolean> {
+    private fun setRequiredDescriptorSetsForNode(pass: VulkanRenderpass, node: Node, s: VulkanObjectState, specs: List<MutableMap.MutableEntry<String, VulkanShaderModule.UBOSpec>>, descriptorSets: Map<String, Long>): Pair<List<VulkanRenderer.DescriptorSet>, Boolean> {
         var skip = false
         return specs.mapNotNull { (name, _) ->
             val ds = when {
@@ -585,12 +586,12 @@ object VulkanScenePass {
             }
 
             if(ds == null || ds == VulkanRenderer.DescriptorSet.None) {
-                logger.error("Internal consistency error for node ${renderable.name}: Descriptor set $name not found in renderpass ${pass.name}, skipping node for rendering.")
+                logger.error("Internal consistency error for node ${node.name}: Descriptor set $name not found in renderpass ${pass.name}, skipping node for rendering.")
                 skip = true
             }
 
             if(ds is VulkanRenderer.DescriptorSet.DynamicSet && ds.offset == BUFFER_OFFSET_UNINTIALISED ) {
-                logger.info("${renderable.name} has uninitialised UBO offset, skipping for rendering")
+                logger.info("${node.name} has uninitialised UBO offset, skipping for rendering")
                 skip = true
             }
 

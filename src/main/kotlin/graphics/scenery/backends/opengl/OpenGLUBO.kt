@@ -1,7 +1,6 @@
 package graphics.scenery.backends.opengl
 
 import graphics.scenery.InstancedNode
-import graphics.scenery.Node
 import graphics.scenery.backends.UBO
 import java.nio.ByteBuffer
 
@@ -61,7 +60,7 @@ class OpenGLUBO(val backingBuffer: OpenGLRenderer.OpenGLBuffer? = null) : UBO() 
      * Creates this UBO's members from the instancedProperties of [node].
      */
     fun fromInstance(node: InstancedNode.Instance) {
-        node.properties.forEach { members.putIfAbsent(it.key, it.value) }
+        node.instanceProperties.forEach { members.putIfAbsent(it.key, it.value) }
     }
 
     /**

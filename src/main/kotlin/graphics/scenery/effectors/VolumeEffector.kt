@@ -1,7 +1,6 @@
 package graphics.scenery.effectors
 
-import graphics.scenery.Node
-import graphics.scenery.RenderableNode
+import graphics.scenery.*
 import graphics.scenery.volumes.Volume
 
 /**
@@ -9,7 +8,7 @@ import graphics.scenery.volumes.Volume
  *
  * @author Ulrik Guenther <hello@ulrik.is>
  */
-open class VolumeEffector : RenderableNode("VolumeEffector") {
+open class VolumeEffector : DefaultNode("VolumeEffector"), HasRenderable, HasSpatial {
     /** Whether this effector node is currently active */
     var active: Boolean = false
         private set
@@ -19,13 +18,13 @@ open class VolumeEffector : RenderableNode("VolumeEffector") {
         private set
 
     /** Proxy node to display e.g. auxiliary geometry. */
-    open var proxy = RenderableNode()
+    open var proxy: Node = DefaultNode("proxy")
 
     init {
         update.add {
             getScene()?.let {
                 it.discover(it, { it is Volume }).forEach { node ->
-                    if (proxy.intersects(node)) {
+                    if (proxy.spatial()?.intersects(node) ?: false) {
                         activeVolume = node
                     }
                 }

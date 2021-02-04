@@ -34,17 +34,17 @@ open class OrientedBoundingBox(val n: Node, val min: Vector3f, val max: Vector3f
      * Returns the maximum bounding sphere of this bounding box.
      */
     fun getBoundingSphere(): BoundingSphere {
-        if(n.needsUpdate || n.needsUpdateWorld) {
-            n.updateWorld(true, false)
+        var origin = Vector3f(0f, 0f, 0f)
+        var radius = 0f
+        n.spatial {
+            if(needsUpdate || needsUpdateWorld) {
+                updateWorld(true, false)
+            }
+            val worldMin = worldPosition(min)
+            val worldMax = worldPosition(max)
+            origin = worldMin + (worldMax - worldMin) * 0.5f
+            radius = (worldMax - origin).length()
         }
-
-        val worldMin = n.worldPosition(min)
-        val worldMax = n.worldPosition(max)
-
-        val origin = worldMin + (worldMax - worldMin) * 0.5f
-
-        val radius = (worldMax - origin).length()
-
         return BoundingSphere(origin, radius)
     }
 
@@ -95,7 +95,8 @@ open class OrientedBoundingBox(val n: Node, val min: Vector3f, val max: Vector3f
      * Return an [OrientedBoundingBox] in World coordinates.
      */
     fun asWorld(): OrientedBoundingBox {
-        return OrientedBoundingBox(n, n.worldPosition(min), n.worldPosition(max))
+        //FIXME for n.spatial() == null
+        return OrientedBoundingBox(n, n.spatial()!!.worldPosition(min) , n.spatial()!!.worldPosition(max))
     }
 
     /**

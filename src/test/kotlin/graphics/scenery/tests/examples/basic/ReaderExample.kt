@@ -57,8 +57,12 @@ class ReaderExample : SceneryBase("ReaderExample", 1280, 720) {
         renderer?.pushMode = true
 
         val b = Box(Vector3f(50.0f, 0.2f, 50.0f))
-        b.position = Vector3f(0.0f, -1.0f, 0.0f)
-        b.material.diffuse = Vector3f(0.1f, 0.1f, 0.1f)
+        b.spatial {
+            position = Vector3f(0.0f, -1.0f, 0.0f)
+        }
+        b.renderable {
+            material.diffuse = Vector3f(0.1f, 0.1f, 0.1f)
+        }
         scene.addChild(b)
 
         val tetrahedron = listOf(
@@ -84,11 +88,13 @@ class ReaderExample : SceneryBase("ReaderExample", 1280, 720) {
             }
         } else {
             logger.warn("No file selected, returning empty node.")
-            RenderableNode("empty")
+            DefaultNode("empty")
         }
 
         loadedFilename = files.firstOrNull()
-        loadedObject.fitInto(6.0f, scaleUp = false)
+        loadedObject.spatial {
+            fitInto(6.0f, scaleUp = false)
+        }
 
         scene.addChild(loadedObject)
 
@@ -96,14 +102,18 @@ class ReaderExample : SceneryBase("ReaderExample", 1280, 720) {
         bg.node = loadedObject
 
         tetrahedron.mapIndexed { i, position ->
-            lights[i].position = position * 5.0f
+            lights[i].spatial {
+                this.position = position * 5.0f
+            }
             lights[i].emissionColor = Random.random3DVectorFromRange(0.8f, 1.0f)
             lights[i].intensity = 0.5f
             scene.addChild(lights[i])
         }
 
         with(cam) {
-            position = Vector3f(0.0f, 0.0f, 5.0f)
+            spatial {
+                position = Vector3f(0.0f, 0.0f, 5.0f)
+            }
             perspectiveCamera(50.0f, windowWidth, windowHeight)
 
             scene.addChild(this)
@@ -114,7 +124,9 @@ class ReaderExample : SceneryBase("ReaderExample", 1280, 720) {
                 Thread.sleep(200)
             }
 
-            loadedObject.putAbove(Vector3f(0.0f, -0.3f, 0.0f))
+            loadedObject.spatial {
+                putAbove(Vector3f(0.0f, -0.3f, 0.0f))
+            }
 
             hmd?.events?.onDeviceConnect?.add { hmd, device, timestamp ->
                 if(device.type == TrackedDeviceType.Controller) {
@@ -170,8 +182,10 @@ class ReaderExample : SceneryBase("ReaderExample", 1280, 720) {
                 delay = minOf((delay / scaleFactor).toLong(), 2000L)
                 cam.showMessage("Speed: ${String.format("%.2f", (1000f/delay.toFloat()))} vol/s")
             } else {
-                val scale = minOf(loadedObject.scale.x() * 1.2f, 3.0f)
-                loadedObject.scale = Vector3f(1.0f) * scale
+                loadedObject.spatial {
+                    val scale = minOf(this.scale.x() * 1.2f, 3.0f)
+                    this.scale = Vector3f(1.0f) * scale
+                }
             }
         }
 
@@ -183,8 +197,10 @@ class ReaderExample : SceneryBase("ReaderExample", 1280, 720) {
                 delay = maxOf((delay * scaleFactor).toLong(), 5L)
                 cam.showMessage("Speed: ${String.format("%.2f", (1000f/delay.toFloat()))} vol/s")
             } else {
-                val scale = maxOf(loadedObject.scale.x() / 1.2f, 0.1f)
-                loadedObject.scale = Vector3f(1.0f) * scale
+                loadedObject.spatial {
+                    val scale = maxOf(this.scale.x() / 1.2f, 0.1f)
+                    this.scale = Vector3f(1.0f) * scale
+                }
             }
         }
 
@@ -246,8 +262,10 @@ class ReaderExample : SceneryBase("ReaderExample", 1280, 720) {
         when(extension) {
             "obj", "stl" -> {
                 loadedObject = Mesh().readFrom(file.toFile().absolutePath)
-                loadedObject.centerOn(Vector3f(0.0f))
-                loadedObject.fitInto(6.0f, scaleUp = false)
+                loadedObject.spatial {
+                    centerOn(Vector3f(0.0f))
+                    fitInto(6.0f, scaleUp = false)
+                }
             }
         }
 

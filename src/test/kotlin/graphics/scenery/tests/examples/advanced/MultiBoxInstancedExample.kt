@@ -17,7 +17,9 @@ class MultiBoxInstancedExample : SceneryBase("MultiBoxInstancedExample") {
 
         val cam: Camera = DetachedHeadCamera()
         with(cam) {
-            position = Vector3f(10.0f, 10.0f, 10.0f)
+            spatial {
+                position = Vector3f(10.0f, 10.0f, 10.0f)
+            }
             perspectiveCamera(60.0f, windowWidth, windowHeight, 1.0f, 1000.0f)
 
             scene.addChild(this)
@@ -30,32 +32,40 @@ class MultiBoxInstancedExample : SceneryBase("MultiBoxInstancedExample") {
 
         val b = Box(Vector3f(0.7f, 0.7f, 0.7f))
         b.name = "boxtemplate"
-        b.material = ShaderMaterial.fromFiles("DefaultDeferredInstanced.vert", "DefaultDeferred.frag")
-        b.material.diffuse = Vector3f(1.0f, 1.0f, 1.0f)
-        b.material.ambient = Vector3f(1.0f, 1.0f, 1.0f)
-        b.material.specular = Vector3f(1.0f, 1.0f, 1.0f)
-        b.material.metallic = 0.0f
-        b.material.roughness = 1.0f
+        b.renderable {
+            material = ShaderMaterial.fromFiles("DefaultDeferredInstanced.vert", "DefaultDeferred.frag")
+            material.diffuse = Vector3f(1.0f, 1.0f, 1.0f)
+            material.ambient = Vector3f(1.0f, 1.0f, 1.0f)
+            material.specular = Vector3f(1.0f, 1.0f, 1.0f)
+            material.metallic = 0.0f
+            material.roughness = 1.0f
+        }
         val bInstanced = InstancedNode(b)
         scene.addChild(bInstanced)
 
         (0 until (boundaryWidth * boundaryHeight * boundaryHeight).toInt()).map {
             val inst = bInstanced.addInstance()
             inst.name = "Box_$it"
-            inst.material = b.material
+            inst.renderable {
+                material = b.renderable().material
+            }
 
             val k: Double = it.rem(boundaryWidth)
             val j: Double = (it / boundaryWidth).rem(boundaryHeight)
             val i: Double = it / (boundaryWidth * boundaryHeight)
 
-            inst.position = Vector3f(Math.floor(i).toFloat(), Math.floor(j).toFloat(), Math.floor(k).toFloat())
+            inst.spatial {
+                position = Vector3f(Math.floor(i).toFloat(), Math.floor(j).toFloat(), Math.floor(k).toFloat())
+            }
             inst.parent = container
         }
 
         val lights = (0..20).map {
             PointLight(radius = 250.0f)
         }.map {
-            it.position = Random.random3DVectorFromRange(-100.0f, 100.0f)
+            it.spatial {
+                position = Random.random3DVectorFromRange(-100.0f, 100.0f)
+            }
             it.emissionColor = Vector3f(1.0f, 1.0f, 1.0f)
             it.intensity = Random.randomFromRange(0.1f, 0.5f)
             it
@@ -64,24 +74,32 @@ class MultiBoxInstancedExample : SceneryBase("MultiBoxInstancedExample") {
         lights.forEach { scene.addChild(it) }
 
         val hullbox = Box(Vector3f(100.0f, 100.0f, 100.0f))
-        hullbox.position = Vector3f(0.0f, 0.0f, 0.0f)
+        hullbox.spatial {
+            position = Vector3f(0.0f, 0.0f, 0.0f)
+        }
         hullbox.name = "hullbox"
-        hullbox.material.ambient = Vector3f(0.6f, 0.6f, 0.6f)
-        hullbox.material.diffuse = Vector3f(0.4f, 0.4f, 0.4f)
-        hullbox.material.specular = Vector3f(0.0f, 0.0f, 0.0f)
-        hullbox.material.cullingMode = Material.CullingMode.Front
+        hullbox.renderable {
+            material.ambient = Vector3f(0.6f, 0.6f, 0.6f)
+            material.diffuse = Vector3f(0.4f, 0.4f, 0.4f)
+            material.specular = Vector3f(0.0f, 0.0f, 0.0f)
+            material.cullingMode = Material.CullingMode.Front
+        }
 
         scene.addChild(hullbox)
 
         thread {
             while (running) {
-                container.rotation.rotateXYZ(0.001f, 0.001f, 0.0f)
-                container.needsUpdateWorld = true
-                container.needsUpdate = true
-                container.updateWorld(true, false)
+                container.spatial {
+                    rotation.rotateXYZ(0.001f, 0.001f, 0.0f)
+                    needsUpdateWorld = true
+                    needsUpdate = true
+                    updateWorld(true, false)
+                }
 
                 val inst = bInstanced.addInstance()
-                inst.position = Random.random3DVectorFromRange(-40.0f, 40.0f)
+                inst.spatial {
+                    position = Random.random3DVectorFromRange(-40.0f, 40.0f)
+                }
                 inst.parent = container
                 bInstanced.instances.removeAt(kotlin.random.Random.nextInt(bInstanced.instances.size - 1))
 

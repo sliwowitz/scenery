@@ -13,11 +13,11 @@ import java.util.*
  *
  * @author Ulrik Günther <hello@ulrik.is>
  */
-interface HasGeometry : Serializable {
+interface Geometry : Serializable {
     /** How many elements does a vertex store? */
-    val vertexSize: Int
+    var vertexSize: Int
     /** How many elements does a texture coordinate store? */
-    val texcoordSize: Int
+    var texcoordSize: Int
     /** The [GeometryType] of the [Node] */
     var geometryType: GeometryType
 
@@ -29,6 +29,11 @@ interface HasGeometry : Serializable {
     var texcoords: FloatBuffer
     /** Array of the indices to create an indexed mesh. Optional, but advisable to use to minimize the number of submitted vertices. */
     var indices: IntBuffer
+    /** Whether the object is dirty and somehow needs to be updated. Used by renderers. */
+    var dirty: Boolean
+    val logger: org.slf4j.Logger
+
+    fun generateBoundingBox(children: List<Node>): OrientedBoundingBox?
 
     /**
      * Recalculates normals, assuming CCW winding order and taking
@@ -68,5 +73,26 @@ interface HasGeometry : Serializable {
         }
 
         this.normals = BufferUtils.allocateFloatAndPut(normals.toFloatArray())
+    }
+}
+
+interface HasGeometry: Node {
+
+    fun createGeometry(): Geometry {
+        return DefaultGeometry(this)
+    }
+
+    override fun geometry(block: Geometry.() -> Unit): Geometry {
+        var prop = super.geometry(block)
+        if(prop == null) {
+            prop = createGeometry()
+            addProperties(Geometry::class.java, prop)
+            prop.block()
+        }
+        return prop
+    }
+
+    override fun geometry(): Geometry {
+        return this.geometry({})
     }
 }

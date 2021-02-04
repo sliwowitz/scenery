@@ -62,13 +62,15 @@ open class MovementCommand(private val name: String, private val direction: Stri
 
         node?.let { node ->
             if (node.renderable()?.lock?.tryLock() ?: false) {
-                when (direction) {
-                    "forward" -> node.position = node.position + axisProvider.forward * speed * axisProvider.deltaT
-                    "back" -> node.position = node.position - axisProvider.forward * speed * axisProvider.deltaT
-                    "left" -> node.position = node.position - axisProvider.right * speed * axisProvider.deltaT
-                    "right" -> node.position = node.position + axisProvider.right * speed * axisProvider.deltaT
-                    "up" -> node.position = node.position + axisProvider.up * speed * axisProvider.deltaT
-                    "down" -> node.position = node.position - axisProvider.up * speed * axisProvider.deltaT
+                node.spatial {
+                    when (direction) {
+                        "forward" -> position = position + axisProvider.forward * speed * axisProvider.deltaT
+                        "back" -> position = position - axisProvider.forward * speed * axisProvider.deltaT
+                        "left" -> position = position - axisProvider.right * speed * axisProvider.deltaT
+                        "right" -> position = position + axisProvider.right * speed * axisProvider.deltaT
+                        "up" -> position = position + axisProvider.up * speed * axisProvider.deltaT
+                        "down" -> position = position - axisProvider.up * speed * axisProvider.deltaT
+                    }
                 }
 
                 node.renderable()?.lock?.unlock()

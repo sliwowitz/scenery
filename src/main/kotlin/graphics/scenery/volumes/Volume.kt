@@ -43,8 +43,6 @@ import org.scijava.io.location.FileLocation
 import tpietzsch.example2.VolumeViewerOptions
 import java.io.FileInputStream
 import java.nio.ByteBuffer
-import java.nio.FloatBuffer
-import java.nio.IntBuffer
 import java.nio.file.Files
 import java.nio.file.Path
 import java.util.*
@@ -55,24 +53,26 @@ import kotlin.properties.Delegates
 import kotlin.streams.toList
 
 @Suppress("DEPRECATION")
-open class Volume(val dataSource: VolumeDataSource, val options: VolumeViewerOptions, val hub: Hub) : DelegatesRendering(), HasGeometry, DisableFrustumCulling {
-    /** How many elements does a vertex store? */
-    override val vertexSize : Int = 3
-    /** How many elements does a texture coordinate store? */
-    override val texcoordSize : Int = 2
-    /** The [GeometryType] of the [Node] */
-    override var geometryType : GeometryType = GeometryType.TRIANGLES
-    /** Array of the vertices. This buffer is _required_, but may empty. */
-    override var vertices : FloatBuffer = FloatBuffer.allocate(0)
-    /** Array of the normals. This buffer is _required_, and may _only_ be empty if [vertices] is empty as well. */
-    override var normals : FloatBuffer = FloatBuffer.allocate(0)
-    /** Array of the texture coordinates. Texture coordinates are optional. */
-    override var texcoords : FloatBuffer = FloatBuffer.allocate(0)
-    /** Array of the indices to create an indexed mesh. Optional, but advisable to use to minimize the number of submitted vertices. */
-    override var indices : IntBuffer = IntBuffer.allocate(0)
+open class Volume(val dataSource: VolumeDataSource, val options: VolumeViewerOptions, val hub: Hub) : DefaultNode("Volume"), DelegatesRendering, DisableFrustumCulling, HasSpatial, HasGeometry {
 
+    private val delegationType: DelegationType = DelegationType.OncePerDelegate
+    override fun getDelegationType(): DelegationType {
+        return delegationType
+    }
+
+    private var delegateRendering: Renderable?
+
+    override fun getDelegateRendering(): Renderable? {
+        return delegateRendering
+    }
+
+    fun setDelegateRendering(delegate: Renderable?) {
+        delegateRendering = delegate
+    }
     val converterSetups = ArrayList<ConverterSetup>()
+
     var timepointCount: Int
+
     val viewerState: ViewerState
 
     /** The transfer function to use for the volume. Flat by default. */
@@ -86,7 +86,7 @@ open class Volume(val dataSource: VolumeDataSource, val options: VolumeViewerOpt
         }
 
     /** Pixel-to-world scaling ratio. Default: 1 px = 1mm in world space*/
-    var pixelToWorldRatio: Float by Delegates.observable(0.001f) { property, old, new -> propertyChanged(property, old, new, "pixelToWorldRatio") }
+    var pixelToWorldRatio: Float by Delegates.observable(0.001f) { property, old, new -> spatial().propertyChanged(property, old, new, "pixelToWorldRatio") }
 
     /** What to use as the volume's origin, scenery's default is [Origin.Center], BVV's default is [Origin.FrontBottomLeft]. **/
     var origin = Origin.Center
@@ -179,10 +179,14 @@ open class Volume(val dataSource: VolumeDataSource, val options: VolumeViewerOpt
         volumeManager.add(this)
         volumes.forEach {
             volumeManager.add(it)
-            it.delegate = volumeManager
+            it.delegateRendering = volumeManager.renderable()
             it.volumeManager = volumeManager
         }
-        delegate = volumeManager
+        delegateRendering = volumeManager.renderable()
+    }
+
+    override fun createSpatial(): SpaceAware {
+        return VolumeSpatial(this)
     }
 
     /**
@@ -259,23 +263,6 @@ open class Volume(val dataSource: VolumeDataSource, val options: VolumeViewerOpt
     }
 
     /**
-     * Composes the world matrix for this volume node, taken voxel size and [pixelToWorldRatio]
-     * into account.
-     */
-    override fun composeModel() {
-        @Suppress("SENSELESS_COMPARISON")
-        if(position != null && rotation != null && scale != null) {
-            model.translation(position)
-            model.mul(Matrix4f().set(this.rotation))
-            if(origin == Origin.Center) {
-                model.translate(-2.0f, -2.0f, -2.0f)
-            }
-            model.scale(scale)
-            model.scale(localScale())
-        }
-    }
-
-    /**
      * Samples a point from the currently used volume, [uv] is the texture coordinate of the volume, [0.0, 1.0] for
      * all of the components.
      *
@@ -299,7 +286,7 @@ open class Volume(val dataSource: VolumeDataSource, val options: VolumeViewerOpt
     companion object {
         val setupId = AtomicInteger(0)
         val scifio: SCIFIO = SCIFIO()
-        
+
         private val logger by LazyLogger()
 
         @JvmStatic @JvmOverloads fun fromSpimData(
@@ -574,10 +561,10 @@ open class Volume(val dataSource: VolumeDataSource, val options: VolumeViewerOpt
          * Returns the new volume.
          */
         @JvmStatic fun fromPathRaw(file: Path, hub: Hub): BufferedVolume {
-            
+
             val infoFile: Path
             val volumeFiles: List<Path>
-            
+
             if(Files.isDirectory(file)) {
                 volumeFiles = Files.list(file).filter { it.toString().endsWith(".raw") && Files.isRegularFile(it) && Files.isReadable(it) }.toList()
                 infoFile = file.resolve("stacks.info")
@@ -622,6 +609,21 @@ open class Volume(val dataSource: VolumeDataSource, val options: VolumeViewerOpt
             }
 
             return fromBuffer(volumes, dimensions.x, dimensions.y, dimensions.z, UnsignedShortType(), hub)
+        }
+    }
+
+    open class VolumeSpatial(val volume: Volume): DefaultSpatial(volume) {
+        override fun composeModel() {
+            @Suppress("SENSELESS_COMPARISON")
+            if (position != null && rotation != null && scale != null) {
+                model.translation(position)
+                model.mul(Matrix4f().set(rotation))
+                if (volume.origin == Origin.Center) {
+                    model.translate(-2.0f, -2.0f, -2.0f)
+                }
+                model.scale(scale)
+                model.scale(volume.localScale())
+            }
         }
     }
 }

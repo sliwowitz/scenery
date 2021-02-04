@@ -25,7 +25,9 @@ class SponzaExample : SceneryBase("SponzaExample", windowWidth = 1280, windowHei
 
         val cam: Camera = DetachedHeadCamera()
         with(cam) {
-            cam.position = Vector3f(0.0f, 1.0f, 0.0f)
+            cam.spatial {
+                position = Vector3f(0.0f, 1.0f, 0.0f)
+            }
             cam.perspectiveCamera(50.0f, windowWidth, windowHeight)
             scene.addChild(this)
         }
@@ -33,16 +35,19 @@ class SponzaExample : SceneryBase("SponzaExample", windowWidth = 1280, windowHei
         val lights = (0 until 128).map {
             Box(Vector3f(0.1f, 0.1f, 0.1f))
         }.map {
-            it.position = Vector3f(
-                Random.randomFromRange(-6.0f, 6.0f),
-                Random.randomFromRange(0.1f, 1.2f),
-                Random.randomFromRange(-10.0f, 10.0f)
-            )
-
-            it.material.diffuse = Random.random3DVectorFromRange(0.1f, 0.9f)
+            it.spatial {
+                position = Vector3f(
+                    Random.randomFromRange(-6.0f, 6.0f),
+                    Random.randomFromRange(0.1f, 1.2f),
+                    Random.randomFromRange(-10.0f, 10.0f)
+                )
+            }
+            it.renderable {
+                material.diffuse = Random.random3DVectorFromRange(0.1f, 0.9f)
+            }
 
             val light = PointLight(radius = Random.randomFromRange(0.5f, 4.0f))
-            light.emissionColor = it.material.diffuse
+            light.emissionColor = it.renderable().material.diffuse
             light.intensity = Random.randomFromRange(0.1f, 0.5f)
 
             it.addChild(light)
@@ -54,8 +59,10 @@ class SponzaExample : SceneryBase("SponzaExample", windowWidth = 1280, windowHei
         val mesh = Mesh()
         with(mesh) {
             readFromOBJ(getDemoFilesPath() + "/sponza.obj", importMaterials = true)
-            rotation.rotateY(Math.PI.toFloat() / 2.0f)
-            scale = Vector3f(0.01f, 0.01f, 0.01f)
+            spatial {
+                rotation.rotateY(Math.PI.toFloat() / 2.0f)
+                scale = Vector3f(0.01f, 0.01f, 0.01f)
+            }
             name = "Sponza Mesh"
 
             scene.addChild(this)
@@ -63,7 +70,9 @@ class SponzaExample : SceneryBase("SponzaExample", windowWidth = 1280, windowHei
 
         val desc = TextBoard()
         desc.text = "sponza"
-        desc.position = Vector3f(-2.0f, -0.1f, -4.0f)
+        desc.spatial {
+            position = Vector3f(-2.0f, -0.1f, -4.0f)
+        }
         desc.fontColor = Vector4f(0.0f, 0.0f, 0.0f, 1.0f)
         desc.backgroundColor = Vector4f(0.1f, 0.1f, 0.1f, 1.0f)
         desc.transparent = 0
@@ -76,12 +85,14 @@ class SponzaExample : SceneryBase("SponzaExample", windowWidth = 1280, windowHei
                     lights.mapIndexed { i, light ->
                         val phi = (Math.PI * 2.0f * ticks / 1000.0f) % (Math.PI * 2.0f)
 
-                        light.position = Vector3f(
-                            light.position.x(),
-                            5.0f * Math.cos(phi + (i * 0.5f)).toFloat() + 5.2f,
-                            light.position.z())
+                        light.spatial {
+                            position = Vector3f(
+                                position.x(),
+                                5.0f * Math.cos(phi + (i * 0.5f)).toFloat() + 5.2f,
+                                position.z())
+                        }
 
-                        light.children.forEach { it.needsUpdateWorld = true }
+                        light.children.forEach { it.spatial()?.needsUpdateWorld = true }
                     }
 
                     ticks++

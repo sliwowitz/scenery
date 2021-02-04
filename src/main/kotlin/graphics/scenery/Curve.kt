@@ -1,8 +1,5 @@
 package graphics.scenery
 
-import graphics.scenery.BufferUtils
-import graphics.scenery.HasGeometry
-import graphics.scenery.Mesh
 import graphics.scenery.utils.extensions.toFloatArray
 import org.joml.*
 import kotlin.Float.Companion.MIN_VALUE
@@ -22,7 +19,7 @@ import kotlin.math.acos
  * @param [firstPerpendicularVector] vector to which the first frenet tangent shall be perpendicular to.
  */
 class Curve(spline: Spline, private val firstPerpendicularVector: Vector3f = Vector3f(0f, 0f, 0f),
-            baseShape: () -> List<List<Vector3f>>): Mesh("CurveGeometry"), HasGeometry {
+            baseShape: () -> List<List<Vector3f>>): Mesh("CurveGeometry") {
     private val chain = spline.splinePoints()
     private val sectionVertices = spline.verticesCountPerSection()
     private val countList = ArrayList<Int>(50).toMutableList()
@@ -309,15 +306,17 @@ class Curve(spline: Spline, private val firstPerpendicularVector: Vector3f = Vec
      * Each children of the curve must be, per definition, another Mesh. Therefore this class turns a List of
      * vertices into a Mesh.
      */
-    class PartialCurve(verticesVectors: ArrayList<Vector3f>) : Mesh("PartialCurve"), HasGeometry {
+    class PartialCurve(verticesVectors: ArrayList<Vector3f>) : Mesh("PartialCurve") {
         init {
-            vertices = BufferUtils.allocateFloat(verticesVectors.size * 3)
-            verticesVectors.forEach {
-                vertices.put(it.toFloatArray())
+            geometry {
+                vertices = BufferUtils.allocateFloat(verticesVectors.size * 3)
+                verticesVectors.forEach {
+                    vertices.put(it.toFloatArray())
+                }
+                vertices.flip()
+                texcoords = BufferUtils.allocateFloat(verticesVectors.size * 2)
+                recalculateNormals()
             }
-            vertices.flip()
-            texcoords = BufferUtils.allocateFloat(verticesVectors.size * 2)
-            recalculateNormals()
         }
     }
 

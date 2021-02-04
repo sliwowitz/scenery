@@ -6,6 +6,7 @@ import net.imglib2.RealPositionable
 import org.joml.Matrix4f
 import org.joml.Quaternionf
 import org.joml.Vector3f
+import kotlin.reflect.KProperty
 
 interface SpaceAware: RealLocalizable, RealPositionable {
     /** Model matrix **/
@@ -42,8 +43,6 @@ interface SpaceAware: RealLocalizable, RealPositionable {
     var needsUpdate: Boolean
     /** Stores whether the [world] matrix needs an update. */
     var needsUpdateWorld: Boolean
-    /** bounding box **/
-    var boundingBox: OrientedBoundingBox?
 
     /**
      * Update the the [world] matrix of the [Node].
@@ -57,10 +56,6 @@ interface SpaceAware: RealLocalizable, RealPositionable {
      * @param[force] Force update irrespective of [needsUpdate] state.
      */
     fun updateWorld(recursive: Boolean, force: Boolean = false)
-    /**
-     * Returns the maximum [OrientedBoundingBox] of this [Node] and all its children.
-     */
-    fun getMaximumBoundingBox(): OrientedBoundingBox
     fun intersectAABB(origin: Vector3f, dir: Vector3f): MaybeIntersects
 
     /**
@@ -69,13 +64,6 @@ interface SpaceAware: RealLocalizable, RealPositionable {
      * @returns The position in world space
      */
     fun worldPosition(v: Vector3f? = null): Vector3f
-
-    /**
-     * Generates an [OrientedBoundingBox] for this [Node]. This will take
-     * geometry information into consideration if this Node implements [HasGeometry].
-     * In case a bounding box cannot be determined, the function will return null.
-     */
-    fun generateBoundingBox(): OrientedBoundingBox?
 
     /**
      * Checks whether two node's bounding boxes do intersect using a simple bounding sphere test.
@@ -104,4 +92,40 @@ interface SpaceAware: RealLocalizable, RealPositionable {
      * @return Vector3f - the center offset calculcated for the [Node].
      */
     fun centerOn(position: Vector3f): Vector3f
+
+    /**
+     * Orients the Node between points [p1] and [p2], and optionally
+     * [rescale]s and [reposition]s it.
+     */
+    fun orientBetweenPoints(p1: Vector3f, p2: Vector3f, rescale: Boolean = false, reposition: Boolean = false): Quaternionf
+
+    fun orientBetweenPoints(p1: Vector3f, p2: Vector3f, rescale: Boolean): Quaternionf {
+        return orientBetweenPoints(p1, p2, rescale, false)
+    }
+    fun orientBetweenPoints(p1: Vector3f, p2: Vector3f): Quaternionf {
+        return orientBetweenPoints(p1, p2, false, false)
+    }
+
+    fun <R> propertyChanged(property: KProperty<*>, old: R, new: R, custom: String = "")
+}
+
+interface HasSpatial: Node {
+
+    fun createSpatial(): SpaceAware {
+        return DefaultSpatial(this)
+    }
+
+    override fun spatial(block: SpaceAware.() -> Unit): SpaceAware {
+        var prop = super.spatial(block)
+        if(prop == null) {
+            prop = createSpatial()
+            addProperties(SpaceAware::class.java, prop)
+            prop.block()
+        }
+        return prop
+    }
+
+    override fun spatial(): SpaceAware {
+        return this.spatial({})
+    }
 }

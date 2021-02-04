@@ -50,37 +50,8 @@ class VolumeManager(
     val useCompute: Boolean = false,
     val customSegments: Map<SegmentType, SegmentTemplate>? = null,
     val customBindings: BiConsumer<Map<SegmentType, SegmentTemplate>, Map<SegmentType, Segment>>? = null
-) : RenderableNode(), Hubable, HasGeometry, RequestRepaint {
-    /** How many elements does a vertex store? */
-    override val vertexSize : Int = 3
-    /** How many elements does a texture coordinate store? */
-    override val texcoordSize : Int = 2
-    /** The [GeometryType] of the [Node] */
-    override var geometryType : GeometryType = GeometryType.TRIANGLES
-    /** Array of the vertices. This buffer is _required_, but may empty. */
-    override var vertices : FloatBuffer = BufferUtils.allocateFloatAndPut(
-        floatArrayOf(
-            -1.0f, -1.0f, 0.0f,
-            1.0f, -1.0f, 0.0f,
-            1.0f, 1.0f, 0.0f,
-            -1.0f, 1.0f, 0.0f))
-    /** Array of the normals. This buffer is _required_, and may _only_ be empty if [vertices] is empty as well. */
-    override var normals : FloatBuffer = BufferUtils.allocateFloatAndPut(
-        floatArrayOf(
-            1.0f, 0.0f, 0.0f,
-            0.0f, 1.0f, 0.0f,
-            0.0f, 0.0f, 1.0f,
-            0.0f, 0.0f, 1.0f))
-    /** Array of the texture coordinates. Texture coordinates are optional. */
-    override var texcoords : FloatBuffer = BufferUtils.allocateFloatAndPut(
-        floatArrayOf(
-            0.0f, 0.0f,
-            1.0f, 0.0f,
-            1.0f, 1.0f,
-            0.0f, 1.0f))
-    /** Array of the indices to create an indexed mesh. Optional, but advisable to use to minimize the number of submitted vertices. */
-    override var indices : IntBuffer = BufferUtils.allocateIntAndPut(
-        intArrayOf(0, 1, 2, 0, 2, 3))
+) : DefaultNode("VolumeManager"), HasGeometry, HasSpatial, HasRenderable, Hubable, RequestRepaint {
+
     /**
      *  The rendering method used in the shader, can be
      *
@@ -142,18 +113,17 @@ class VolumeManager(
     var renderingMethod = Volume.RenderingMethod.AlphaBlending
 
     init {
-        state = State.Created
         name = "VolumeManager"
-        // fake geometry
-
-        this.geometryType = GeometryType.TRIANGLES
-
-        currentVolumeCount = 0 to 0
 
         val maxCacheSize = (hub?.get(SceneryElement.Settings) as? Settings)?.get("Renderer.MaxVolumeCacheSize", 512) ?: 512
-
         val cacheGridDimensions = TextureCache.findSuitableGridSize(cacheSpec, maxCacheSize)
         textureCache = TextureCache(cacheGridDimensions, cacheSpec)
+
+        renderable {
+            state = State.Created
+        }
+
+        currentVolumeCount = 0 to 0
 
         pboChain = PboChain(5, 100, textureCache)
 
@@ -168,22 +138,98 @@ class VolumeManager(
             updateProgram(context)
         }
 
-        preDraw()
+        renderable().preDraw()
+    }
+
+    override fun createRenderable(): Renderable {
+        return object: DefaultRenderable() {
+
+            /**
+             * Pre-draw routine to be called by the rendered just before drawing.
+             * Updates texture cache and used blocks.
+             */
+            override fun preDraw(): Boolean {
+                logger.debug("Running predraw")
+                context.bindTexture(this@VolumeManager.textureCache)
+
+                if(nodes.any { it.transferFunction.stale }) {
+                    transferFunctionTextures.clear()
+                    val keys = material.textures.filter { it.key.startsWith("transferFunction") }.keys
+                    keys.forEach { material.textures.remove(it) }
+                    renderStateUpdated = true
+                }
+
+                if(renderStateUpdated) {
+                    updateRenderState()
+                    needAtLeastNumVolumes(renderStacksStates.size)
+                    renderStateUpdated = false
+                }
+
+                var repaint = true
+                val blockUpdateDuration = measureTimeMillis {
+                    if (!freezeRequiredBlocks) {
+                        try {
+                            updateBlocks(context)
+                        } catch (e: RuntimeException) {
+                            logger.warn("Probably ran out of data, corrupt BDV file? $e")
+                            e.printStackTrace()
+                        }
+                    }
+                }
+
+                logger.debug("Block updates took {}ms", blockUpdateDuration)
+
+                context.runDeferredBindings()
+                if(repaint) {
+                    context.runTextureUpdates()
+                }
+
+                return readyToRender()
+            }
+
+        }
+    }
+
+    override fun createGeometry(): Geometry {
+        return object: DefaultGeometry(this) {
+            override var vertices : FloatBuffer = BufferUtils.allocateFloatAndPut(
+                floatArrayOf(
+                    -1.0f, -1.0f, 0.0f,
+                    1.0f, -1.0f, 0.0f,
+                    1.0f, 1.0f, 0.0f,
+                    -1.0f, 1.0f, 0.0f))
+            override var normals : FloatBuffer = BufferUtils.allocateFloatAndPut(
+                floatArrayOf(
+                    1.0f, 0.0f, 0.0f,
+                    0.0f, 1.0f, 0.0f,
+                    0.0f, 0.0f, 1.0f,
+                    0.0f, 0.0f, 1.0f))
+            override var texcoords : FloatBuffer = BufferUtils.allocateFloatAndPut(
+                floatArrayOf(
+                    0.0f, 0.0f,
+                    1.0f, 0.0f,
+                    1.0f, 1.0f,
+                    0.0f, 1.0f))
+            override var indices : IntBuffer = BufferUtils.allocateIntAndPut(
+                intArrayOf(0, 1, 2, 0, 2, 3))
+        }
     }
 
     @Synchronized private fun recreateMaterial(context: SceneryContext) {
         shaderProperties.clear()
-        material.textures.clear()
+        renderable {
+            material.textures.clear()
 
-        material = ShaderMaterial(context.factory)
-        material.cullingMode = Material.CullingMode.None
-        material.blending.transparent = true
-        material.blending.sourceColorBlendFactor = Blending.BlendFactor.One
-        material.blending.destinationColorBlendFactor = Blending.BlendFactor.OneMinusSrcAlpha
-        material.blending.sourceAlphaBlendFactor = Blending.BlendFactor.One
-        material.blending.destinationAlphaBlendFactor = Blending.BlendFactor.OneMinusSrcAlpha
-        material.blending.colorBlending = Blending.BlendOp.add
-        material.blending.alphaBlending = Blending.BlendOp.add
+            material = ShaderMaterial(context.factory)
+            material.cullingMode = Material.CullingMode.None
+            material.blending.transparent = true
+            material.blending.sourceColorBlendFactor = Blending.BlendFactor.One
+            material.blending.destinationColorBlendFactor = Blending.BlendFactor.OneMinusSrcAlpha
+            material.blending.sourceAlphaBlendFactor = Blending.BlendFactor.One
+            material.blending.destinationAlphaBlendFactor = Blending.BlendFactor.OneMinusSrcAlpha
+            material.blending.colorBlending = Blending.BlendOp.add
+            material.blending.alphaBlending = Blending.BlendOp.add
+        }
     }
 
     @Synchronized private fun updateProgram(context: SceneryContext) {
@@ -303,19 +349,19 @@ class VolumeManager(
 //            context.clearBindings()
             context = SceneryContext(this, useCompute)
             updateProgram(context)
-            state = State.Ready
+            renderable().state = State.Ready
         } else {
-            state = State.Created
+            renderable().state = State.Created
         }
     }
 
     private fun clearKeysAndTextures() {
-        val oldKeys = this.material.textures.keys()
+        val oldKeys = renderable().material.textures.keys()
             .asSequence()
             .filter { it.contains("_") }
         logger.info("Removing texture keys ${oldKeys.joinToString(",")}")
         oldKeys.map {
-            this.material.textures.remove(it)
+            renderable().material.textures.remove(it)
         }
 
         val oldProps = this.shaderProperties.keys
@@ -342,7 +388,7 @@ class VolumeManager(
         }
 
         val cam = nodes.firstOrNull()?.getScene()?.activeObserver ?: return false
-        val mvp = Matrix4f(cam.projection).mul(cam.getTransformation())
+        val mvp = Matrix4f(cam.spatial().projection).mul(cam.getTransformation())
 
         // TODO: original might result in NULL, is this intended?
         currentProg.use(context)
@@ -499,6 +545,7 @@ class VolumeManager(
         val multiResCount = renderStacksStates.count { it.stack is MultiResolutionStack3D }
         val regularCount = renderStacksStates.count { it.stack is SimpleStack3D }
 
+        val material = renderable().material
         val multiResMatch = material.textures.count { it.key.startsWith("volumeCache") } == 1
             && material.textures.count { it.key.startsWith("lutSampler_") }  >= multiResCount
         val regularMatch = material.textures.count { it.key.startsWith("volume_") } >= regularCount
@@ -526,49 +573,6 @@ class VolumeManager(
             return tasks.size
         }
 
-    }
-
-    /**
-     * Pre-draw routine to be called by the rendered just before drawing.
-     * Updates texture cache and used blocks.
-     */
-    override fun preDraw(): Boolean {
-        logger.debug("Running predraw")
-        context.bindTexture(textureCache)
-
-        if(nodes.any { it.transferFunction.stale }) {
-            transferFunctionTextures.clear()
-            val keys = material.textures.filter { it.key.startsWith("transferFunction") }.keys
-            keys.forEach { material.textures.remove(it) }
-            renderStateUpdated = true
-        }
-
-        if(renderStateUpdated) {
-            updateRenderState()
-            needAtLeastNumVolumes(renderStacksStates.size)
-            renderStateUpdated = false
-        }
-
-        var repaint = true
-        val blockUpdateDuration = measureTimeMillis {
-            if (!freezeRequiredBlocks) {
-                try {
-                    updateBlocks(context)
-                } catch (e: RuntimeException) {
-                    logger.warn("Probably ran out of data, corrupt BDV file? $e")
-                    e.printStackTrace()
-                }
-            }
-        }
-
-        logger.debug("Block updates took {}ms", blockUpdateDuration)
-
-        context.runDeferredBindings()
-        if(repaint) {
-            context.runTextureUpdates()
-        }
-
-        return readyToRender()
     }
 
     /**
@@ -650,7 +654,7 @@ class VolumeManager(
 
     @Synchronized fun remove(node: Volume) {
         logger.debug("Removing $node to OOC nodes")
-        node.delegate = null
+        node.setDelegateRendering(null)
         nodes.remove(node)
 
         val volumes = nodes.toMutableList()
@@ -659,7 +663,7 @@ class VolumeManager(
         val vm = VolumeManager(hub, useCompute)
         volumes.forEach {
             vm.add(it)
-            it.delegate = vm
+            it.setDelegateRendering(vm.renderable())
         }
 
         hub?.add(vm)
@@ -696,7 +700,7 @@ class VolumeManager(
         prog.clear()
 //        updateRenderState()
 //        needAtLeastNumVolumes(renderStacks.size)
-        preDraw()
+        renderable().preDraw()
     }
 
     fun removeCachedColormapFor(node: Volume) {

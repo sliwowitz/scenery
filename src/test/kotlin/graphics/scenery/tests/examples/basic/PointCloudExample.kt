@@ -19,8 +19,10 @@ class PointCloudExample : SceneryBase("PointCloudExample") {
         renderer?.pushMode = true
 
         val hull = Box(Vector3f(20.0f, 20.0f, 20.0f), insideNormals = true)
-        hull.material.diffuse = Vector3f(0.2f, 0.2f, 0.2f)
-        hull.material.cullingMode = Material.CullingMode.Front
+        hull.renderable {
+            material.diffuse = Vector3f(0.2f, 0.2f, 0.2f)
+            material.cullingMode = Material.CullingMode.Front
+        }
         scene.addChild(hull)
 
         val lights = Light.createLightTetrahedron<PointLight>(spread = 5.0f, radius = 15.0f)
@@ -32,7 +34,9 @@ class PointCloudExample : SceneryBase("PointCloudExample") {
         }
 
         val cam: Camera = DetachedHeadCamera()
-        cam.position = Vector3f(0.0f, 0.0f, 5.0f)
+        cam.spatial {
+            position = Vector3f(0.0f, 0.0f, 5.0f)
+        }
         cam.perspectiveCamera(50.0f, windowWidth, windowHeight)
 
         scene.addChild(cam)
@@ -41,12 +45,14 @@ class PointCloudExample : SceneryBase("PointCloudExample") {
         with(pointCloud) {
             readFromOBJ( TexturedCubeExample::class.java.getResource("models/sphere.obj").file, importMaterials = false)
             name = "Sphere Mesh"
-            for(i in 0 until pointCloud.texcoords.limit()) {
-                pointCloud.texcoords.put(i, Random.randomFromRange(10.0f, 25.0f))
-            }
+            pointCloud.geometry {
+                for(i in 0 until texcoords.limit()) {
+                    texcoords.put(i, Random.randomFromRange(10.0f, 25.0f))
+                }
 
-            for(i in 0 until pointCloud.normals.limit()) {
-                pointCloud.normals.put(i, Random.randomFromRange(0.2f, 0.8f))
+                for(i in 0 until normals.limit()) {
+                    normals.put(i, Random.randomFromRange(0.2f, 0.8f))
+                }
             }
             setupPointCloud()
 

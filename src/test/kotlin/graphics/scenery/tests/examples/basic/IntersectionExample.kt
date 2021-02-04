@@ -29,24 +29,34 @@ class IntersectionExample: SceneryBase("IntersectionExample") {
         val box2 = Box(Vector3f(1.0f, 1.0f, 1.0f))
 
         with(box) {
-            box.material = boxmaterial
+            box.renderable {
+                material = boxmaterial
+            }
             scene.addChild(this)
         }
 
         with(box2) {
-            position = Vector3f(-1.5f, 0.0f, 0.0f)
-            box.material = boxmaterial
+            spatial {
+                position = Vector3f(-1.5f, 0.0f, 0.0f)
+            }
+            box.renderable {
+                material = boxmaterial
+            }
             scene.addChild(this)
         }
         val light = PointLight(radius = 15.0f)
-        light.position = Vector3f(0.0f, 0.0f, 2.0f)
+        light.spatial {
+            position = Vector3f(0.0f, 0.0f, 2.0f)
+        }
         light.intensity = 100.0f
         light.emissionColor = Vector3f(1.0f, 1.0f, 1.0f)
         scene.addChild(light)
 
         val cam: Camera = DetachedHeadCamera()
         with(cam) {
-            position = Vector3f(0.0f, 0.0f, 5.0f)
+            spatial {
+                position = Vector3f(0.0f, 0.0f, 5.0f)
+            }
             perspectiveCamera(50.0f, 512, 512)
 
             scene.addChild(this)
@@ -54,10 +64,10 @@ class IntersectionExample: SceneryBase("IntersectionExample") {
 
         thread {
             while (true) {
-                if (box.intersects(box2)) {
-                    box.material.diffuse = Vector3f(1.0f, 0.0f, 0.0f)
+                if (box.spatial().intersects(box2)) {
+                    box.renderable().material.diffuse = Vector3f(1.0f, 0.0f, 0.0f)
                 } else {
-                    box.material.diffuse = Vector3f(0.0f, 1.0f, 0.0f)
+                    box.renderable().material.diffuse = Vector3f(0.0f, 1.0f, 0.0f)
                 }
 
                 Thread.sleep(20)

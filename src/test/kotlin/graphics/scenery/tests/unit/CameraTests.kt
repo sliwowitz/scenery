@@ -51,21 +51,27 @@ class CameraTests {
 
         val boxesInFront = (0 until 10).map {
             val b = Box()
-            b.position = Vector3f(0.0f,
-                Random.randomFromRange(-0.5f, 0.5f),
-                Random.randomFromRange(2.0f, 10.0f))
+            b.spatial {
+                position = Vector3f(0.0f,
+                    Random.randomFromRange(-0.5f, 0.5f),
+                    Random.randomFromRange(2.0f, 10.0f))
+            }
             s.addChild(b)
             b
         }
 
         val boxesBehind = (0 until 10).map {
             val b = Box()
-            b.position = Random.random3DVectorFromRange(-0.5f, -10.0f)
+            b.spatial {
+                position = Random.random3DVectorFromRange(-0.5f, -10.0f)
+            }
             s.addChild(b)
             b
         }
 
-        s.updateWorld(true, true)
+        s.spatial {
+            updateWorld(true, true)
+        }
 
         assertTrue { boxesInFront.all { cam.canSee(it) } }
         assertFalse { boxesBehind.all { cam.canSee(it) } }

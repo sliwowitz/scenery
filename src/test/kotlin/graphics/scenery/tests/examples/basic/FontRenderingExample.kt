@@ -22,15 +22,19 @@ class FontRenderingExample: SceneryBase("FontRenderingExample", windowWidth = 12
 
         val cam: Camera = DetachedHeadCamera()
         with(cam) {
-            position = Vector3f(3.3f, 0.0f, 4.0f)
+            spatial {
+                position = Vector3f(3.3f, 0.0f, 4.0f)
+            }
             perspectiveCamera(70.0f, windowWidth, windowHeight, 1.0f, 1000.0f)
 
             scene.addChild(this)
         }
 
         val box = Box(Vector3f(10.0f, 10.0f, 10.0f), insideNormals = true)
-        box.material.diffuse = Vector3f(1.0f, 1.0f, 1.0f)
-        box.material.cullingMode = Material.CullingMode.Front
+        box.renderable {
+            material.diffuse = Vector3f(1.0f, 1.0f, 1.0f)
+            material.cullingMode = Material.CullingMode.Front
+        }
         scene.addChild(box)
 
         val board = TextBoard()
@@ -39,13 +43,15 @@ class FontRenderingExample: SceneryBase("FontRenderingExample", windowWidth = 12
         board.transparent = 0
         board.fontColor = Vector4f(0.0f, 0.0f, 0.0f, 1.0f)
         board.backgroundColor = Vector4f(100.0f, 100.0f, 0.0f, 1.0f)
-        board.position = Vector3f(-4.0f, 0.0f, -4.9f)
-        board.scale = Vector3f(2.0f, 2.0f, 2.0f)
+        board.spatial {
+            position = Vector3f(-4.0f, 0.0f, -4.9f)
+            scale = Vector3f(2.0f, 2.0f, 2.0f)
+        }
 
         scene.addChild(board)
 
         thread {
-            while(board.dirty) { Thread.sleep(200) }
+            while(board.geometry().dirty) { Thread.sleep(200) }
 
             val text = arrayOf(
                 "this is scenery.",

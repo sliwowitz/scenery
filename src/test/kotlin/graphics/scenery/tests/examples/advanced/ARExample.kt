@@ -31,7 +31,9 @@ class ARExample: SceneryBase("AR Volume Rendering example", 1280, 720) {
 
         val cam: Camera = DetachedHeadCamera(hololens)
         with(cam) {
-            position = Vector3f(-0.2f, 0.0f, 1.0f)
+            cam.spatial {
+                position = Vector3f(-0.2f, 0.0f, 1.0f)
+            }
             perspectiveCamera(50.0f, windowWidth, windowHeight)
 
             scene.addChild(this)
@@ -40,7 +42,9 @@ class ARExample: SceneryBase("AR Volume Rendering example", 1280, 720) {
         val volume = Volume.fromBuffer(emptyList(), 64, 64, 64, UnsignedShortType(), hub)
         volume.name = "volume"
         volume.colormap = Colormap.get("plasma")
-        volume.scale = Vector3f(0.02f, 0.02f, 0.02f)
+        volume.spatial {
+            scale = Vector3f(0.02f, 0.02f, 0.02f)
+        }
         scene.addChild(volume)
 
         val lights = (0 until 3).map {
@@ -48,14 +52,16 @@ class ARExample: SceneryBase("AR Volume Rendering example", 1280, 720) {
         }
 
         lights.mapIndexed { i, light ->
-            light.position = Vector3f(2.0f * i - 4.0f,  i - 1.0f, 0.0f)
+            light.spatial {
+                position = Vector3f(2.0f * i - 4.0f,  i - 1.0f, 0.0f)
+            }
             light.emissionColor = Vector3f(1.0f, 1.0f, 1.0f)
             light.intensity = 50.0f
             scene.addChild(light)
         }
 
         thread {
-            while(!scene.initialized) { Thread.sleep(200) }
+            while(!scene.renderable().initialized) { Thread.sleep(200) }
 
             val volumeSize = 64L
             val volumeBuffer = RingBuffer<ByteBuffer>(2) { memAlloc((volumeSize*volumeSize*volumeSize*bitsPerVoxel/8).toInt()) }

@@ -32,8 +32,10 @@ class ArrowExample : SceneryBase("ArrowExample") {
     private fun setupScene() {
         //boundaries of our world
         val hull = Box(Vector3f(50.0f, 50.0f, 50.0f), insideNormals = true)
-        hull.material.diffuse = Vector3f(0.2f, 0.2f, 0.2f)
-        hull.material.cullingMode = Material.CullingMode.Front
+        hull.renderable {
+            material.diffuse = Vector3f(0.2f, 0.2f, 0.2f)
+            material.cullingMode = Material.CullingMode.Front
+        }
         scene.addChild(hull)
 
         //lights and camera
@@ -47,13 +49,15 @@ class ArrowExample : SceneryBase("ArrowExample") {
             scene.addChild(l)
             pl = pl.plus(l)
         }
-        pl[0].position = Vector3f(0f,10f,0f)
-        pl[1].position = Vector3f(0f,-10f,0f)
-        pl[2].position = Vector3f(-10f,0f,0f)
-        pl[3].position = Vector3f(10f,0f,0f)
+        pl[0].spatial().position = Vector3f(0f,10f,0f)
+        pl[1].spatial().position = Vector3f(0f,-10f,0f)
+        pl[2].spatial().position = Vector3f(-10f,0f,0f)
+        pl[3].spatial().position = Vector3f(10f,0f,0f)
 
         val cam: Camera = DetachedHeadCamera()
-        cam.position = Vector3f(0.0f, 0.0f, 15.0f)
+        cam.spatial {
+            position = Vector3f(0.0f, 0.0f, 15.0f)
+        }
         cam.perspectiveCamera(50.0f, windowWidth, windowHeight)
         scene.addChild(cam)
     }
@@ -93,8 +97,12 @@ class ArrowExample : SceneryBase("ArrowExample") {
 
             // ========= this is how you create an Arrow =========
             val a = Arrow(currPos - lastPos)  //shape of the vector itself
-            a.position = lastPos                   //position/base of the vector
-            a.material = matFaint                  //usual stuff follows...
+            a.spatial {
+                position = lastPos                   //position/base of the vector
+            }
+            a.renderable {
+                material = matFaint                  //usual stuff follows...
+            }
             a.edgeWidth = 0.5f
             scene.addChild(a)
 
@@ -114,9 +122,13 @@ class ArrowExample : SceneryBase("ArrowExample") {
         thread {
             var i = 0
             while (true) {
-                al[i].material = matFaint
+                al[i].renderable {
+                    material = matFaint
+                }
                 i = (i+1).rem(arrowsInCircle)
-                al[i].material = matBright
+                al[i].renderable {
+                    material = matBright
+                }
 
                 Thread.sleep(150)
             }

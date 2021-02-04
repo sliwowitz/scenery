@@ -54,8 +54,10 @@ class Ruler(private val name: String, private val camera: () -> Camera?, private
         board.backgroundColor = Vector4f(100f, 100f, 100f, 1.0f)
         val boardPosition = Vector3f()
         origin.add(endPosition, boardPosition).mul(0.5f)
-        board.position = boardPosition.mul(0.5f)
-        board.scale = Vector3f(0.5f, 0.5f, 0.5f)
+        board.spatial {
+            position = boardPosition.mul(0.5f)
+            scale = Vector3f(0.5f, 0.5f, 0.5f)
+        }
         scene.addChild(board)
     }
 

@@ -17,35 +17,19 @@ import java.io.FileNotFoundException
 import java.nio.ByteBuffer
 import java.nio.ByteOrder
 import java.nio.FloatBuffer
-import java.nio.IntBuffer
 import java.nio.file.Files
 import java.util.ArrayList
 import java.util.HashMap
 
 /**
- * Simple Mesh class to store geometry, inherits from [HasGeometry].
+ * Simple Mesh class to store geometry, inherits from [Geometry].
  * Can also be used for grouping objects easily.
  *
  * Also see [HasGeomerty]  for more interface details.
  *
  * @author Ulrik Günther <hello@ulrik.is>
  */
-open class Mesh(override var name: String = "Mesh") : RenderableNode(name), HasGeometry {
-    /** Vertex storage array. Also see [HasGeometry] */
-    @Transient final override var vertices: FloatBuffer = BufferUtils.allocateFloat(0)
-    /** Normal storage array. Also see [HasGeometry] */
-    @Transient final override var normals: FloatBuffer = BufferUtils.allocateFloat(0)
-    /** Texcoord storage array. Also see [HasGeometry] */
-    @Transient final override var texcoords: FloatBuffer = BufferUtils.allocateFloat(0)
-    /** Index storage array. Also see [HasGeometry] */
-    @Transient final override var indices: IntBuffer = BufferUtils.allocateInt(0)
-
-    /** Vertex element size. Also see [HasGeometry] */
-    final override var vertexSize = 3
-    /** Texcoord element size. Also see [HasGeometry] */
-    final override var texcoordSize = 2
-    /** Geometry type of the Mesh. Also see [HasGeometry] and [GeometryType] */
-    final override var geometryType = GeometryType.TRIANGLES
+open class Mesh(override var name: String = "Mesh") : DefaultNode(name), HasRenderable, HasSpatial, HasGeometry {
 
     /**
      * Reads geometry from a file given by [filename]. The extension of [filename] will determine
@@ -208,6 +192,8 @@ open class Mesh(override var name: String = "Mesh") : RenderableNode(name), HasG
         return readFromOBJ(filename, importMaterials = true, flipNormals = false)
     }
 
+
+
     /**
      * Read the [Node]'s geometry from an OBJ file, and choose whether the OBJ-defined materials shall be imported.
      *
@@ -288,7 +274,8 @@ open class Mesh(override var name: String = "Mesh") : RenderableNode(name), HasG
 
         var count = 0
 
-        var targetObject: HasGeometry = this
+        val meshGeometry = geometry()
+        var targetObject: Node = this
 
         val triangleIndices = intArrayOf(0, 1, 2)
         val quadIndices = intArrayOf(0, 1, 2, 0, 2, 3)
@@ -342,18 +329,18 @@ open class Mesh(override var name: String = "Mesh") : RenderableNode(name), HasG
 
         vertexCountMap.forEach { objectName, objectVertexCount ->
             vertexBuffers[objectName] = Triple(
-                MemoryUtil.memAlloc(objectVertexCount * vertexSize * 4).order(ByteOrder.nativeOrder()).asFloatBuffer(),
-                MemoryUtil.memAlloc(objectVertexCount * vertexSize * 4).order(ByteOrder.nativeOrder()).asFloatBuffer(),
-                MemoryUtil.memAlloc(objectVertexCount * texcoordSize * 4).order(ByteOrder.nativeOrder()).asFloatBuffer()
+                MemoryUtil.memAlloc(objectVertexCount * meshGeometry.vertexSize * 4).order(ByteOrder.nativeOrder()).asFloatBuffer(),
+                MemoryUtil.memAlloc(objectVertexCount * meshGeometry.vertexSize * 4).order(ByteOrder.nativeOrder()).asFloatBuffer(),
+                MemoryUtil.memAlloc(objectVertexCount * meshGeometry.texcoordSize * 4).order(ByteOrder.nativeOrder()).asFloatBuffer()
             )
 
             indexBuffers[objectName] = ArrayList<Int>(objectVertexCount)
             faceBuffers[objectName] = TIndexedHashSet<Vertex>(((faceCountMap[objectName] ?: throw IllegalStateException("Face count map does not contain $objectName")) * 1.5).toInt())
         }
 
-        val tmpV = ArrayList<Float>(vertexCountMap.values.sum() * vertexSize)
-        val tmpN = ArrayList<Float>(vertexCountMap.values.sum() * vertexSize)
-        val tmpUV = ArrayList<Float>(vertexCountMap.values.sum() * texcoordSize)
+        val tmpV = ArrayList<Float>(vertexCountMap.values.sum() * meshGeometry.vertexSize)
+        val tmpN = ArrayList<Float>(vertexCountMap.values.sum() * meshGeometry.vertexSize)
+        val tmpUV = ArrayList<Float>(vertexCountMap.values.sum() * meshGeometry.texcoordSize)
 
         lines = Files.lines(p)
 
@@ -376,9 +363,9 @@ open class Mesh(override var name: String = "Mesh") : RenderableNode(name), HasG
                     }
 
                     'u' -> {
-                        if (targetObject is Node && importMaterials) {
+                        if (importMaterials) {
                             materials[tokens.substringAfter(" ").trim().trimEnd()]?.let {
-                                (targetObject as? RenderableNode)?.material = it
+                                targetObject.renderable()?.material = it
                             }
                         }
                     }
@@ -505,20 +492,22 @@ open class Mesh(override var name: String = "Mesh") : RenderableNode(name), HasG
                             calculateNormals(vb.first, vb.second)
                         }
 
-                        targetObject.vertices = vb.first
-                        targetObject.normals = vb.second
-                        targetObject.texcoords = vb.third
-                        targetObject.indices = BufferUtils.allocateIntAndPut(ib.toIntArray())
-                        targetObject.geometryType = GeometryType.TRIANGLES
+                        targetObject.geometry {
+                            this.vertices = vb.first
+                            this.normals = vb.second
+                            this.texcoords = vb.third
+                            this.indices = BufferUtils.allocateIntAndPut(ib.toIntArray())
+                            this.geometryType = GeometryType.TRIANGLES
 
-                        targetObject.vertices.flip()
-                        targetObject.normals.flip()
-                        targetObject.texcoords.flip()
+                            this.vertices.flip()
+                            this.normals.flip()
+                            this.texcoords.flip()
 
-                        vertexCount += targetObject.vertices.limit()
-                        normalCount += targetObject.normals.limit()
-                        uvCount += targetObject.texcoords.limit()
-                        indexCount += targetObject.indices.limit()
+                            vertexCount += this.vertices.limit()
+                            normalCount += this.normals.limit()
+                            uvCount += this.texcoords.limit()
+                            indexCount += this.indices.limit()
+                        }
 
                         // add new child mesh
                         if (this is PointCloud) {
@@ -526,7 +515,7 @@ open class Mesh(override var name: String = "Mesh") : RenderableNode(name), HasG
                             child.name = tokens.substringAfter(" ").trim().trimEnd()
                             name = tokens.substringAfter(" ").trim().trimEnd()
                             if (!importMaterials) {
-                                child.material = Material()
+                                child.renderable().material = Material()
                             }
 
                             (targetObject as? PointCloud)?.boundingBox = OrientedBoundingBox(this, boundingBox)
@@ -539,7 +528,7 @@ open class Mesh(override var name: String = "Mesh") : RenderableNode(name), HasG
                             child.name = tokens.substringAfter(" ").trim().trimEnd()
                             name = tokens.substringAfter(" ").trim().trimEnd()
                             if (!importMaterials) {
-                                child.material = Material()
+                                child.renderable().material = Material()
                             }
 
                             (targetObject as? Mesh)?.boundingBox = OrientedBoundingBox(this, boundingBox)
@@ -570,19 +559,21 @@ open class Mesh(override var name: String = "Mesh") : RenderableNode(name), HasG
             calculateNormals(vb.first, vb.second)
         }
 
-        targetObject.vertices = vb.first
-        targetObject.normals = vb.second
-        targetObject.texcoords = vb.third
-        targetObject.indices = BufferUtils.allocateIntAndPut(ib.toIntArray())
+        targetObject.geometry {
+            this.vertices = vb.first
+            this.normals = vb.second
+            this.texcoords = vb.third
+            this.indices = BufferUtils.allocateIntAndPut(ib.toIntArray())
 
-        targetObject.vertices.flip()
-        targetObject.normals.flip()
-        targetObject.texcoords.flip()
+            this.vertices.flip()
+            this.normals.flip()
+            this.texcoords.flip()
 
-        vertexCount += targetObject.vertices.limit()
-        normalCount += targetObject.normals.limit()
-        uvCount += targetObject.texcoords.limit()
-        indexCount += targetObject.indices.limit()
+            vertexCount += this.vertices.limit()
+            normalCount += this.normals.limit()
+            uvCount += this.texcoords.limit()
+            indexCount += this.indices.limit()
+        }
 
         if (this is PointCloud) {
             (targetObject as? PointCloud)?.boundingBox = OrientedBoundingBox(this, boundingBox)
@@ -590,7 +581,7 @@ open class Mesh(override var name: String = "Mesh") : RenderableNode(name), HasG
             (targetObject as? Mesh)?.boundingBox = OrientedBoundingBox(this, boundingBox)
         }
 
-        logger.info("Read ${vertexCount / vertexSize}/${normalCount / vertexSize}/${uvCount / texcoordSize}/$indexCount v/n/uv/i of model $name in ${(end - start) / 1e6} ms")
+        logger.info("Read ${vertexCount / meshGeometry.vertexSize}/${normalCount / meshGeometry.vertexSize}/${uvCount / meshGeometry.texcoordSize}/$indexCount v/n/uv/i of model $name in ${(end - start) / 1e6} ms")
         return this
     }
 
@@ -834,10 +825,12 @@ open class Mesh(override var name: String = "Mesh") : RenderableNode(name), HasG
         val end = System.nanoTime()
         logger.info("Read ${vbuffer.size} vertices/${nbuffer.size} normals of model $name in ${(end - start) / 1e6} ms")
 
-        vertices = BufferUtils.allocateFloatAndPut(vbuffer.toFloatArray())
-        normals = BufferUtils.allocateFloatAndPut(nbuffer.toFloatArray())
-        texcoords = BufferUtils.allocateFloat(0)
-        indices = BufferUtils.allocateInt(0)
+        geometry {
+            vertices = BufferUtils.allocateFloatAndPut(vbuffer.toFloatArray())
+            normals = BufferUtils.allocateFloatAndPut(nbuffer.toFloatArray())
+            texcoords = BufferUtils.allocateFloat(0)
+            indices = BufferUtils.allocateInt(0)
+        }
 
         logger.info("Bounding box of $name is ${boundingBox.joinToString(",")}")
         this.boundingBox = OrientedBoundingBox(this, boundingBox)

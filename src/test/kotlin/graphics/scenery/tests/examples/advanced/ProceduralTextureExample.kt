@@ -30,7 +30,9 @@ class ProceduralTextureExample : SceneryBase("ProceduralTextureExample") {
         box.name = "le box du procedurale"
 
         with(box) {
-            box.material = boxmaterial
+            box.renderable {
+                material = boxmaterial
+            }
             scene.addChild(this)
         }
 
@@ -39,7 +41,9 @@ class ProceduralTextureExample : SceneryBase("ProceduralTextureExample") {
         }
 
         lights.mapIndexed { i, light ->
-            light.position = Vector3f(2.0f * i, 2.0f * i, 2.0f * i)
+            light.spatial {
+                position = Vector3f(2.0f * i, 2.0f * i, 2.0f * i)
+            }
             light.emissionColor = Vector3f(1.0f, 1.0f, 1.0f)
             light.intensity = 0.5f
             scene.addChild(light)
@@ -47,7 +51,9 @@ class ProceduralTextureExample : SceneryBase("ProceduralTextureExample") {
 
         val cam: Camera = DetachedHeadCamera()
         with(cam) {
-            position = Vector3f(0.0f, 0.0f, 3.0f)
+            spatial {
+                position = Vector3f(0.0f, 0.0f, 3.0f)
+            }
             perspectiveCamera(50.0f, windowWidth, windowHeight)
 
             scene.addChild(this)
@@ -61,21 +67,25 @@ class ProceduralTextureExample : SceneryBase("ProceduralTextureExample") {
             var ticks = 0L
 
             while(true) {
-                if(box.lock.tryLock(2, TimeUnit.MILLISECONDS)) {
-                    box.rotation.rotateY(0.01f)
-                    box.needsUpdate = true
+                if(box.renderable().lock.tryLock(2, TimeUnit.MILLISECONDS)) {
+                    box.spatial {
+                        rotation.rotateY(0.01f)
+                        needsUpdate = true
+                    }
 
                     textureBuffer.generateProceduralTextureAtTick(ticks,
                         imageSizeX, imageSizeY, imageChannels)
 
-                    box.material.textures.put("diffuse",
-                        Texture(
-                            Vector3i(imageSizeX, imageSizeY, 1),
-                            channels = imageChannels, contents = textureBuffer,
-                            type = UnsignedByteType()))
+                    box.renderable {
+                        material.textures.put("diffuse",
+                            Texture(
+                                Vector3i(imageSizeX, imageSizeY, 1),
+                                channels = imageChannels, contents = textureBuffer,
+                                type = UnsignedByteType()))
+                        lock.unlock()
+                    }
 
 
-                    box.lock.unlock()
                 } else {
                     logger.debug("unsuccessful lock")
                 }

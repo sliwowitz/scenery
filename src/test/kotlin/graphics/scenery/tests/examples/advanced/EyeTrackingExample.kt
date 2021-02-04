@@ -32,7 +32,9 @@ class EyeTrackingExample: SceneryBase("Eye Tracking Example", windowWidth = 1280
 
         val cam = DetachedHeadCamera(hmd)
         with(cam) {
-            position = Vector3f(0.0f, 0.2f, 5.0f)
+            spatial {
+                position = Vector3f(0.0f, 0.2f, 5.0f)
+            }
             perspectiveCamera(50.0f, windowWidth, windowHeight, 0.05f, 100.0f)
 
             scene.addChild(this)
@@ -40,24 +42,30 @@ class EyeTrackingExample: SceneryBase("Eye Tracking Example", windowWidth = 1280
         cam.disableCulling = true
 
         referenceTarget.visible = false
-        referenceTarget.material.roughness = 1.0f
-        referenceTarget.material.metallic = 0.5f
-        referenceTarget.material.diffuse = Vector3f(0.8f, 0.8f, 0.8f)
+        referenceTarget.renderable {
+            material.roughness = 1.0f
+            material.metallic = 0.5f
+            material.diffuse = Vector3f(0.8f, 0.8f, 0.8f)
+        }
         scene.addChild(referenceTarget)
 
         val lightbox = Box(Vector3f(20.0f, 20.0f, 20.0f), insideNormals = true)
         lightbox.name = "Lightbox"
-        lightbox.material.diffuse = Vector3f(0.4f, 0.4f, 0.4f)
-        lightbox.material.roughness = 1.0f
-        lightbox.material.metallic = 0.0f
-        lightbox.material.cullingMode = Material.CullingMode.Front
+        lightbox.renderable {
+            material.diffuse = Vector3f(0.4f, 0.4f, 0.4f)
+            material.roughness = 1.0f
+            material.metallic = 0.0f
+            material.cullingMode = Material.CullingMode.Front
+        }
 
         scene.addChild(lightbox)
 
         (0..10).map {
             val light = PointLight(radius = 15.0f)
             light.emissionColor = Random.random3DVectorFromRange(0.0f, 1.0f)
-            light.position = Random.random3DVectorFromRange(-5.0f, 5.0f)
+            light.spatial {
+                position = Random.random3DVectorFromRange(-5.0f, 5.0f)
+            }
             light.intensity = 100.0f
 
             light
@@ -109,19 +117,23 @@ class EyeTrackingExample: SceneryBase("Eye Tracking Example", windowWidth = 1280
                 if (!pupilTracker.isCalibrated && cam != null) {
                     pupilTracker.onCalibrationFailed = {
                         for(i in 0 until 2) {
-                            referenceTarget.material.diffuse = Vector3f(1.0f, 0.0f, 0.0f)
-                            Thread.sleep(300)
-                            referenceTarget.material.diffuse = Vector3f(0.8f, 0.8f, 0.8f)
-                            Thread.sleep(300)
+                            referenceTarget.renderable {
+                                material.diffuse = Vector3f(1.0f, 0.0f, 0.0f)
+                                Thread.sleep(300)
+                                material.diffuse = Vector3f(0.8f, 0.8f, 0.8f)
+                                Thread.sleep(300)
+                            }
                         }
                     }
 
                     pupilTracker.onCalibrationSuccess = {
                         for(i in 0 until 20) {
-                            referenceTarget.material.diffuse = Vector3f(0.0f, 1.0f, 0.0f)
-                            Thread.sleep(100)
-                            referenceTarget.material.diffuse = Vector3f(0.8f, 0.8f, 0.8f)
-                            Thread.sleep(30)
+                            referenceTarget.renderable {
+                                material.diffuse = Vector3f(0.0f, 1.0f, 0.0f)
+                                Thread.sleep(100)
+                                material.diffuse = Vector3f(0.8f, 0.8f, 0.8f)
+                                Thread.sleep(30)
+                            }
                         }
                     }
 
@@ -132,32 +144,40 @@ class EyeTrackingExample: SceneryBase("Eye Tracking Example", windowWidth = 1280
 
                     pupilTracker.onGazeReceived = when (pupilTracker.calibrationType) {
                         PupilEyeTracker.CalibrationType.ScreenSpace -> { gaze ->
-                            when {
-                                gaze.confidence < 0.85f -> referenceTarget.material.diffuse = Vector3f(0.8f, 0.0f, 0.0f)
-                                gaze.confidence > 0.85f -> referenceTarget.material.diffuse = Vector3f(0.0f, 0.5f, 0.5f)
-                                gaze.confidence > 0.95f -> referenceTarget.material.diffuse = Vector3f(0.0f, 1.0f, 0.0f)
+                            referenceTarget.renderable {
+                                when {
+                                    gaze.confidence < 0.85f -> material.diffuse = Vector3f(0.8f, 0.0f, 0.0f)
+                                    gaze.confidence > 0.85f -> material.diffuse = Vector3f(0.0f, 0.5f, 0.5f)
+                                    gaze.confidence > 0.95f -> material.diffuse = Vector3f(0.0f, 1.0f, 0.0f)
+                                }
                             }
 
                             if(gaze.confidence > 0.85f) {
                                 referenceTarget.visible = true
-                                referenceTarget.position = cam.viewportToWorld(
-                                    Vector2f(
-                                        gaze.normalizedPosition().x() * 2.0f - 1.0f,
-                                        gaze.normalizedPosition().y() * 2.0f - 1.0f),
+                                referenceTarget.spatial {
+                                    position = cam.viewportToWorld(
+                                        Vector2f(
+                                            gaze.normalizedPosition().x() * 2.0f - 1.0f,
+                                            gaze.normalizedPosition().y() * 2.0f - 1.0f),
                                     ) + cam.forward * 0.15f
+                                }
                             }
                         }
 
                         PupilEyeTracker.CalibrationType.WorldSpace -> { gaze ->
-                            when {
-                                gaze.confidence < 0.85f -> referenceTarget.material.diffuse = Vector3f(0.8f, 0.0f, 0.0f)
-                                gaze.confidence > 0.85f -> referenceTarget.material.diffuse = Vector3f(0.0f, 0.5f, 0.5f)
-                                gaze.confidence > 0.95f -> referenceTarget.material.diffuse = Vector3f(0.0f, 1.0f, 0.0f)
+                            referenceTarget.renderable {
+                                when {
+                                    gaze.confidence < 0.85f -> material.diffuse = Vector3f(0.8f, 0.0f, 0.0f)
+                                    gaze.confidence > 0.85f -> material.diffuse = Vector3f(0.0f, 0.5f, 0.5f)
+                                    gaze.confidence > 0.95f -> material.diffuse = Vector3f(0.0f, 1.0f, 0.0f)
+                                }
                             }
 
                             if(gaze.confidence > 0.85f) {
                                 referenceTarget.visible = true
-                                referenceTarget.position = gaze.gazePoint()
+                                referenceTarget.spatial {
+                                    position = gaze.gazePoint()
+                                }
                             }
                         }
                     }

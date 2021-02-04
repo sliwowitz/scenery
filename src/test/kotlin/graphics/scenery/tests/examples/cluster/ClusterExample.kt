@@ -32,20 +32,26 @@ class ClusterExample: SceneryBase("Clustered Volume Rendering example") {
         val cam: Camera = DetachedHeadCamera(hmd)
         with(cam) {
             //position = Vector3f(.4f, .4f, 1.4f)
-            position = Vector3f(.0f, -0.4f, 2.0f)
+            spatial {
+                position = Vector3f(.0f, -0.4f, 2.0f)
+            }
             perspectiveCamera(50.0f, windowWidth, windowHeight)
 
             scene.addChild(this)
         }
 
         val box = Box(Vector3f(2.0f, 2.0f, 2.0f))
-        box.material.diffuse = Vector3f(1.0f, 0.0f, 0.0f)
+        box.renderable {
+            material.diffuse = Vector3f(1.0f, 0.0f, 0.0f)
+        }
 
         val shell = Box(Vector3f(120.0f, 120.0f, 120.0f), insideNormals = true)
-        shell.material.cullingMode = Material.CullingMode.Front
-        shell.material.diffuse = Vector3f(0.0f, 0.0f, 0.0f)
-        shell.material.specular = Vector3f(0.0f)
-        shell.material.ambient = Vector3f(0.0f)
+        shell.renderable {
+            material.cullingMode = Material.CullingMode.Front
+            material.diffuse = Vector3f(0.0f, 0.0f, 0.0f)
+            material.specular = Vector3f(0.0f)
+            material.ambient = Vector3f(0.0f)
+        }
         scene.addChild(shell)
 
         val folder = Paths.get("M:/CAVE_DATA/histones-isonet/stacks/default/")
@@ -78,7 +84,7 @@ class ClusterExample: SceneryBase("Clustered Volume Rendering example") {
 
         if(publisher != null) {
             thread {
-                while (!scene.initialized) {
+                while (!scene.renderable().initialized) {
                     Thread.sleep(1000)
                 }
 

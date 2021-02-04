@@ -75,10 +75,14 @@ class NodeSubscriber(override var hub: Hub?, val address: String = "udp://localh
                         val bin = ByteArrayInputStream(payload)
                         val input = Input(bin)
                         val o = kryo.readClassAndObject(input) as? Node ?: return@let
-
-                        node.position = o.position
-                        node.rotation = o.rotation
-                        node.scale = o.scale
+                        val oSpatial = o.spatial()
+                        if (oSpatial != null) {
+                            node.spatial {
+                                position = oSpatial.position
+                                rotation = oSpatial.rotation
+                                scale = oSpatial.scale
+                            }
+                        }
                         node.visible = o.visible
 
                         if (o is Volume && node is Volume && node.renderable()?.initialized ?: false) {

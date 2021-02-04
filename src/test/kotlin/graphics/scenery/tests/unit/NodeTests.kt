@@ -1,14 +1,6 @@
 package graphics.scenery.tests.unit
 
-import graphics.scenery.BufferUtils
-import graphics.scenery.Group
-import graphics.scenery.Material
-import graphics.scenery.Mesh
-import graphics.scenery.Node
-import graphics.scenery.RenderableNode
-import graphics.scenery.Scene
-import graphics.scenery.ShaderProperty
-import graphics.scenery.Sphere
+import graphics.scenery.*
 import graphics.scenery.numerics.Random
 import graphics.scenery.utils.LazyLogger
 import graphics.scenery.utils.extensions.compare
@@ -41,27 +33,31 @@ class NodeTests {
     fun testTransformationPropagation() {
         val scene = Scene()
 
-        val childOne = RenderableNode("first child")
-        val subChild = RenderableNode("child of first child")
+        val childOne = RichNode("first child")
+        val subChild = RichNode("child of first child")
 
         scene.addChild(childOne)
         childOne.addChild(subChild)
 
-        childOne.position = Vector3f(1.0f, 1.0f, 1.0f)
-        subChild.position = Vector3f(-1.0f, -1.0f, -1.0f)
-        subChild.scale = Vector3f(2.0f, 1.0f, 1.0f)
-        subChild.rotation = Quaternionf().rotateXYZ(0.5f, 0.5f, 0.5f)
+        childOne.spatial {
+            position = Vector3f(1.0f, 1.0f, 1.0f)
+        }
+        subChild.spatial {
+            position = Vector3f(-1.0f, -1.0f, -1.0f)
+            scale = Vector3f(2.0f, 1.0f, 1.0f)
+            rotation = Quaternionf().rotateXYZ(0.5f, 0.5f, 0.5f)
+        }
 
-        logger.info("childOne:\n${childOne.world}")
-        logger.info("subChild:\n${subChild.world}")
+        logger.info("childOne:\n${childOne.spatial().world}")
+        logger.info("subChild:\n${subChild.spatial().world}")
 
-        childOne.updateWorld(true, force = false)
+        childOne.spatial().updateWorld(true, force = false)
         //subChild.updateWorld(true, force = false)
 
         logger.info("\n-------\nAfter update:\n")
 
-        logger.info("childOne:\n${childOne.world}")
-        logger.info("subChild:\n${subChild.world}")
+        logger.info("childOne:\n${childOne.spatial().world}")
+        logger.info("subChild:\n${subChild.spatial().world}")
 
         val expectedResult = Matrix4f().identity()
         expectedResult.translate(1.0f, 1.0f, 1.0f)
@@ -71,7 +67,7 @@ class NodeTests {
 
         logger.info(expectedResult.toString())
 
-        assertTrue(expectedResult.compare(subChild.world, true), "Expected transforms to be equal")
+        assertTrue(expectedResult.compare(subChild.spatial().world, true), "Expected transforms to be equal")
     }
 
     private fun addSiblings(toNode: Node, maxSiblings: Int, currentLevel: Int, maxLevels: Int): Int {
@@ -83,10 +79,12 @@ class NodeTests {
                 return totalNodes
             }
 
-            val n = RenderableNode("Sibling#$it/$currentLevel/$maxLevels")
-            n.position = Random.random3DVectorFromRange(-100.0f, 100.0f)
-            n.scale = Random.random3DVectorFromRange(0.1f, 10.0f)
-            n.rotation = Random.randomQuaternion()
+            val n = RichNode("Sibling#$it/$currentLevel/$maxLevels")
+            n.spatial {
+                position = Random.random3DVectorFromRange(-100.0f, 100.0f)
+                scale = Random.random3DVectorFromRange(0.1f, 10.0f)
+                rotation = Random.randomQuaternion()
+            }
 
             toNode.addChild(n)
             totalNodes++
@@ -112,7 +110,7 @@ class NodeTests {
         logger.info("Created $totalNodes nodes")
 
         val start = System.nanoTime()
-        scene.updateWorld(true, true)
+        scene.spatial().updateWorld(true, true)
         val duration = (System.nanoTime() - start)/10e6
 
         assertTrue(totalNodes <= Math.pow(1.0*maxSiblings, 1.0*levels).toInt(), "Expected total nodes to be less than maximum allowed number")
@@ -137,7 +135,7 @@ class NodeTests {
         logger.info("Created $totalNodes nodes")
 
         var start = System.nanoTime()
-        scene.updateWorld(true, true)
+        scene.spatial().updateWorld(true, true)
         var duration = (System.nanoTime() - start)/10e6
 
         assertTrue(totalNodes <= Math.pow(1.0*maxSiblings, 1.0*levels).toInt(), "Expected total nodes to be less than maximum allowed number")
@@ -164,17 +162,16 @@ class NodeTests {
         val expectedMin = Vector3f(-1.0f, -2.0f, -3.0f)
         val expectedMax = Vector3f(4.0f, 5.0f, 6.0f)
 
-        m.vertices = BufferUtils.allocateFloatAndPut(
-            floatArrayOf(
-                expectedMin[0], expectedMin[1], expectedMin[2],
-                expectedMax[0], expectedMax[1], expectedMax[2]))
-
-        val expectedPosition = m.vertices.position()
-        val expectedLimit = m.vertices.limit()
-
-        assertEquals("Vertex buffer position", expectedPosition, m.vertices.position())
-        assertEquals("Vertex buffer limit", expectedLimit, m.vertices.limit())
-
+        m.geometry {
+            vertices = BufferUtils.allocateFloatAndPut(
+                floatArrayOf(
+                    expectedMin[0], expectedMin[1], expectedMin[2],
+                    expectedMax[0], expectedMax[1], expectedMax[2]))
+            val expectedPosition = vertices.position()
+            val expectedLimit = vertices.limit()
+            assertEquals("Vertex buffer position", expectedPosition, vertices.position())
+            assertEquals("Vertex buffer limit", expectedLimit, vertices.limit())
+        }
         m.boundingBox = m.generateBoundingBox()
 
         assertNotNull("Bounding box should not be null", m.boundingBox)
@@ -211,18 +208,22 @@ class NodeTests {
     @Test
     fun testCentering() {
         val m = Mesh()
-        m.vertices = BufferUtils.allocateFloatAndPut(
-            floatArrayOf(-1.0f, -1.0f, -1.0f,
-                1.0f, 1.0f, 1.0f))
+        m.geometry {
+            vertices = BufferUtils.allocateFloatAndPut(
+                floatArrayOf(-1.0f, -1.0f, -1.0f,
+                    1.0f, 1.0f, 1.0f))
+        }
         m.boundingBox = m.generateBoundingBox()
 
         val expectedCenter = Vector3f(1.0f, 1.0f, 1.0f)
-        val center = m.centerOn(Vector3f(0.0f, 0.0f, 0.0f))
-        logger.info("Centering on $center, expected=$expectedCenter")
+        m.spatial {
+            val center = centerOn(Vector3f(0.0f, 0.0f, 0.0f))
+            logger.info("Centering on $center, expected=$expectedCenter")
+            assertArrayEquals("Centering on $center",
+                expectedCenter.toFloatArray().toTypedArray(),
+                center.toFloatArray().toTypedArray())
+        }
 
-        assertArrayEquals("Centering on $center",
-            expectedCenter.toFloatArray().toTypedArray(),
-            center.toFloatArray().toTypedArray())
     }
 
     /**
@@ -231,11 +232,13 @@ class NodeTests {
     @Test
     fun testFitting() {
         val m = Mesh()
-        m.vertices = BufferUtils.allocateFloatAndPut(
-            floatArrayOf(-1.0f, -2.0f, -4.0f,
-                1.0f, 2.0f, 4.0f))
+        m.geometry {
+            vertices = BufferUtils.allocateFloatAndPut(
+                floatArrayOf(-1.0f, -2.0f, -4.0f,
+                    1.0f, 2.0f, 4.0f))
+        }
         m.boundingBox = m.generateBoundingBox()
-        val scaling = m.fitInto(0.5f)
+        val scaling = m.spatial().fitInto(0.5f)
         val expectedScaling = Vector3f(0.0625f, 0.0625f, 0.0625f)
 
         logger.info("Applied scaling: $scaling, expected=$expectedScaling")
@@ -251,8 +254,8 @@ class NodeTests {
     @Test
     fun testGetScene() {
         val scene = Scene()
-        val n1= RenderableNode()
-        val n2= RenderableNode()
+        val n1= RichNode()
+        val n2= RichNode()
         scene.addChild(n1)
 
         assertEquals(scene, n1.getScene(), "Expected node scene is attached to to be $scene, but is ${n1.getScene()}")
@@ -265,20 +268,22 @@ class NodeTests {
     @Test
     fun testPositionChangeTriggersUpdate() {
         val scene = Scene()
-        val node= RenderableNode()
+        val node= RichNode()
         scene.addChild(node)
 
-        assertTrue(node.needsUpdate, "Expected node to need update after creation")
-        assertTrue(node.needsUpdateWorld, "Expected node to need world update after creation")
+        node.spatial {
+            assertTrue(needsUpdate, "Expected node to need update after creation")
+            assertTrue(needsUpdateWorld, "Expected node to need world update after creation")
 
-        node.position = Random.random3DVectorFromRange(-100.0f, 100.0f)
-        assertTrue(node.needsUpdate, "Expected node to need update after position change")
-        assertTrue(node.needsUpdateWorld, "Expected node to need world update after position change")
+            position = Random.random3DVectorFromRange(-100.0f, 100.0f)
+            assertTrue(needsUpdate, "Expected node to need update after position change")
+            assertTrue(needsUpdateWorld, "Expected node to need world update after position change")
 
-        scene.updateWorld(true)
+            scene.spatial().updateWorld(true)
 
-        assertFalse(node.needsUpdate, "Expected node to not need update after updating manually")
-        assertFalse(node.needsUpdateWorld, "Expected node not to need world update after updating manually")
+            assertFalse(needsUpdate, "Expected node to not need update after updating manually")
+            assertFalse(needsUpdateWorld, "Expected node not to need world update after updating manually")
+        }
     }
 
     /**
@@ -287,20 +292,22 @@ class NodeTests {
     @Test
     fun testScaleChangeTriggersUpdate() {
         val scene = Scene()
-        val node= RenderableNode()
+        val node= RichNode()
         scene.addChild(node)
 
-        assertTrue(node.needsUpdate, "Expected node to need update after creation")
-        assertTrue(node.needsUpdateWorld, "Expected node to need world update after creation")
+        node.spatial {
+            assertTrue(needsUpdate, "Expected node to need update after creation")
+            assertTrue(needsUpdateWorld, "Expected node to need world update after creation")
 
-        node.scale = Random.random3DVectorFromRange(0.0f, 1.0f)
-        assertTrue(node.needsUpdate, "Expected node to need update after position change")
-        assertTrue(node.needsUpdateWorld, "Expected node to need world update after position change")
+            scale = Random.random3DVectorFromRange(0.0f, 1.0f)
+            assertTrue(needsUpdate, "Expected node to need update after position change")
+            assertTrue(needsUpdateWorld, "Expected node to need world update after position change")
 
-        scene.updateWorld(true)
+            scene.spatial().updateWorld(true)
 
-        assertFalse(node.needsUpdate, "Expected node to not need update after updating manually")
-        assertFalse(node.needsUpdateWorld, "Expected node not to need world update after updating manually")
+            assertFalse(needsUpdate, "Expected node to not need update after updating manually")
+            assertFalse(needsUpdateWorld, "Expected node not to need world update after updating manually")
+        }
     }
 
     /**
@@ -309,20 +316,22 @@ class NodeTests {
     @Test
     fun testRotationChangeTriggersUpdate() {
         val scene = Scene()
-        val node= RenderableNode()
+        val node= RichNode()
         scene.addChild(node)
 
-        assertTrue(node.needsUpdate, "Expected node to need update after creation")
-        assertTrue(node.needsUpdateWorld, "Expected node to need world update after creation")
+        node.spatial {
+            assertTrue(needsUpdate, "Expected node to need update after creation")
+            assertTrue(needsUpdateWorld, "Expected node to need world update after creation")
 
-        node.rotation = Random.randomQuaternion()
-        assertTrue(node.needsUpdate, "Expected node to need update after position change")
-        assertTrue(node.needsUpdateWorld, "Expected node to need world update after position change")
+            rotation = Random.randomQuaternion()
+            assertTrue(needsUpdate, "Expected node to need update after position change")
+            assertTrue(needsUpdateWorld, "Expected node to need world update after position change")
 
-        scene.updateWorld(true)
+            scene.spatial().updateWorld(true)
 
-        assertFalse(node.needsUpdate, "Expected node to not need update after updating manually")
-        assertFalse(node.needsUpdateWorld, "Expected node not to need world update after updating manually")
+            assertFalse(needsUpdate, "Expected node to not need update after updating manually")
+            assertFalse(needsUpdateWorld, "Expected node not to need world update after updating manually")
+        }
     }
 
     /**
@@ -330,10 +339,10 @@ class NodeTests {
      */
     @Test
     fun testNodeRecursion() {
-        val parent= RenderableNode()
-        val child1= RenderableNode()
-        val child2= RenderableNode()
-        val grandchild= RenderableNode()
+        val parent= RichNode()
+        val child1= RichNode()
+        val child2= RichNode()
+        val grandchild= RichNode()
 
         val myShinyNewMaterial = Material()
 
@@ -342,15 +351,15 @@ class NodeTests {
 
         child1.addChild(grandchild)
 
-        parent.runRecursive { it.material = myShinyNewMaterial }
+        parent.runRecursive { it.renderable()?.material = myShinyNewMaterial }
 
         assertEquals("Parent of $child1 should be $parent", parent, child1.parent)
         assertEquals("Parent of $child2 should be $parent", parent, child2.parent)
 
-        assertEquals("Material of parent should be $myShinyNewMaterial", myShinyNewMaterial, parent.material)
-        assertEquals("Material of child1 should be $myShinyNewMaterial", myShinyNewMaterial, child1.material)
-        assertEquals("Material of child2 should be $myShinyNewMaterial", myShinyNewMaterial, child2.material)
-        assertEquals("Material of grandchild should be $myShinyNewMaterial", myShinyNewMaterial, grandchild.material)
+        assertEquals("Material of parent should be $myShinyNewMaterial", myShinyNewMaterial, parent.renderable().material)
+        assertEquals("Material of child1 should be $myShinyNewMaterial", myShinyNewMaterial, child1.renderable().material)
+        assertEquals("Material of child2 should be $myShinyNewMaterial", myShinyNewMaterial, child2.renderable().material)
+        assertEquals("Material of grandchild should be $myShinyNewMaterial", myShinyNewMaterial, grandchild.renderable().material)
 
         parent.visible = false
         parent.runRecursive { assertFalse(it.visible, "Child node should be invisible") }
@@ -361,10 +370,10 @@ class NodeTests {
      */
     @Test
     fun testNodeRecursionJavaConsumer() {
-        val parent= RenderableNode()
-        val child1= RenderableNode()
-        val child2= RenderableNode()
-        val grandchild= RenderableNode()
+        val parent= RichNode()
+        val child1= RichNode()
+        val child2= RichNode()
+        val grandchild= RichNode()
 
         val myShinyNewMaterial = Material()
 
@@ -373,12 +382,12 @@ class NodeTests {
 
         child1.addChild(grandchild)
 
-        parent.runRecursive(Consumer { it.material = myShinyNewMaterial })
+        parent.runRecursive(Consumer { it.renderable()?.material = myShinyNewMaterial })
 
-        assertEquals("Material of parent should be $myShinyNewMaterial", myShinyNewMaterial, parent.material)
-        assertEquals("Material of child1 should be $myShinyNewMaterial", myShinyNewMaterial, child1.material)
-        assertEquals("Material of child2 should be $myShinyNewMaterial", myShinyNewMaterial, child2.material)
-        assertEquals("Material of grandchild should be $myShinyNewMaterial", myShinyNewMaterial, grandchild.material)
+        assertEquals("Material of parent should be $myShinyNewMaterial", myShinyNewMaterial, parent.renderable().material)
+        assertEquals("Material of child1 should be $myShinyNewMaterial", myShinyNewMaterial, child1.renderable().material)
+        assertEquals("Material of child2 should be $myShinyNewMaterial", myShinyNewMaterial, child2.renderable().material)
+        assertEquals("Material of grandchild should be $myShinyNewMaterial", myShinyNewMaterial, grandchild.renderable().material)
     }
 
     /**
@@ -407,14 +416,14 @@ class NodeTests {
     @Test
     fun testShaderProperties() {
         val randomInt = kotlin.random.Random.nextInt()
-        val n = object: RenderableNode("MyNode") {
+        val n = object: RichNode("MyNode") {
             @ShaderProperty val myShaderProperty = randomInt
         }
 
         assertEquals(randomInt, n.getShaderProperty("myShaderProperty"),
             "Expected value from shader property to be")
 
-        val m = object: RenderableNode("MyOtherNode") {
+        val m = object: RichNode("MyOtherNode") {
             @ShaderProperty val shaderProperties = HashMap<String, Any>()
         }
 
@@ -442,10 +451,14 @@ class NodeTests {
     @Test
     fun testMaximumBoundingBox() {
         val parent = Group()
-        parent.position = Vector3f(100f, 100f, 100f)
+        parent.spatial {
+            position = Vector3f(100f, 100f, 100f)
+        }
         ( 0 until 2).forEach {i ->
             val sphere = Sphere(5f, 3)
-            sphere.position = Vector3f(-100f * ( i % 2 ), 0f, i.toFloat())
+            sphere.spatial {
+                position = Vector3f(-100f * ( i % 2 ), 0f, i.toFloat())
+            }
             parent.addChild(sphere)
         }
 
@@ -459,34 +472,37 @@ class NodeTests {
      */
     @Test
     fun testImglib2Implementations() {
-        val n= RenderableNode("testnode")
+        val n= RichNode("testnode")
 
-        assertEquals( 3, n.numDimensions() )
+        assertEquals( 3, n.spatial().numDimensions() )
 
-        n.position = Vector3f(0f, 17f, 0f)
-        assertEquals( 17f, n.getFloatPosition(1), 0.01f)
+        assertNotNull(n.spatial())
+        n.spatial {
+            position = Vector3f(0f, 17f, 0f)
+            assertEquals( 17f, getFloatPosition(1), 0.01f)
 
-        n.position = Vector3f(0f, 17f, 0f)
-        n.move( -1, 1 )
-        assertEquals( 16f, n.position.y(), 0.01f)
+            position = Vector3f(0f, 17f, 0f)
+            move( -1, 1 )
+            assertEquals( 16f, position.y(), 0.01f)
 
-        n.position = Vector3f(0f, 17f, 0f)
-        n.move(RealPoint(0.0, -1.0, 0.0))
-        assertEquals( 16f, n.position.y(), 0.01f)
+            position = Vector3f(0f, 17f, 0f)
+            move(RealPoint(0.0, -1.0, 0.0))
+            assertEquals( 16f, position.y(), 0.01f)
 
-        n.position = Vector3f(0f, 17f, 0f)
-        n.fwd(0)
-        assertEquals( 1f, n.position.x(), 0.01f)
+            position = Vector3f(0f, 17f, 0f)
+            fwd(0)
+            assertEquals( 1f, position.x(), 0.01f)
 
-        n.position = Vector3f(0f, 17f, 0f)
-        n.setPosition(doubleArrayOf(17.0, 23.0, -19.0))
-        assertEquals( 17.0f, n.position.x(), 0.01f)
-        assertEquals( 23.0f, n.position.y(), 0.01f)
-        assertEquals( -19.0f, n.position.z(), 0.01f)
+            position = Vector3f(0f, 17f, 0f)
+            setPosition(doubleArrayOf(17.0, 23.0, -19.0))
+            assertEquals( 17.0f, position.x(), 0.01f)
+            assertEquals( 23.0f, position.y(), 0.01f)
+            assertEquals( -19.0f, position.z(), 0.01f)
 
-        val pos = FloatArray(3)
-        n.position = Vector3f(0f, 17f, 0f)
-        n.localize(pos)
-        assertEquals( 17f, pos[1], 0.01f)
+            val pos = FloatArray(3)
+            position = Vector3f(0f, 17f, 0f)
+            localize(pos)
+            assertEquals( 17f, pos[1], 0.01f)
+        }
     }
 }

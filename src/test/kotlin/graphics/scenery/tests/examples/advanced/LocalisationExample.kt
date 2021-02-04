@@ -33,17 +33,21 @@ class LocalisationExample : SceneryBase("Localisation Microscopy Rendering examp
 
         val cam: Camera = DetachedHeadCamera(hmd)
         with(cam) {
-            position = Vector3f(0.0f, 0.5f, 5.0f)
+            spatial {
+                position = Vector3f(0.0f, 0.5f, 5.0f)
+            }
             perspectiveCamera(50.0f, windowWidth, windowHeight)
 
             scene.addChild(this)
         }
 
         val shell = Box(Vector3f(20.0f, 20.0f, 20.0f), insideNormals = true)
-        shell.material.cullingMode = Material.CullingMode.Front
-        shell.material.diffuse = Vector3f(0.9f, 0.9f, 0.9f)
-        shell.material.specular = Vector3f(0.0f)
-        shell.material.ambient = Vector3f(0.0f)
+        shell.renderable {
+            material.cullingMode = Material.CullingMode.Front
+            material.diffuse = Vector3f(0.9f, 0.9f, 0.9f)
+            material.specular = Vector3f(0.0f)
+            material.ambient = Vector3f(0.0f)
+        }
         scene.addChild(shell)
 
         if(System.getProperty("datasets") != null) {
@@ -60,8 +64,12 @@ class LocalisationExample : SceneryBase("Localisation Microscopy Rendering examp
         files.mapIndexed { i, file ->
             val dataset = PointCloud()
             dataset.readFromPALM(file)
-            dataset.material.diffuse = channelColors.getOrElse(i, { Random.random3DVectorFromRange(0.1f, 0.9f) })
-            dataset.fitInto(5.0f)
+            dataset.renderable {
+                material.diffuse = channelColors.getOrElse(i, { Random.random3DVectorFromRange(0.1f, 0.9f) })
+            }
+            dataset.spatial {
+                fitInto(5.0f)
+            }
             dataset
         }.forEach {
             scene.addChild(it)

@@ -8,25 +8,11 @@ import java.nio.FloatBuffer
 import java.nio.IntBuffer
 
 /**
- * Class for creating 3D lines, derived from [Node] and using [HasGeometry]
+ * Class for creating 3D lines, derived from [Node] and using [Geometry]
  *
  * @author Ulrik Günther <hello@ulrik.is>
  */
-class Line @JvmOverloads constructor(var capacity: Int = 50, transparent: Boolean = false, val simple: Boolean = false) : RenderableNode("Line"), HasGeometry {
-    /** Size of one vertex (e.g. 3 in 3D) */
-    override val vertexSize: Int = 3
-    /** Size of one texcoord (e.g. 2 in 3D) */
-    override val texcoordSize: Int = 2
-    /** Geometry type -- Default for Line is [GeometryType.LINE] */
-    override var geometryType: GeometryType = GeometryType.LINE_STRIP_ADJACENCY
-    /** Vertex buffer */
-    override var vertices: FloatBuffer = BufferUtils.allocateFloat(3*capacity)
-    /** Normal buffer */
-    override var normals: FloatBuffer = BufferUtils.allocateFloat(3*capacity)
-    /** Texcoord buffer */
-    override var texcoords: FloatBuffer = BufferUtils.allocateFloat(2*capacity)
-    /** Index buffer */
-    override var indices: IntBuffer = IntBuffer.wrap(intArrayOf())
+class Line @JvmOverloads constructor(var capacity: Int = 50, transparent: Boolean = false, val simple: Boolean = false) : DefaultNode("Line"), HasRenderable, HasSpatial, HasGeometry {
 
     /** Whether the line should be rendered as transparent or not. */
     var transparent: Boolean = transparent
@@ -59,19 +45,33 @@ class Line @JvmOverloads constructor(var capacity: Int = 50, transparent: Boolea
     /** Shader property for the line's edge width. Consumed by the renderer. */
     @ShaderProperty
     var edgeWidth = 2.0f
-
     init {
-        if(simple) {
-            geometryType = GeometryType.LINE
-        } else {
-            activateTransparency(transparent)
+
+        geometry {
+            if(simple) {
+                geometryType = GeometryType.LINE
+            } else {
+                activateTransparency(transparent)
+            }
+
+            vertices.limit(0)
+            normals.limit(0)
+            texcoords.limit(0)
         }
 
-        vertices.limit(0)
-        normals.limit(0)
-        texcoords.limit(0)
+        renderable {
+            material.cullingMode = Material.CullingMode.None
+        }
 
-        material.cullingMode = Material.CullingMode.None
+    }
+
+    override fun createGeometry(): Geometry {
+        return object: DefaultGeometry(this) {
+            override var vertices: FloatBuffer = BufferUtils.allocateFloat(3 * capacity)
+            override var normals: FloatBuffer = BufferUtils.allocateFloat(3 * capacity)
+            override var texcoords: FloatBuffer = BufferUtils.allocateFloat(2 * capacity)
+            override var indices: IntBuffer = IntBuffer.wrap(intArrayOf())
+        }
     }
 
     protected fun activateTransparency(transparent: Boolean) {
@@ -79,37 +79,31 @@ class Line @JvmOverloads constructor(var capacity: Int = 50, transparent: Boolea
             return
         }
 
+        val newMaterial: Material
         if(transparent) {
-            val newMaterial = ShaderMaterial.fromFiles(
+            newMaterial = ShaderMaterial.fromFiles(
                 "${this::class.java.simpleName}.vert",
                 "${this::class.java.simpleName}.geom",
                 "${this::class.java.simpleName}Forward.frag")
 
             newMaterial.blending.opacity = 1.0f
             newMaterial.blending.setOverlayBlending()
-            newMaterial.diffuse = material.diffuse
-            newMaterial.specular = material.specular
-            newMaterial.ambient = material.ambient
-            newMaterial.metallic = material.metallic
-            newMaterial.roughness = material.roughness
-
-            material = newMaterial
         } else {
-            val newMaterial = ShaderMaterial.fromClass(this::class.java,
+            newMaterial = ShaderMaterial.fromClass(this::class.java,
                 listOf(ShaderType.VertexShader, ShaderType.GeometryShader, ShaderType.FragmentShader))
-
+        }
+        renderable {
             newMaterial.diffuse = material.diffuse
             newMaterial.specular = material.specular
             newMaterial.ambient = material.ambient
             newMaterial.metallic = material.metallic
             newMaterial.roughness = material.roughness
-
             material = newMaterial
+            material.blending.transparent = transparent
+            material.cullingMode = Material.CullingMode.None
         }
-
-        material.blending.transparent = transparent
-        material.cullingMode = Material.CullingMode.None
     }
+
 
     /**
      * Adds points to the line.
@@ -120,59 +114,61 @@ class Line @JvmOverloads constructor(var capacity: Int = 50, transparent: Boolea
      * @param points     The vector containing the points
      */
     fun addPoints(vararg points: Vector3f) {
-        if(vertices.limit() + 3 * points.size >= vertices.capacity()) {
-            val newVertices = BufferUtils.allocateFloat(vertices.capacity() + points.size * 3 + 3 * capacity)
-            vertices.position(0)
-            vertices.limit(vertices.capacity())
-            newVertices.put(vertices)
-            newVertices.limit(vertices.limit())
+        geometry {
+            if(vertices.limit() + 3 * points.size >= vertices.capacity()) {
+                val newVertices = BufferUtils.allocateFloat(vertices.capacity() + points.size * 3 + 3 * capacity)
+                vertices.position(0)
+                vertices.limit(vertices.capacity())
+                newVertices.put(vertices)
+                newVertices.limit(vertices.limit())
 
-            vertices = newVertices
+                vertices = newVertices
 
-            val newNormals = BufferUtils.allocateFloat(vertices.capacity() + points.size * 3 + 3 * capacity)
-            normals.position(0)
-            normals.limit(normals.capacity())
-            newNormals.put(normals)
-            newNormals.limit(normals.limit())
+                val newNormals = BufferUtils.allocateFloat(vertices.capacity() + points.size * 3 + 3 * capacity)
+                normals.position(0)
+                normals.limit(normals.capacity())
+                newNormals.put(normals)
+                newNormals.limit(normals.limit())
 
-            normals = newNormals
+                normals = newNormals
 
 
-            val newTexcoords = BufferUtils.allocateFloat(vertices.capacity() + points.size * 2 + 2 * capacity)
-            texcoords.position(0)
-            texcoords.limit(texcoords.capacity())
-            newTexcoords.put(texcoords)
-            newTexcoords.limit(texcoords.limit())
+                val newTexcoords = BufferUtils.allocateFloat(vertices.capacity() + points.size * 2 + 2 * capacity)
+                texcoords.position(0)
+                texcoords.limit(texcoords.capacity())
+                newTexcoords.put(texcoords)
+                newTexcoords.limit(texcoords.limit())
 
-            texcoords = newTexcoords
+                texcoords = newTexcoords
 
-            capacity = vertices.capacity()/3
+                capacity = vertices.capacity()/3
+            }
+
+            vertices.position(vertices.limit())
+            vertices.limit(vertices.limit() + points.size * 3)
+            points.forEach { v -> v.get(vertices) }
+            vertices.position(vertices.limit())
+            vertices.flip()
+
+            normals.position(normals.limit())
+            normals.limit(normals.limit() + points.size * 3)
+            points.forEach { v -> v.get(normals) }
+            normals.position(normals.limit())
+            normals.flip()
+
+            texcoords.position(texcoords.limit())
+            texcoords.limit(texcoords.limit() + points.size * 2)
+            points.forEach { _ ->
+                texcoords.put(0.0f)
+                texcoords.put(0.0f)
+            }
+            texcoords.position(texcoords.limit())
+            texcoords.flip()
+
+            dirty = true
+            vertexCount = vertices.limit()/vertexSize
+
         }
-
-        vertices.position(vertices.limit())
-        vertices.limit(vertices.limit() + points.size * 3)
-        points.forEach { v -> v.get(vertices) }
-        vertices.position(vertices.limit())
-        vertices.flip()
-
-        normals.position(normals.limit())
-        normals.limit(normals.limit() + points.size * 3)
-        points.forEach { v -> v.get(normals) }
-        normals.position(normals.limit())
-        normals.flip()
-
-        texcoords.position(texcoords.limit())
-        texcoords.limit(texcoords.limit() + points.size * 2)
-        points.forEach { _ ->
-            texcoords.put(0.0f)
-            texcoords.put(0.0f)
-        }
-        texcoords.position(texcoords.limit())
-        texcoords.flip()
-
-        dirty = true
-        vertexCount = vertices.limit()/vertexSize
-
         boundingBox = generateBoundingBox()
     }
 
@@ -198,13 +194,15 @@ class Line @JvmOverloads constructor(var capacity: Int = 50, transparent: Boolea
      * Fully clears the line.
      */
     fun clearPoints() {
-        vertices.clear()
-        normals.clear()
-        texcoords.clear()
+        geometry {
+            vertices.clear()
+            normals.clear()
+            texcoords.clear()
 
-        vertices.limit(0)
-        normals.limit(0)
-        texcoords.limit(0)
+            vertices.limit(0)
+            normals.limit(0)
+            texcoords.limit(0)
+        }
     }
 
     companion object {

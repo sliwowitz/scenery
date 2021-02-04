@@ -59,7 +59,7 @@ open class ArcballCameraControl(private val name: String, private val n: () -> C
         set(value) {
             field = value
 
-            node?.let { node -> node.position = target.invoke() + node.forward * value * (-1.0f) }
+            node?.let { node -> node.spatial().position = target.invoke() + node.forward * value * (-1.0f) }
         }
 
     /** multiplier for zooming in and out */
@@ -124,7 +124,7 @@ open class ArcballCameraControl(private val name: String, private val n: () -> C
      */
     override fun drag(x: Int, y: Int) {
         node?.let { node ->
-            if (!node.lock.tryLock()) {
+            if (!node.renderable().lock.tryLock()) {
                 return
             }
 
@@ -141,12 +141,14 @@ open class ArcballCameraControl(private val name: String, private val n: () -> C
             val yawQ = Quaternionf().rotateXYZ(0.0f, frameYaw, 0.0f).normalize()
             val pitchQ = Quaternionf().rotateXYZ(framePitch, 0.0f, 0.0f).normalize()
 
-            distance = (target.invoke() - node.position).length()
-            node.target = target.invoke()
-            node.rotation = pitchQ.mul(node.rotation).mul(yawQ).normalize()
-            node.position = target.invoke() + node.forward * distance * (-1.0f)
+            node.spatial {
+                distance = (target.invoke() - position).length()
+                node.target = target.invoke()
+                rotation = pitchQ.mul(rotation).mul(yawQ).normalize()
+                position = target.invoke() + node.forward * distance * (-1.0f)
+            }
 
-            node.lock.unlock()
+            node.renderable().lock.unlock()
         }
     }
 
@@ -164,14 +166,14 @@ open class ArcballCameraControl(private val name: String, private val n: () -> C
         if (isHorizontal || node == null) {
             return
         }
-
-        distance = (target.invoke() - node!!.position).length()
+        
+        distance = (target.invoke() - node!!.spatial().position).length()
         distance += wheelRotation.toFloat() * scrollSpeedMultiplier
 
         if (distance >= maximumDistance) distance = maximumDistance
         if (distance <= minimumDistance) distance = minimumDistance
 
-        node?.let { node -> node.position = target.invoke() + node.forward * distance * (-1.0f) }
+        node?.let { node -> node.spatial().position = target.invoke() + node.forward * distance * (-1.0f) }
     }
 
 }

@@ -1,7 +1,6 @@
 package graphics.scenery.backends.vulkan
 
 import graphics.scenery.InstancedNode
-import graphics.scenery.Node
 import graphics.scenery.backends.UBO
 import org.lwjgl.system.MemoryUtil.*
 import org.lwjgl.vulkan.VK10.*
@@ -105,7 +104,7 @@ open class VulkanUBO(val device: VulkanDevice, var backingBuffer: VulkanBuffer? 
      * Creates this UBO's members from the instancedProperties of [node].
      */
     fun fromInstance(node: InstancedNode.Instance) {
-        node.properties.forEach { members.putIfAbsent(it.key, it.value) }
+        node.instanceProperties.forEach { members.putIfAbsent(it.key, it.value) }
     }
 
     /**

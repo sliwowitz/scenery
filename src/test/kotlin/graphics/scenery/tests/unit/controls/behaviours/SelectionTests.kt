@@ -48,11 +48,15 @@ class SelectionTests {
         logger.info("Testing SelectCommand...")
         val scene = Scene()
         val box = Box(Vector3f(1.0f, 1.0f, 1.0f))
-        box.position = Vector3f(-1.0f, 0.0f, 0.0f)
-        box.updateWorld(false)
+        box.spatial {
+            position = Vector3f(-1.0f, 0.0f, 0.0f)
+            updateWorld(false)
+        }
         scene.addChild(box)
         val camera = DetachedHeadCamera()
-        camera.position = Vector3f(0.0f, 0.0f, 5.0f)
+        camera.spatial {
+            position = Vector3f(0.0f, 0.0f, 5.0f)
+        }
         camera.perspectiveCamera(52.0f, 512, 512)
         scene.addChild(camera)
         val hub = Hub()
@@ -77,16 +81,22 @@ class SelectionTests {
         logger.info("Testing SelectCommand on an instance...")
         val scene = Scene()
         val template = Box()
-        template.updateWorld(false)
+        template.spatial {
+            updateWorld(false)
+        }
         val boxInstanced = InstancedNode(template)
 
         val instanceNode = boxInstanced.addInstance()
         instanceNode.name = "agent"
-        instanceNode.position = Vector3f(-1.0f, 0.0f, 0.0f)
-        instanceNode.updateWorld(false)
+        instanceNode.spatial {
+            position = Vector3f(-1.0f, 0.0f, 0.0f)
+            updateWorld(false)
+        }
         scene.addChild(boxInstanced)
         val camera = DetachedHeadCamera()
-        camera.position = Vector3f(0.0f, 0.0f, 5.0f)
+        camera.spatial {
+            position = Vector3f(0.0f, 0.0f, 5.0f)
+        }
         camera.perspectiveCamera(52.0f, 512, 512)
         scene.addChild(camera)
         val hub = Hub()

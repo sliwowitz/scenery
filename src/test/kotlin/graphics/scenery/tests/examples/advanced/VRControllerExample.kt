@@ -39,7 +39,9 @@ class VRControllerExample : SceneryBase(VRControllerExample::class.java.simpleNa
         renderer?.toggleVR()
 
         val cam: Camera = DetachedHeadCamera(hmd)
-        cam.position = Vector3f(0.0f, 0.0f, 0.0f)
+        cam.spatial {
+            position = Vector3f(0.0f, 0.0f, 0.0f)
+        }
 
         cam.perspectiveCamera(50.0f, windowWidth, windowHeight)
 
@@ -47,7 +49,9 @@ class VRControllerExample : SceneryBase(VRControllerExample::class.java.simpleNa
 
         boxes = (0..10).map {
             val obj = Box(Vector3f(0.1f, 0.1f, 0.1f))
-            obj.position = Vector3f(-1.0f + (it + 1) * 0.2f, 1.0f, -0.5f)
+            obj.spatial {
+                position = Vector3f(-1.0f + (it + 1) * 0.2f, 1.0f, -0.5f)
+            }
             obj
         }
 
@@ -56,19 +60,23 @@ class VRControllerExample : SceneryBase(VRControllerExample::class.java.simpleNa
         (0..5).map {
             val light = PointLight(radius = 15.0f)
             light.emissionColor = Random.random3DVectorFromRange(0.0f, 1.0f)
-            light.position = Random.random3DVectorFromRange(-5.0f, 5.0f)
+            light.spatial {
+                position = Random.random3DVectorFromRange(-5.0f, 5.0f)
+            }
             light.intensity = 1.0f
 
             light
         }.forEach { scene.addChild(it) }
 
         hullbox = Box(Vector3f(20.0f, 20.0f, 20.0f), insideNormals = true)
-        val hullboxMaterial = Material()
-        hullboxMaterial.ambient = Vector3f(0.6f, 0.6f, 0.6f)
-        hullboxMaterial.diffuse = Vector3f(0.4f, 0.4f, 0.4f)
-        hullboxMaterial.specular = Vector3f(0.0f, 0.0f, 0.0f)
-        hullboxMaterial.cullingMode = Material.CullingMode.Front
-        hullbox.material = hullboxMaterial
+        hullbox.renderable {
+            val hullboxMaterial = Material()
+            hullboxMaterial.ambient = Vector3f(0.6f, 0.6f, 0.6f)
+            hullboxMaterial.diffuse = Vector3f(0.4f, 0.4f, 0.4f)
+            hullboxMaterial.specular = Vector3f(0.0f, 0.0f, 0.0f)
+            hullboxMaterial.cullingMode = Material.CullingMode.Front
+            material = hullboxMaterial
+        }
 
         scene.addChild(hullbox)
 
@@ -90,10 +98,14 @@ class VRControllerExample : SceneryBase(VRControllerExample::class.java.simpleNa
                         // an intersection with a box, that box is slightly nudged in the direction
                         // of the controller's velocity.
                         controller.update.add {
-                            boxes.forEach { it.material.diffuse = Vector3f(0.9f, 0.5f, 0.5f) }
-                            boxes.filter { box -> controller.children.first().intersects(box) }.forEach { box ->
-                                box.material.diffuse = Vector3f(1.0f, 0.0f, 0.0f)
-                                box.position = (device.velocity ?: Vector3f(0.0f)) * 0.05f + box.position
+                            boxes.forEach { it.renderable()?.material?.diffuse = Vector3f(0.9f, 0.5f, 0.5f) }
+                            boxes.filter { box -> controller.children.first().spatial()?.intersects(box) ?: false }.forEach { box ->
+                                box.renderable {
+                                    material.diffuse = Vector3f(1.0f, 0.0f, 0.0f)
+                                }
+                                box.spatial {
+                                    position = (device.velocity ?: Vector3f(0.0f)) * 0.05f + position
+                                }
                             }
                         }
                     }

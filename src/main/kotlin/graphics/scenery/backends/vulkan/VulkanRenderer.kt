@@ -139,7 +139,7 @@ open class VulkanRenderer(hub: Hub,
         }
     }
 
-    private val lateResizeInitializers = ConcurrentHashMap<Node, () -> Any>()
+    private val lateResizeInitializers = ConcurrentHashMap<Renderable, () -> Any>()
 
     inner class SwapchainRecreator {
         var mustRecreate = true
@@ -747,7 +747,7 @@ open class VulkanRenderer(hub: Hub,
                 initializeNode(node)
             }
 
-        scene.initialized = true
+        scene.renderable().initialized = true
         logger.info("Scene initialization complete, took ${(System.nanoTime() - start)/10e6} ms.")
     }
 
@@ -761,9 +761,11 @@ open class VulkanRenderer(hub: Hub,
 
     fun updateNodeGeometry(node: Node) {
         val renderable = node.renderable() ?: return
-        if (renderable is HasGeometry && renderable.vertices.remaining() > 0) {
-            renderable.rendererMetadata()?.let { s ->
-                VulkanNodeHelpers.createVertexBuffers(device, node, s, stagingPool, geometryPool, commandPools, queue)
+        node.geometry {
+            if (vertices.remaining() > 0) {
+                renderable.rendererMetadata()?.let { s ->
+                    VulkanNodeHelpers.createVertexBuffers(device, node, s, stagingPool, geometryPool, commandPools, queue)
+                }
             }
         }
     }
@@ -811,7 +813,7 @@ open class VulkanRenderer(hub: Hub,
             renderable.metadata["VulkanRenderer"] = VulkanObjectState()
         }
 
-        var s: VulkanObjectState = renderable.rendererMetadata() ?: throw IllegalStateException("Node ${renderable.name} does not contain metadata object")
+        var s: VulkanObjectState = renderable.rendererMetadata() ?: throw IllegalStateException("Node ${node.name} does not contain metadata object")
 
         if(renderable.state != State.Ready) {
             logger.info("Not initialising node $renderable because state=${renderable.state}")
@@ -822,13 +824,13 @@ open class VulkanRenderer(hub: Hub,
 
         s.flags.add(RendererFlags.Seen)
 
-        if(renderable is HasGeometry) {
-            logger.debug("Initializing geometry for ${renderable.name} (${(renderable as HasGeometry).vertices.remaining() / renderable.vertexSize} vertices/${renderable.indices.remaining()} indices)")
+        node.geometry {
+            logger.debug("Initializing geometry for ${node.name} (${vertices.remaining() / vertexSize} vertices/${indices.remaining()} indices)")
             // determine vertex input type
             s.vertexInputType = when {
-                renderable.vertices.remaining() > 0 && renderable.normals.remaining() > 0 && renderable.texcoords.remaining() > 0 -> VertexDataKinds.PositionNormalTexcoord
-                renderable.vertices.remaining() > 0 && renderable.normals.remaining() > 0 && renderable.texcoords.remaining() == 0 -> VertexDataKinds.PositionNormal
-                renderable.vertices.remaining() > 0 && renderable.normals.remaining() == 0 && renderable.texcoords.remaining() > 0 -> VertexDataKinds.PositionTexcoords
+                vertices.remaining() > 0 && normals.remaining() > 0 && texcoords.remaining() > 0 -> VertexDataKinds.PositionNormalTexcoord
+                vertices.remaining() > 0 && normals.remaining() > 0 && texcoords.remaining() == 0 -> VertexDataKinds.PositionNormal
+                vertices.remaining() > 0 && normals.remaining() == 0 && texcoords.remaining() > 0 -> VertexDataKinds.PositionTexcoords
                 else -> VertexDataKinds.PositionNormalTexcoord
             }
 
@@ -866,8 +868,10 @@ open class VulkanRenderer(hub: Hub,
         val matricesUbo = VulkanUBO(device, backingBuffer = buffers.UBOs)
         with(matricesUbo) {
             name = "Matrices"
-            add("ModelMatrix", { renderable.world })
-            add("NormalMatrix", { Matrix4f(renderable.world).invert().transpose() })
+            node.spatial {
+                add("ModelMatrix", { world })
+                add("NormalMatrix", { Matrix4f(world).invert().transpose() })
+            }
             add("isBillboard", { renderable.isBillboard.toInt() })
 
             createUniformBuffer()
@@ -877,17 +881,17 @@ open class VulkanRenderer(hub: Hub,
         }
 
         try {
-            VulkanNodeHelpers.initializeCustomShadersForNode(device, renderable, true, renderpasses, lateResizeInitializers, buffers)
+            VulkanNodeHelpers.initializeCustomShadersForNode(device, node, true, renderpasses, lateResizeInitializers, buffers)
         } catch (e: ShaderCompilationException) {
             logger.error("Compilation of custom shader failed: ${e.message}")
-            logger.error("Node ${renderable.name} will use default shader for render pass.")
+            logger.error("Node ${node.name} will use default shader for render pass.")
 
             if (logger.isDebugEnabled) {
                 e.printStackTrace()
             }
         }
 
-        val (_, descriptorUpdated) = VulkanNodeHelpers.loadTexturesForNode(device, renderable, s, defaultTextures, textureCache, commandPools, queue)
+        val (_, descriptorUpdated) = VulkanNodeHelpers.loadTexturesForNode(device, node, s, defaultTextures, textureCache, commandPools, queue)
         if(descriptorUpdated) {
             s.texturesToDescriptorSets(device,
                 renderpasses.filter { it.value.passConfig.type != RenderConfigReader.RenderpassType.quad },
@@ -926,13 +930,13 @@ open class VulkanRenderer(hub: Hub,
             return
         }
 
-        lateResizeInitializers.remove(node)
+        lateResizeInitializers.remove(node.renderable())
         renderable?.initialized = false
 
         renderable?.rendererMetadata()?.UBOs?.forEach { it.value.second.close() }
 
-        if (renderable is HasGeometry) {
-            renderable.rendererMetadata()?.vertexBuffers?.forEach {
+        node.geometry {
+            renderable?.rendererMetadata()?.vertexBuffers?.forEach {
                 it.value.close()
             }
         }
@@ -1126,7 +1130,7 @@ open class VulkanRenderer(hub: Hub,
         val attributeDescs = template.attributeDescription
         val bindingDescs = template.bindingDescription
 
-        val formatsAndAttributeSizes = node.properties.getFormatsAndRequiredAttributeSize()
+        val formatsAndAttributeSizes = node.instancedProperties.getFormatsAndRequiredAttributeSize()
         val newAttributesNeeded = formatsAndAttributeSizes.map { it.elementCount }.sum()
 
         val newAttributeDesc = VkVertexInputAttributeDescription
@@ -1146,7 +1150,7 @@ open class VulkanRenderer(hub: Hub,
         position = 3
         offset = 0
 
-        formatsAndAttributeSizes.zip(node.properties.toList().reversed()).forEach {
+        formatsAndAttributeSizes.zip(node.instancedProperties.toList().reversed()).forEach {
             val attribInfo = it.first
             val property = it.second
 
@@ -1495,7 +1499,7 @@ open class VulkanRenderer(hub: Hub,
         val stats = hub?.get(SceneryElement.Statistics) as? Statistics
 
         // check whether scene is already initialized
-        if (scene.children.count() == 0 || !scene.initialized) {
+        if (scene.children.count() == 0 || !scene.renderable().initialized) {
             initializeScene()
 
             delay(200)
@@ -1551,7 +1555,7 @@ open class VulkanRenderer(hub: Hub,
                 // if a node is not initialized yet, it'll be initialized here and it's UBO updated
                 // in the next round
                 if (renderable.rendererMetadata() == null || renderable.state == State.Created || renderable.rendererMetadata()?.initialized == false) {
-                    logger.debug("${renderable.name} is not initialized, doing that now")
+                    logger.debug("${node.name} is not initialized, doing that now")
                     renderable.metadata["VulkanRenderer"] = VulkanObjectState()
                     initializeNode(node)
 
@@ -1569,15 +1573,17 @@ open class VulkanRenderer(hub: Hub,
                 // texturing of a given node have changed, as these might change pipelines or descriptor sets, leading
                 // to the original command buffer becoming obsolete.
                 renderable.rendererMetadata()?.let { metadata ->
-                    if (renderable.dirty) {
-                        logger.debug("Force command buffer re-recording, as geometry for {} has been updated", renderable.name)
+                    node.geometry {
+                        if (dirty) {
+                            logger.debug("Force command buffer re-recording, as geometry for {} has been updated", node.name)
 
-                        renderable.preUpdate(this@VulkanRenderer, hub)
-                        updateNodeGeometry(node)
-                        renderable.dirty = false
+                            renderable.preUpdate(this@VulkanRenderer, hub)
+                            updateNodeGeometry(node)
+                            dirty = false
 
-                        rerecordingCauses.add(renderable.name)
-                        forceRerecording = true
+                            rerecordingCauses.add(node.name)
+                            forceRerecording = true
+                        }
                     }
 
                     // this covers cases where a master node is not given any instanced properties in the beginning
@@ -1591,14 +1597,14 @@ open class VulkanRenderer(hub: Hub,
 
                     val material = renderable.material
                     val reloadTime = measureTimeMillis {
-                        val (texturesUpdatedForNode, descriptorUpdated) = VulkanNodeHelpers.loadTexturesForNode(device, renderable, metadata, defaultTextures, textureCache, commandPools, queue)
+                        val (texturesUpdatedForNode, descriptorUpdated) = VulkanNodeHelpers.loadTexturesForNode(device, node, metadata, defaultTextures, textureCache, commandPools, queue)
                         if(descriptorUpdated) {
                             metadata.texturesToDescriptorSets(device,
                                 renderpasses.filter { it.value.passConfig.type != RenderConfigReader.RenderpassType.quad },
                                 renderable)
 
-                            logger.trace("Force command buffer re-recording, as reloading textures for ${renderable.name}")
-                            rerecordingCauses.add(renderable.name)
+                            logger.trace("Force command buffer re-recording, as reloading textures for ${node.name}")
+                            rerecordingCauses.add(node.name)
                             forceRerecording = true
                         }
 
@@ -1610,7 +1616,7 @@ open class VulkanRenderer(hub: Hub,
                     }
 
                     if (material.materialHashCode() != metadata.materialHashCode || (material is ShaderMaterial && material.shaders.stale)) {
-                        val reloaded = VulkanNodeHelpers.initializeCustomShadersForNode(device, renderable, true, renderpasses, lateResizeInitializers, buffers)
+                        val reloaded = VulkanNodeHelpers.initializeCustomShadersForNode(device, node, true, renderpasses, lateResizeInitializers, buffers)
                         logger.debug("{}: Material is stale, re-recording, reloaded={}", node.name, reloaded)
                         metadata.materialHashCode = renderable.material.materialHashCode()
 
@@ -1621,7 +1627,7 @@ open class VulkanRenderer(hub: Hub,
                                 renderable)
                         }
 
-                        rerecordingCauses.add(renderable.name)
+                        rerecordingCauses.add(node.name)
                         forceRerecording = true
 
                         (material as? ShaderMaterial)?.shaders?.stale = false
@@ -1934,7 +1940,7 @@ open class VulkanRenderer(hub: Hub,
                 wantAligned = true))
     }
 
-    private fun Node.rendererMetadata(): VulkanObjectState? {
+    private fun Renderable.rendererMetadata(): VulkanObjectState? {
         return this.metadata["VulkanRenderer"] as? VulkanObjectState
     }
 
@@ -1983,7 +1989,8 @@ open class VulkanRenderer(hub: Hub,
         // sticky boolean
         var updated: Boolean by StickyBoolean(initial = false)
 
-        if (!cam.lock.tryLock()) {
+
+        if (!cam.renderable().lock.tryLock()) {
             return@runBlocking false
         }
 
@@ -1998,26 +2005,27 @@ open class VulkanRenderer(hub: Hub,
             }
         }
 
-        cam.view = cam.getTransformation()
-//        cam.updateWorld(true, false)
+        val camSpatial = cam.spatial()
+        camSpatial.view = cam.getTransformation()
+//        camSpatial.updateWorld(true, false)
 
         buffers.VRParameters.reset()
         val vrUbo = defaultUBOs["VRParameters"]!!
         vrUbo.add("projection0", {
             (hmd?.getEyeProjection(0, cam.nearPlaneDistance, cam.farPlaneDistance)
-                ?: cam.projection).applyVulkanCoordinateSystem()
+                ?: camSpatial.projection).applyVulkanCoordinateSystem()
         })
         vrUbo.add("projection1", {
             (hmd?.getEyeProjection(1, cam.nearPlaneDistance, cam.farPlaneDistance)
-                ?: cam.projection).applyVulkanCoordinateSystem()
+                ?: camSpatial.projection).applyVulkanCoordinateSystem()
         })
         vrUbo.add("inverseProjection0", {
             (hmd?.getEyeProjection(0, cam.nearPlaneDistance, cam.farPlaneDistance)
-                ?: cam.projection).applyVulkanCoordinateSystem().invert()
+                ?: camSpatial.projection).applyVulkanCoordinateSystem().invert()
         })
         vrUbo.add("inverseProjection1", {
             (hmd?.getEyeProjection(1, cam.nearPlaneDistance, cam.farPlaneDistance)
-                ?: cam.projection).applyVulkanCoordinateSystem().invert()
+                ?: camSpatial.projection).applyVulkanCoordinateSystem().invert()
         })
         vrUbo.add("headShift", { hmd?.getHeadToEyeTransform(0) ?: Matrix4f().identity() })
         vrUbo.add("IPD", { hmd?.getIPD() ?: 0.05f })
@@ -2030,6 +2038,7 @@ open class VulkanRenderer(hub: Hub,
 
         sceneUBOs.forEach { node ->
             val renderable = node.renderable() ?: return@forEach
+            val spatial = node.spatial()
             renderable.lock.withLock {
                 var nodeUpdated: Boolean by StickyBoolean(initial = false)
 
@@ -2047,9 +2056,9 @@ open class VulkanRenderer(hub: Hub,
                 ubo.offsets.put(0, bufferOffset)
                 ubo.offsets.limit(1)
 
-//                renderable.projection.copyFrom(cam.projection.applyVulkanCoordinateSystem())
+//                spatial.projection.copyFrom(cam.projection.applyVulkanCoordinateSystem())
 
-                renderable.view.set(cam.view)
+                spatial?.view?.set(camSpatial.view)
 
                 nodeUpdated = ubo.populate(offset = bufferOffset.toLong())
 
@@ -2069,8 +2078,8 @@ open class VulkanRenderer(hub: Hub,
                     propertyUbo.offsets.limit(1)
                 }
 
-                if(nodeUpdated && renderable.getScene()?.onNodePropertiesChanged?.isNotEmpty() == true) {
-                    GlobalScope.launch { renderable.getScene()?.onNodePropertiesChanged?.forEach { it.value.invoke(renderable) } }
+                if(nodeUpdated && node.getScene()?.onNodePropertiesChanged?.isNotEmpty() == true) {
+                    GlobalScope.launch { node.getScene()?.onNodePropertiesChanged?.forEach { it.value.invoke(node) } }
                 }
 
                 updated = nodeUpdated
@@ -2085,9 +2094,9 @@ open class VulkanRenderer(hub: Hub,
         lightUbo.add("ViewMatrix1", { cam.getTransformationForEye(1) })
         lightUbo.add("InverseViewMatrix0", { cam.getTransformationForEye(0).invert() })
         lightUbo.add("InverseViewMatrix1", { cam.getTransformationForEye(1).invert() })
-        lightUbo.add("ProjectionMatrix", { cam.projection.applyVulkanCoordinateSystem() })
-        lightUbo.add("InverseProjectionMatrix", { cam.projection.applyVulkanCoordinateSystem().invert() })
-        lightUbo.add("CamPosition", { cam.position })
+        lightUbo.add("ProjectionMatrix", { camSpatial.projection.applyVulkanCoordinateSystem() })
+        lightUbo.add("InverseProjectionMatrix", { camSpatial.projection.applyVulkanCoordinateSystem().invert() })
+        lightUbo.add("CamPosition", { camSpatial.position })
 
         updated = lightUbo.populate()
 
@@ -2095,7 +2104,7 @@ open class VulkanRenderer(hub: Hub,
 
 //        updateDescriptorSets()
 
-        cam.lock.unlock()
+        cam.renderable().lock.unlock()
 
         return@runBlocking updated
     }
@@ -2161,7 +2170,7 @@ open class VulkanRenderer(hub: Hub,
             destroyNode(it)
         }
         scene.metadata.remove("DescriptorCache")
-        scene.initialized = false
+        scene.renderable().initialized = false
 
         logger.debug("Closing buffers...")
         buffers.LightParameters.close()

@@ -12,6 +12,8 @@ import org.joml.Vector3f
  */
 open class Skybox : Box(Vector3f(50.0f, 50.0f, 50.0f)) {
     init {
-        material = ShaderMaterial.fromFiles("Skybox.vert", "DefaultDeferred.frag")
+        renderable {
+            material = ShaderMaterial.fromFiles("Skybox.vert", "DefaultDeferred.frag")
+        }
     }
 }

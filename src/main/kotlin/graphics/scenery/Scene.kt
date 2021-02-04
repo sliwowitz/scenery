@@ -21,7 +21,7 @@ import kotlin.streams.asSequence
  *
  * @author Ulrik Günther <hello@ulrik.is>
  */
-open class Scene : RenderableNode("RootNode") {
+open class Scene : DefaultNode("RootNode"), HasRenderable, HasSpatial {
 
     /** Temporary storage of the active observer ([Camera]) of the Scene. */
     var activeObserver: Camera? = null
@@ -204,8 +204,12 @@ open class Scene : RenderableNode("RootNode") {
 
             for(it in 5..50) {
                 val s = Box(Vector3f(0.08f, 0.08f, 0.08f))
-                s.material = indicatorMaterial
-                s.position = position + direction * it.toFloat()
+                s.renderable {
+                    material = indicatorMaterial
+                }
+                s.spatial{
+                    this.position = position + direction * it.toFloat()
+                }
                 this.addChild(s)
             }
         }
@@ -218,7 +222,7 @@ open class Scene : RenderableNode("RootNode") {
             else
                 Stream.of(it)).asSequence()
         }.map {
-            Pair(it, it.intersectAABB(position, direction))
+            Pair(it, it.spatial()?.intersectAABB(position, direction))
         }.filter {
             it.first !is InstancedNode
         }.filter {
@@ -238,7 +242,9 @@ open class Scene : RenderableNode("RootNode") {
             m.ambient = Vector3f(0.0f, 0.0f, 0.0f)
 
             matches.firstOrNull()?.let {
-                it.node.material = m
+                it.node.renderable {
+                    material = m
+                }
             }
         }
 

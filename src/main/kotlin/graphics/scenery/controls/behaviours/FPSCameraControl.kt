@@ -78,23 +78,24 @@ open class FPSCameraControl(private val name: String, private val n: () -> Camer
      * @param[y] y position in window
      */
     @Synchronized override fun drag(x: Int, y: Int) {
-        if(node?.lock?.tryLock() != true) {
+        if(node?.renderable()?.lock?.tryLock() != true) {
             return
         }
-
-        var xoffset: Float = (x - lastX).toFloat() * mouseSpeedMultiplier
-        var yoffset: Float = (y - lastY).toFloat() * mouseSpeedMultiplier
 
         lastX = x
         lastY = y
 
-        val frameYaw = xoffset
-        val framePitch = yoffset
+        node?.spatial {
+            val xoffset: Float = (x - lastX).toFloat() * mouseSpeedMultiplier
+            val yoffset: Float = (y - lastY).toFloat() * mouseSpeedMultiplier
+            val frameYaw = xoffset
+            val framePitch = yoffset
 
-        val yawQ = Quaternionf().rotateXYZ(0.0f, frameYaw/180.0f*Math.PI.toFloat(), 0.0f)
-        val pitchQ = Quaternionf().rotateXYZ(framePitch/180.0f*Math.PI.toFloat(), 0.0f, 0.0f)
-        node?.rotation = pitchQ.mul(node?.rotation).mul(yawQ).normalize()
+            val yawQ = Quaternionf().rotateXYZ(0.0f, frameYaw/180.0f*Math.PI.toFloat(), 0.0f)
+            val pitchQ = Quaternionf().rotateXYZ(framePitch/180.0f*Math.PI.toFloat(), 0.0f, 0.0f)
+            rotation = pitchQ.mul(rotation).mul(yawQ).normalize()
+        }
 
-        node?.lock?.unlock()
+        node?.renderable()?.lock?.unlock()
     }
 }

@@ -1,15 +1,14 @@
 package graphics.scenery.backends.vulkan
 
-import org.joml.Vector3f
 import graphics.scenery.GeometryType
 import graphics.scenery.Node
 import graphics.scenery.Renderable
-import graphics.scenery.RenderableNode
 import graphics.scenery.Settings
 import graphics.scenery.backends.*
 import graphics.scenery.utils.LazyLogger
 import graphics.scenery.utils.RingBuffer
 import org.joml.Vector2f
+import org.joml.Vector3f
 import org.joml.Vector4f
 import org.lwjgl.system.MemoryUtil.*
 import org.lwjgl.vulkan.*

@@ -29,7 +29,9 @@ class RAIExample: SceneryBase("RAI Rendering example", 1280, 720) {
         with(cam) {
             perspectiveCamera(50.0f, windowWidth, windowHeight)
 
-            position = Vector3f(0.0f, 0.0f, 5.0f)
+            spatial {
+                position = Vector3f(0.0f, 0.0f, 5.0f)
+            }
             scene.addChild(this)
         }
 
@@ -41,17 +43,21 @@ class RAIExample: SceneryBase("RAI Rendering example", 1280, 720) {
         scene.addChild(volume)
 
         val shell = Box(Vector3f(10.0f, 10.0f, 10.0f), insideNormals = true)
-        shell.material.cullingMode = Material.CullingMode.None
-        shell.material.diffuse = Vector3f(0.2f, 0.2f, 0.2f)
-        shell.material.specular = Vector3f(0.0f)
-        shell.material.ambient = Vector3f(0.0f)
+        shell.renderable {
+            material.cullingMode = Material.CullingMode.None
+            material.diffuse = Vector3f(0.2f, 0.2f, 0.2f)
+            material.specular = Vector3f(0.0f)
+            material.ambient = Vector3f(0.0f)
+        }
         scene.addChild(shell)
 
         Light.createLightTetrahedron<PointLight>(spread = 4.0f, radius = 15.0f, intensity = 0.5f)
             .forEach { scene.addChild(it) }
 
         val origin = Box(Vector3f(0.1f, 0.1f, 0.1f))
-        origin.material.diffuse = Vector3f(0.8f, 0.0f, 0.0f)
+        origin.renderable {
+            material.diffuse = Vector3f(0.8f, 0.0f, 0.0f)
+        }
         scene.addChild(origin)
     }
 

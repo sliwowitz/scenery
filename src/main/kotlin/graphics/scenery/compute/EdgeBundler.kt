@@ -190,8 +190,12 @@ class EdgeBundler(override var hub: Hub?): Hubable {
     private fun makeLine(trackId: Int): Line {
         val line = Line(transparent = true, simple = false)
         line.name = trackId.toString()
-        line.material.blending.opacity = paramAlpha
-        line.position = Vector3f(0.0f, 0.0f, 0.0f)
+        line.renderable {
+            material.blending.opacity = paramAlpha
+        }
+        line.spatial {
+            position = Vector3f(0.0f, 0.0f, 0.0f)
+        }
         line.edgeWidth = 0.01f
         return line
     }
@@ -205,9 +209,13 @@ class EdgeBundler(override var hub: Hub?): Hubable {
     private fun makeLinePair(trackId: Int): LinePair {
         val line = LinePair(transparent = true)
         line.name = trackId.toString()
-        line.material.blending.opacity = paramAlpha
-        line.material.depthTest = Material.DepthTest.Always
-        line.position = Vector3f(0.0f, 0.0f, 0.0f)
+        line.renderable {
+            material.blending.opacity = paramAlpha
+            material.depthTest = Material.DepthTest.Always
+        }
+        line.spatial {
+            position = Vector3f(0.0f, 0.0f, 0.0f)
+        }
         line.edgeWidth = 0.01f
         return line
     }
@@ -608,19 +616,21 @@ class EdgeBundler(override var hub: Hub?): Hubable {
     private fun loadTrajectoriesFromLines(lines: List<Line>) {
         val trackSetTemp: ArrayList<Array<PointWithMeta>> = ArrayList()
         lines.forEach { line ->
-            val track = Array<PointWithMeta>(line.vertices.limit() / 3) { _ -> PointWithMeta()}
-            line.vertices.rewind()
-            var i = 0
-            while(line.vertices.hasRemaining()) {
-                val point = PointWithMeta(line.vertices.get(),
-                    line.vertices.get(),
-                    line.vertices.get())
-                updateMinMax(point)
+            line.geometry {
+                val track = Array<PointWithMeta>(vertices.limit() / 3) { _ -> PointWithMeta()}
+                vertices.rewind()
+                var i = 0
+                while(vertices.hasRemaining()) {
+                    val point = PointWithMeta(vertices.get(),
+                        vertices.get(),
+                        vertices.get())
+                    updateMinMax(point)
 
-                track[i] = point
-                i++
+                    track[i] = point
+                    i++
+                }
+                trackSetTemp.add(track)
             }
-            trackSetTemp.add(track)
         }
 
         this.trackSetBundled = Array(trackSetTemp.size) {i -> trackSetTemp[i]}

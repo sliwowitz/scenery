@@ -25,13 +25,18 @@ class InfinitePlane : Mesh("InfinitePlane"), DisableFrustumCulling, RenderingOrd
     override var renderingOrder = Int.MAX_VALUE
 
     init {
-        vertices = BufferUtils.allocateFloatAndPut(FloatArray(6*3))
-        normals = BufferUtils.allocateFloatAndPut(FloatArray(6*3))
-        texcoords = BufferUtils.allocateFloatAndPut(FloatArray(6*2))
+        geometry {
+            vertices = BufferUtils.allocateFloatAndPut(FloatArray(6*3))
+            normals = BufferUtils.allocateFloatAndPut(FloatArray(6*3))
+            texcoords = BufferUtils.allocateFloatAndPut(FloatArray(6*2))
+        }
 
-        material = ShaderMaterial(Shaders.ShadersFromFiles(arrayOf("InfiniteGrid.vert", "InfiniteGrid.frag")))
-        material.blending.transparent = true
-        material.blending.setOverlayBlending()
-        material.cullingMode = Material.CullingMode.None
+        renderable {
+            material = ShaderMaterial(Shaders.ShadersFromFiles(arrayOf("InfiniteGrid.vert", "InfiniteGrid.frag")))
+            material.blending.transparent = true
+            material.blending.setOverlayBlending()
+            material.cullingMode = Material.CullingMode.None
+        }
+
     }
 }

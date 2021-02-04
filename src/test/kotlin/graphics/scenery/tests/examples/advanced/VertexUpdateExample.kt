@@ -21,19 +21,25 @@ class VertexUpdateExample : SceneryBase("VertexUpdateExample") {
 
         val cam: Camera = DetachedHeadCamera()
         with(cam) {
-            position = Vector3f(0.0f, 0.0f, 5.0f)
+            spatial {
+                position = Vector3f(0.0f, 0.0f, 5.0f)
+            }
             perspectiveCamera(70.0f, windowWidth, windowHeight, 1.0f, 1000.0f)
             scene.addChild(this)
         }
 
         val sphere = Sphere(2.0f, 50)
         with(sphere) {
-            material.ambient = Vector3f(1.0f, 1.0f, 1.0f)
-            material.diffuse = Vector3f(1.0f, 1.0f, 1.0f)
-            material.specular = Vector3f(1.0f, 1.0f, 1.0f)
-            material.cullingMode = Material.CullingMode.None
+            renderable {
+                material.ambient = Vector3f(1.0f, 1.0f, 1.0f)
+                material.diffuse = Vector3f(1.0f, 1.0f, 1.0f)
+                material.specular = Vector3f(1.0f, 1.0f, 1.0f)
+                material.cullingMode = Material.CullingMode.None
+            }
 
-            position = Vector3f(0.0f, 0.0f, 0.0f)
+            spatial {
+                position = Vector3f(0.0f, 0.0f, 0.0f)
+            }
 
             scene.addChild(this)
         }
@@ -41,7 +47,9 @@ class VertexUpdateExample : SceneryBase("VertexUpdateExample") {
         val lights = (0..2).map {
             PointLight(radius = 10.0f)
         }.mapIndexed { i, light ->
-            light.position = Vector3f(2.0f * i - 2.0f, 2.0f * i - 2.0f, 2.0f * i - 2.0f)
+            light.spatial {
+                position = Vector3f(2.0f * i - 2.0f, 2.0f * i - 2.0f, 2.0f * i - 2.0f)
+            }
             light.emissionColor = Vector3f(1.0f, 1.0f, 1.0f)
             light.intensity = 150f * (i + 1)
             light
@@ -54,13 +62,15 @@ class VertexUpdateExample : SceneryBase("VertexUpdateExample") {
 
         var ticks = 0
         thread {
-            while(!scene.initialized) {
+            while(!scene.renderable().initialized) {
                 Thread.sleep(200)
             }
 
             while (true) {
-                sphere.rotation.rotateY(0.01f)
-                sphere.needsUpdate = true
+                sphere.spatial {
+                    rotation.rotateY(0.01f)
+                    needsUpdate = true
+                }
                 ticks++
 
                 val vbuffer = ArrayList<Float>()
@@ -105,12 +115,13 @@ class VertexUpdateExample : SceneryBase("VertexUpdateExample") {
                     }
                 }
 
-                sphere.vertices = FloatBuffer.wrap(vbuffer.toFloatArray())
-                sphere.normals = FloatBuffer.wrap(nbuffer.toFloatArray())
-                sphere.recalculateNormals()
+                sphere.geometry {
+                    vertices = FloatBuffer.wrap(vbuffer.toFloatArray())
+                    normals = FloatBuffer.wrap(nbuffer.toFloatArray())
+                    recalculateNormals()
+                    dirty = true
+                }
                 sphere.boundingBox = sphere.generateBoundingBox()
-
-                sphere.dirty = true
 
                 Thread.sleep(20)
             }

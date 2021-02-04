@@ -1,48 +1,58 @@
 package graphics.scenery
 
+import org.joml.Matrix4f
 import java.util.concurrent.CopyOnWriteArrayList
 
-open class InstancedNode(template: Renderable, override var name: String = "InstancedNode") : DelegatesRendering(DelegationType.ForEachNode, template) {
+open class InstancedNode(template: Node) : DefaultNode("InstancedNode"), DelegatesRendering, DelegatesGeometry {
     /** instances */
     val instances = CopyOnWriteArrayList<Instance>()
     /** instanced properties */
-    val properties = LinkedHashMap<String, () -> Any>()
-    private var template: Renderable = template
+    val instancedProperties = LinkedHashMap<String, () -> Any>()
+    private val delegationType: DelegationType = DelegationType.ForEachNode
+    override fun getDelegationType(): DelegationType {
+        return delegationType
+    }
+
+    var template: Node? = template
         set(node) {
-            val instancedMaterial = ShaderMaterial.fromFiles("DefaultDeferredInstanced.vert", "DefaultDeferred.frag")
-            if(node.material.name.equals(Material.DefaultMaterial().name)) {
-                node.material = instancedMaterial
-            }
-            properties.put("ModelMatrix", node::model)
-            delegate = node
+//            val instancedMaterial = ShaderMaterial.fromFiles("DefaultDeferredInstanced.vert", "DefaultDeferred.frag")
+//            if(node.material.name.equals(Material.DefaultMaterial().name)) {
+//                node.material = instancedMaterial
+//            }
+            instancedProperties.put("ModelMatrix", { node?.spatial()?.model ?: Matrix4f() })
             field = node
         }
     //    val updateStrategy = // TODO make enum for different strategies -> one time, every second (or fixed time interval), each frame
 
     init {
-        boundingBox = this.template.generateBoundingBox()
-        this.template = template
+        boundingBox = template.generateBoundingBox()
+    }
+
+    override fun getDelegateRendering(): Renderable? {
+        return template?.renderable()
+    }
+    override fun getDelegateGeometry(): Geometry? {
+        return template?.geometry()
     }
 
     fun addInstance(): Instance {
         val node = Instance(this)
-        node.properties.put("ModelMatrix", node::world)
+        node.instanceProperties.put("ModelMatrix", { node.spatial().world })
         node.boundingBox = node.generateBoundingBox()
         instances.add(node)
         return node
     }
 
     override fun generateBoundingBox(): OrientedBoundingBox? {
-        //TODO generate joint boundingbox of all instances, set bounding box
-        this.boundingBox = template.generateBoundingBox()
-        return boundingBox
+        //TODO? generate joint boundingbox of all instances, set bounding box
+        return template?.generateBoundingBox()
     }
 
-    class Instance(val instancedParent : InstancedNode, override var name: String = "Instance") : Mesh(name) {
-        var properties = LinkedHashMap<String, () -> Any>()
+    class Instance(val instancedParent : InstancedNode, override var name: String = "Instance") : DefaultNode(name), HasRenderable, HasSpatial {
+        var instanceProperties = LinkedHashMap<String, () -> Any>()
 
         override fun generateBoundingBox(): OrientedBoundingBox? {
-            return instancedParent.template.generateBoundingBox()
+            return instancedParent.template?.generateBoundingBox()
         }
     }
 }

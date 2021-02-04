@@ -18,7 +18,7 @@ import org.joml.Vector4f
  *
  * @constructor Returns a TextBoard instance, with [fontFamily] and a declared [ShaderMaterial]
  */
-class TextBoard(font: String = "SourceSansPro-Regular.ttf", override var isBillboard: Boolean = false) : Mesh(), DisableFrustumCulling {
+class TextBoard(font: String = "SourceSansPro-Regular.ttf", isBillboard: Boolean = false) : Mesh(), DisableFrustumCulling {
 
     /** The text displayed on this font board */
     var text: String = ""
@@ -27,7 +27,7 @@ class TextBoard(font: String = "SourceSansPro-Regular.ttf", override var isBillb
                 field = value
 
                 needsPreUpdate = true
-                dirty = true
+                geometry().dirty = true
             }
         }
 
@@ -43,7 +43,9 @@ class TextBoard(font: String = "SourceSansPro-Regular.ttf", override var isBillb
                 field = value
 
                 needsPreUpdate = true
-                dirty = true
+                geometry {
+                    dirty = true
+                }
             }
         }
 
@@ -63,46 +65,58 @@ class TextBoard(font: String = "SourceSansPro-Regular.ttf", override var isBillb
     init {
         name = "TextBoard"
         fontFamily = font
-        material = ShaderMaterial.fromFiles("DefaultForward.vert", "TextBoard.frag")
-        material.blending.transparent = true
-        material.blending.sourceColorBlendFactor = Blending.BlendFactor.SrcAlpha
-        material.blending.destinationColorBlendFactor = Blending.BlendFactor.OneMinusSrcAlpha
-        material.blending.sourceAlphaBlendFactor = Blending.BlendFactor.One
-        material.blending.destinationAlphaBlendFactor = Blending.BlendFactor.Zero
-        material.blending.colorBlending = Blending.BlendOp.add
-        material.blending.alphaBlending = Blending.BlendOp.add
-        material.cullingMode = Material.CullingMode.None
+        renderable {
+            this.isBillboard = isBillboard
+            material = ShaderMaterial.fromFiles("DefaultForward.vert", "TextBoard.frag")
+            material.blending.transparent = true
+            material.blending.sourceColorBlendFactor = Blending.BlendFactor.SrcAlpha
+            material.blending.destinationColorBlendFactor = Blending.BlendFactor.OneMinusSrcAlpha
+            material.blending.sourceAlphaBlendFactor = Blending.BlendFactor.One
+            material.blending.destinationAlphaBlendFactor = Blending.BlendFactor.Zero
+            material.blending.colorBlending = Blending.BlendOp.add
+            material.blending.alphaBlending = Blending.BlendOp.add
+            material.cullingMode = Material.CullingMode.None
+        }
 
         needsPreUpdate = true
     }
 
-    override fun preUpdate(renderer: Renderer, hub: Hub?) {
-        if(!needsPreUpdate || hub == null) {
-            return
-        }
+    override fun createRenderable(): Renderable {
+        return object: DefaultRenderable() {
 
-        sdfCache.getOrPut(fontFamily,
-            { SDFFontAtlas(hub, fontFamily,
-                maxDistance = hub.get<Settings>(SceneryElement.Settings)?.get("sdf.MaxDistance") ?: 12) }).apply {
+            override fun preUpdate(renderer: Renderer, hub: Hub?) {
+                if(!needsPreUpdate || hub == null) {
+                    return
+                }
+
+                sdfCache.getOrPut(fontFamily,
+                    { SDFFontAtlas(hub, fontFamily,
+                        maxDistance = hub.get<Settings>(SceneryElement.Settings)?.get("sdf.MaxDistance") ?: 12) }).apply {
 
 
-            logger.debug("Updating mesh for text board {} to '{}'...", name, text)
-            val m = this.createMeshForString(text)
+                    logger.debug("Updating mesh for text board {} to '{}'...", name, text)
+                    val m = this.createMeshForString(text).geometry()
 
-            vertices = m.vertices
-            normals = m.normals
-            indices = m.indices
-            texcoords = m.texcoords
-            atlasSize = Vector2i(this.atlasWidth, this.atlasHeight)
+                    geometry {
+                        vertices = m.vertices
+                        normals = m.normals
+                        indices = m.indices
+                        texcoords = m.texcoords
+                    }
+                    atlasSize = Vector2i(this.atlasWidth, this.atlasHeight)
 
-            material.textures["diffuse"] = Texture(
-                Vector3i(atlasSize.x(), atlasSize.y(), 1),
-                channels = 1, contents = this.getAtlas(),
-                repeatUVW = RepeatMode.ClampToBorder.all(),
-                normalized = true,
-                mipmap = true)
+                    renderable {
+                        material.textures["diffuse"] = Texture(
+                            Vector3i(atlasSize.x(), atlasSize.y(), 1),
+                            channels = 1, contents = this@apply.getAtlas(),
+                            repeatUVW = RepeatMode.ClampToBorder.all(),
+                            normalized = true,
+                            mipmap = true)
+                    }
 
-            needsPreUpdate = false
+                    needsPreUpdate = false
+                }
+            }
         }
     }
 

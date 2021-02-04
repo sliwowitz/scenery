@@ -31,26 +31,26 @@ class TexturedCubeJavaExample extends SceneryBase {
         boxmaterial.getTextures().put("diffuse", Texture.fromImage(Image.fromResource("textures/helix.png", this.getClass())));
 
         final Box box = new Box(new Vector3f(1.0f, 1.0f, 1.0f), false);
-        box.setMaterial( boxmaterial );
-        box.setPosition( new Vector3f(0.0f, 0.0f, 0.0f) );
+        box.renderable().setMaterial( boxmaterial );
+        box.spatial().setPosition( new Vector3f(0.0f, 0.0f, 0.0f) );
 
         getScene().addChild(box);
 
         PointLight light = new PointLight(15.0f);
-        light.setPosition(new Vector3f(0.0f, 0.0f, 2.0f));
+        light.spatial().setPosition(new Vector3f(0.0f, 0.0f, 2.0f));
         light.setIntensity(5.0f);
         light.setEmissionColor(new Vector3f(1.0f, 1.0f, 1.0f));
         getScene().addChild(light);
 
         Camera cam = new DetachedHeadCamera();
-        cam.setPosition( new Vector3f(0.0f, 0.0f, 5.0f) );
+        cam.spatial().setPosition( new Vector3f(0.0f, 0.0f, 5.0f) );
         cam.perspectiveCamera(50.0f, getRenderer().getWindow().getWidth(), getRenderer().getWindow().getHeight(), 0.1f, 1000.0f);
         getScene().addChild(cam);
 
         Thread rotator = new Thread(() -> {
             while (true) {
-                box.getRotation().rotateY(0.01f);
-                box.setNeedsUpdate(true);
+                box.spatial().getRotation().rotateY(0.01f);
+                box.spatial().setNeedsUpdate(true);
 
                 try {
                     Thread.sleep(20);

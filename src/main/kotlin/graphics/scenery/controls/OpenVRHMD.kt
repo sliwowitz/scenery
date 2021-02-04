@@ -917,9 +917,13 @@ open class OpenVRHMD(val seated: Boolean = false, val useCompositor: Boolean = t
                 mesh.readFrom(path)
 
                 if (type == TrackedDeviceType.Controller) {
-                    mesh.material.diffuse = Vector3f(0.1f, 0.1f, 0.1f)
+                    mesh.renderable {
+                        material.diffuse = Vector3f(0.1f, 0.1f, 0.1f)
+                    }
                     mesh.children.forEach { c ->
-                        c.material.diffuse = Vector3f(0.1f, 0.1f, 0.1f)
+                        c.renderable {
+                            material.diffuse = Vector3f(0.1f, 0.1f, 0.1f)
+                        }
                     }
                 }
             }
@@ -1033,19 +1037,20 @@ open class OpenVRHMD(val seated: Boolean = false, val useCompositor: Boolean = t
 
         node.update.add {
             this.getPose(TrackedDeviceType.Controller).firstOrNull { it.name == device.name }?.let { controller ->
-
                 node.metadata["TrackedDevice"] = controller
-                node.wantsComposeModel = false
-                node.model.identity()
-                camera?.let {
-                    node.model.translate(it.position)
-                }
-                node.model.mul(controller.pose)
+                node.spatial {
+                    wantsComposeModel = false
+                    model.identity()
+                    camera?.let {
+                        model.translate(it.spatial().position)
+                    }
+                    model.mul(controller.pose)
 
 //                logger.info("Updating pose of $controller, ${node.model}")
 
-                node.needsUpdate = false
-                node.needsUpdateWorld = true
+                    needsUpdate = false
+                    needsUpdateWorld = true
+                }
             }
         }
     }

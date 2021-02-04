@@ -53,29 +53,30 @@ open class GamepadMovementControl(private val name: String,
             if (abs(value) < threshold) {
                 return
             }
-
-            if(cam is Camera) {
-                when (axis) {
-                    Component.Identifier.Axis.Y -> {
-                        cam.position = cam.position + cam.forward * -1.0f * value * speedMultiplier
+            cam.spatial {
+                if(cam is Camera) {
+                    when (axis) {
+                        Component.Identifier.Axis.Y -> {
+                            position = position + cam.forward * -1.0f * value * speedMultiplier
+                        }
+                        Component.Identifier.Axis.X -> {
+                            position = position + Vector3f(cam.forward).cross(cam.up).normalize() * value * speedMultiplier
+                        }
+                        Component.Identifier.Axis.Z -> {
+                            position = position + cam.up * value * speedMultiplier
+                        }
                     }
-                    Component.Identifier.Axis.X -> {
-                        cam.position = cam.position + Vector3f(cam.forward).cross(cam.up).normalize() * value * speedMultiplier
-                    }
-                    Component.Identifier.Axis.Z -> {
-                        cam.position = cam.position + cam.up * value * speedMultiplier
-                    }
-                }
-            } else {
-                when (axis) {
-                    Component.Identifier.Axis.Y -> {
-                        cam.position = cam.position + Vector3f(0.0f, 0.0f, -1.0f) * -1.0f * value * speedMultiplier
-                    }
-                    Component.Identifier.Axis.X -> {
-                        cam.position = cam.position + Vector3f(1.0f, 0.0f, 0.0f) * value * speedMultiplier
-                    }
-                    Component.Identifier.Axis.Z -> {
-                        cam.position = cam.position + Vector3f(0.0f, 1.0f, 0.0f) * value * speedMultiplier
+                } else {
+                    when (axis) {
+                        Component.Identifier.Axis.Y -> {
+                            position = position + Vector3f(0.0f, 0.0f, -1.0f) * -1.0f * value * speedMultiplier
+                        }
+                        Component.Identifier.Axis.X -> {
+                            position = position + Vector3f(1.0f, 0.0f, 0.0f) * value * speedMultiplier
+                        }
+                        Component.Identifier.Axis.Z -> {
+                            position = position + Vector3f(0.0f, 1.0f, 0.0f) * value * speedMultiplier
+                        }
                     }
                 }
             }

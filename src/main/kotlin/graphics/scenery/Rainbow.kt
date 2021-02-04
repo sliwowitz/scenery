@@ -57,7 +57,9 @@ class Rainbow {
         subProtein.children.forEach { ss ->
             ss.children.forEach { partialCurve ->
                 partialCurve.children.forEach {
-                    it.material.diffuse = colorList[listIndex]
+                    it.renderable {
+                        material.diffuse = colorList[listIndex]
+                    }
                     listIndex++
                 }
             }

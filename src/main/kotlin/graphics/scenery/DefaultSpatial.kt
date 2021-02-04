@@ -2,48 +2,19 @@ package graphics.scenery
 
 import graphics.scenery.utils.LazyLogger
 import graphics.scenery.utils.MaybeIntersects
-import graphics.scenery.utils.extensions.max
-import graphics.scenery.utils.extensions.minus
-import graphics.scenery.utils.extensions.plus
-import graphics.scenery.utils.extensions.times
-import graphics.scenery.utils.extensions.xyz
-import graphics.scenery.utils.extensions.xyzw
-import kotlinx.coroutines.GlobalScope
-import kotlinx.coroutines.launch
+import graphics.scenery.utils.extensions.*
 import net.imglib2.Localizable
 import net.imglib2.RealLocalizable
 import org.joml.Matrix4f
 import org.joml.Quaternionf
 import org.joml.Vector3f
 import org.joml.Vector4f
-import java.sql.Timestamp
-import java.util.*
-import java.util.concurrent.CopyOnWriteArrayList
-import java.util.function.Consumer
-import kotlin.math.max
-import kotlin.math.min
+import java.lang.Float.max
+import java.lang.Float.min
 import kotlin.properties.Delegates
 import kotlin.reflect.KProperty
 
-abstract class AbstractNode(override var name: String) : Node {
-
-    @Transient override var children = CopyOnWriteArrayList<Node>()
-    @Transient override var linkedNodes = CopyOnWriteArrayList<Node>()
-    @Transient override var metadata: HashMap<String, Any> = HashMap()
-    override var parent: Node? = null
-    override var createdAt = (Timestamp(Date().time).time)
-    override var modifiedAt = 0L
-    override var wantsComposeModel = true
-    override var needsUpdate = true
-    override var needsUpdateWorld = true
-    override var discoveryBarrier = false
-    override var boundingBox: OrientedBoundingBox? = null
-    override var update: ArrayList<() -> Unit> = ArrayList()
-    override var visible: Boolean = true
-        set(v) {
-            children.forEach { it.visible = v }
-            field = v
-        }
+open class DefaultSpatial(private var node: Node): SpaceAware {
     override var world: Matrix4f by Delegates.observable(Matrix4f().identity()) { property, old, new -> propertyChanged(property, old, new) }
     override var iworld: Matrix4f by Delegates.observable(Matrix4f().identity()) { property, old, new -> propertyChanged(property, old, new) }
     override var model: Matrix4f by Delegates.observable(Matrix4f().identity()) { property, old, new -> propertyChanged(property, old, new) }
@@ -58,21 +29,14 @@ abstract class AbstractNode(override var name: String) : Node {
     override var scale: Vector3f by Delegates.observable(Vector3f(1.0f, 1.0f, 1.0f)) { property, old, new -> propertyChanged(property, old, new) }
     override var rotation: Quaternionf by Delegates.observable(Quaternionf(0.0f, 0.0f, 0.0f, 1.0f)) { property, old, new -> propertyChanged(property, old, new) }
     override var position: Vector3f by Delegates.observable(Vector3f(0.0f, 0.0f, 0.0f)) { property, old, new -> propertyChanged(property, old, new) }
-    override var material: Material
-        set(m) {
-            renderable()?.material = m
-            renderable()?.needsUpdate = true
-            renderable()?.dirty = true
-        }
-        get() {
-            return renderable()!!.material
-        }
-    override var nodeType = "Node"
+    override var wantsComposeModel = true
+    override var needsUpdate = true
+    override var needsUpdateWorld = true
 
-    override val logger by LazyLogger()
+    val logger by LazyLogger()
 
     @Suppress("UNUSED_PARAMETER")
-    protected fun <R> propertyChanged(property: KProperty<*>, old: R, new: R, custom: String = "") {
+    override fun <R> propertyChanged(property: KProperty<*>, old: R, new: R, custom: String) {
         if(property.name == "rotation"
             || property.name == "position"
             || property.name  == "scale"
@@ -82,111 +46,8 @@ abstract class AbstractNode(override var name: String) : Node {
         }
     }
 
-    private var uuid: UUID = UUID.randomUUID()
-
-    override fun getUuid(): UUID {
-        return uuid
-    }
-
-    override fun addChild(child: Node) {
-        child.parent = this
-        this.children.add(child)
-
-        val scene = this.getScene() ?: return
-        scene.sceneSize.incrementAndGet()
-        if(scene.onChildrenAdded.isNotEmpty()) {
-            GlobalScope.launch {
-                scene.onChildrenAdded.forEach { it.value.invoke(this@AbstractNode, child) }
-            }
-        }
-    }
-
-    override fun removeChild(child: Node): Boolean {
-        this.getScene()?.sceneSize?.decrementAndGet()
-        GlobalScope.launch { this@AbstractNode.getScene()?.onChildrenRemoved?.forEach { it.value.invoke(this@AbstractNode, child) } }
-
-        return this.children.remove(child)
-    }
-
-    override fun removeChild(name: String): Boolean {
-        for (c in this.children) {
-            if (c.name.compareTo(name) == 0) {
-                c.parent = null
-                this.children.remove(c)
-                return true
-            }
-        }
-
-        return false
-    }
-
-    override fun getChildrenByName(name: String): List<Node> {
-        return children.filter { it.name == name }
-    }
-
-    override fun generateBoundingBox(): OrientedBoundingBox? {
-        if (this is HasGeometry) {
-            val vertexBufferView = vertices.asReadOnlyBuffer()
-            val boundingBoxCoords = floatArrayOf(0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f)
-
-            if (vertexBufferView.capacity() == 0 || vertexBufferView.remaining() == 0) {
-                boundingBox = if(!children.none()) {
-                    getMaximumBoundingBox()
-                } else {
-                    logger.warn("$name: Zero vertices currently, returning empty bounding box")
-                    OrientedBoundingBox(this,0.0f, 0.0f, 0.0f,
-                        0.0f, 0.0f, 0.0f)
-                }
-
-                return boundingBox
-            } else {
-
-                val vertex = floatArrayOf(0.0f, 0.0f, 0.0f)
-                vertexBufferView.get(vertex)
-
-                boundingBoxCoords[0] = vertex[0]
-                boundingBoxCoords[1] = vertex[0]
-
-                boundingBoxCoords[2] = vertex[1]
-                boundingBoxCoords[3] = vertex[1]
-
-                boundingBoxCoords[4] = vertex[2]
-                boundingBoxCoords[5] = vertex[2]
-
-                while(vertexBufferView.remaining() >= 3) {
-                    vertexBufferView.get(vertex)
-
-                    boundingBoxCoords[0] = minOf(boundingBoxCoords[0], vertex[0])
-                    boundingBoxCoords[2] = minOf(boundingBoxCoords[2], vertex[1])
-                    boundingBoxCoords[4] = minOf(boundingBoxCoords[4], vertex[2])
-
-                    boundingBoxCoords[1] = maxOf(boundingBoxCoords[1], vertex[0])
-                    boundingBoxCoords[3] = maxOf(boundingBoxCoords[3], vertex[1])
-                    boundingBoxCoords[5] = maxOf(boundingBoxCoords[5], vertex[2])
-                }
-
-                logger.debug("$name: Calculated bounding box with ${boundingBoxCoords.joinToString(", ")}")
-                return OrientedBoundingBox(this, Vector3f(boundingBoxCoords[0], boundingBoxCoords[2], boundingBoxCoords[4]),
-                    Vector3f(boundingBoxCoords[1], boundingBoxCoords[3], boundingBoxCoords[5])
-                )
-            }
-        } else {
-            logger.warn("$name: Assuming 3rd party BB generation")
-            return boundingBox
-        }
-    }
-
-    override fun getScene(): Scene? {
-        var p: Node? = this
-        while(p !is Scene && p != null) {
-            p = p.parent
-        }
-        return p as? Scene
-    }
-
-
     @Synchronized override fun updateWorld(recursive: Boolean, force: Boolean) {
-        update.forEach { it.invoke() }
+        node.update.forEach { it.invoke() }
 
         if ((needsUpdate or force)) {
             if(wantsComposeModel) {
@@ -198,20 +59,20 @@ abstract class AbstractNode(override var name: String) : Node {
         }
 
         if (needsUpdateWorld or force) {
-            val p = parent?.renderable()
+            val p = node.parent
             if (p == null || p is Scene) {
                 world.set(model)
             } else {
-                world.set(p.world)
+                world.set(p.spatial()?.world)
                 world.mul(this.model)
             }
         }
 
         if (recursive) {
-            this.children.forEach { it.updateWorld(true, needsUpdateWorld) }
+            node.children.forEach { it.spatial()?.updateWorld(true, needsUpdateWorld) }
             // also update linked nodes -- they might need updated
             // model/view/proj matrices as well
-            this.linkedNodes.forEach { it.updateWorld(true, needsUpdateWorld) }
+            node.linkedNodes.forEach { it.spatial()?.updateWorld(true, needsUpdateWorld) }
         }
 
         if(needsUpdateWorld) {
@@ -224,6 +85,7 @@ abstract class AbstractNode(override var name: String) : Node {
      * [position], [scale] and [rotation].
      */
     open fun composeModel() {
+
         @Suppress("SENSELESS_COMPARISON")
         if(position != null && rotation != null && scale != null) {
             model.translationRotateScale(
@@ -234,11 +96,11 @@ abstract class AbstractNode(override var name: String) : Node {
     }
 
     override fun centerOn(position: Vector3f): Vector3f {
-        val min = getMaximumBoundingBox().min
-        val max = getMaximumBoundingBox().max
+        val min = node.getMaximumBoundingBox().min
+        val max = node.getMaximumBoundingBox().max
 
         val center = (max - min) * 0.5f
-        this.position = position - (getMaximumBoundingBox().min + center)
+        this.position = position - (node.getMaximumBoundingBox().min + center)
 
         return center
     }
@@ -254,8 +116,8 @@ abstract class AbstractNode(override var name: String) : Node {
     }
 
     override fun fitInto(sideLength: Float, scaleUp: Boolean): Vector3f {
-        val min = getMaximumBoundingBox().min.xyzw()
-        val max = getMaximumBoundingBox().max.xyzw()
+        val min = node.getMaximumBoundingBox().min.xyzw()
+        val max = node.getMaximumBoundingBox().max.xyzw()
 
         val maxDimension = (max - min).max()
         val scaling = sideLength/maxDimension
@@ -269,11 +131,7 @@ abstract class AbstractNode(override var name: String) : Node {
         return this.scale
     }
 
-    /**
-     * Orients the Node between points [p1] and [p2], and optionally
-     * [rescale]s and [reposition]s it.
-     */
-    @JvmOverloads fun orientBetweenPoints(p1: Vector3f, p2: Vector3f, rescale: Boolean = false, reposition: Boolean = false): Quaternionf {
+    override fun orientBetweenPoints(p1: Vector3f, p2: Vector3f, rescale: Boolean, reposition: Boolean): Quaternionf {
         val direction = p2 - p1
         val length = direction.length()
 
@@ -289,22 +147,9 @@ abstract class AbstractNode(override var name: String) : Node {
         return this.rotation
     }
 
-    override fun getMaximumBoundingBox(): OrientedBoundingBox {
-        if(boundingBox == null && children.size == 0) {
-            return OrientedBoundingBox(this,0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f)
-        }
-
-        if(children.none { it !is BoundingGrid }) {
-            return OrientedBoundingBox(this,boundingBox?.min ?: Vector3f(0.0f, 0.0f, 0.0f), boundingBox?.max ?: Vector3f(0.0f, 0.0f, 0.0f))
-        }
-
-        return children
-            .filter { it !is BoundingGrid  }.map { it.getMaximumBoundingBox().translate(it.position) }
-            .fold(boundingBox ?: OrientedBoundingBox(this, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f), { lhs, rhs -> lhs.expand(lhs, rhs) })
-    }
 
     override fun intersects(other: Node): Boolean {
-        boundingBox?.let { ownOBB ->
+        node.boundingBox?.let { ownOBB ->
             other.boundingBox?.let { otherOBB ->
                 return ownOBB.intersects(otherOBB)
             }
@@ -315,7 +160,7 @@ abstract class AbstractNode(override var name: String) : Node {
 
     override fun worldPosition(v: Vector3f?): Vector3f {
         val target = v ?: position
-        return if(parent is Scene && v == null) {
+        return if(node.parent is Scene && v == null) {
             Vector3f(target)
         } else {
             world.transform(Vector4f().set(target, 1.0f)).xyz()
@@ -332,8 +177,8 @@ abstract class AbstractNode(override var name: String) : Node {
      * Code adapted from [zachamarz](http://gamedev.stackexchange.com/a/18459).
      */
     override fun intersectAABB(origin: Vector3f, dir: Vector3f): MaybeIntersects {
-        val bbmin = getMaximumBoundingBox().min.xyzw()
-        val bbmax = getMaximumBoundingBox().max.xyzw()
+        val bbmin = node.getMaximumBoundingBox().min.xyzw()
+        val bbmax = node.getMaximumBoundingBox().max.xyzw()
 
         val min = world.transform(bbmin)
         val max = world.transform(bbmax)
@@ -380,18 +225,6 @@ abstract class AbstractNode(override var name: String) : Node {
             && this.z() > min.z() && this.z() < max.z()
     }
 
-    override fun runRecursive(func: (Node) -> Unit) {
-        func.invoke(this)
-
-        children.forEach { it.runRecursive(func) }
-    }
-
-    override fun runRecursive(func: Consumer<Node>) {
-        func.accept(this)
-
-        children.forEach { it.runRecursive(func) }
-    }
-
     override fun localize(position: FloatArray?) {
         position?.set(0, this.position.x())
         position?.set(1, this.position.y())
@@ -407,11 +240,6 @@ abstract class AbstractNode(override var name: String) : Node {
     override fun getFloatPosition(d: Int): Float {
         return this.position[d]
     }
-
-    override fun toString(): String {
-        return "$name(${javaClass.simpleName})"
-    }
-
 
     override fun bck(d: Int) {
         move(-1, d)

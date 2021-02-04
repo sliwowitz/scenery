@@ -259,7 +259,7 @@ open class SceneryBase @JvmOverloads constructor(var applicationName: String,
             scene.discover(scene, { n ->
                     n.visible && n.renderable()?.state == State.Ready
             }, useDiscoveryBarriers = true)
-                .map { it.updateWorld(recursive = true, force = false); it }
+                .map { it.spatial()?.updateWorld(recursive = true, force = false); it }
         }
 
         while (!shouldClose || gracePeriod > 0) {
@@ -279,7 +279,7 @@ open class SceneryBase @JvmOverloads constructor(var applicationName: String,
                 scene.discover(scene, { n ->
                         n.visible && n.renderable()?.state == State.Ready
                 }, useDiscoveryBarriers = true)
-                    .map { it.updateWorld(recursive = true, force = false); it }
+                    .map { it.spatial()?.updateWorld(recursive = true, force = false); it }
             }
             profiler?.end()
 
@@ -435,7 +435,7 @@ open class SceneryBase @JvmOverloads constructor(var applicationName: String,
      * Returns whether the current scene is done initialising.
      */
     fun sceneInitialized(): Boolean {
-        return scene.initialized
+        return scene.renderable().initialized
     }
 
     /**

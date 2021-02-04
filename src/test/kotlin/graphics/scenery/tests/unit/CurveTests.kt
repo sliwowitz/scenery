@@ -187,7 +187,7 @@ class CurveTests {
         }
         val emptyFloatBuffer = BufferUtils.createFloatBuffer(0)
         val curve = Curve(spline) { triangle(spline.controlPoints().size) }
-        assertEquals(curve.vertices, emptyFloatBuffer)
+        assertEquals(curve.geometry().vertices, emptyFloatBuffer)
     }
 
     /**

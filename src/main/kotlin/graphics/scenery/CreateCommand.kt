@@ -53,7 +53,9 @@ open class CreateCommand constructor(protected val name: String,
         val mousePosition = cam!!.viewportToView(Vector2f(posX, posY))
         val position4D = cam!!.viewToWorld(mousePosition)
         val position = Vector3f(position4D.x(), position4D.y(), position4D.z())
-        mesh.position = position
+        mesh.spatial {
+            this.position = position
+        }
         scene.addChild(mesh)
     }
 }
