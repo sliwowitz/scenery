@@ -235,10 +235,13 @@ class Curve(spline: Spline, private val firstPerpendicularVector: Vector3f = Vec
                 return verticesVectors
             }
             if (addCoverOrTop == 0 || addCoverOrTop == 1) {
-                verticesVectors.addAll(getCoverVertices(curveGeometry[0], true))
+                //TODO make cover vertices for strip
+                //verticesVectors.addAll(getCoverVertices(curveGeometry[0], true))
             }
             //if none of the lists in the curveGeometry differ in size, distinctBy leaves only one element
             if (curveGeometry.distinctBy { it.size }.size == 1) {
+                /*
+                NORMAL TRIANGLE:
                 curveGeometry.dropLast(1).forEachIndexed { shapeIndex, shape ->
                     shape.dropLast(1).forEachIndexed { vertexIndex, _ ->
 
@@ -258,30 +261,20 @@ class Curve(spline: Spline, private val firstPerpendicularVector: Vector3f = Vec
                     verticesVectors.add(curveGeometry[shapeIndex][shape.lastIndex])
                     verticesVectors.add(curveGeometry[shapeIndex][0])
                 }
+
+                 */
                 curveGeometry.dropLast(1).forEachIndexed{ shapeIndex, shape ->
                     //initialize the triangleStrip
-                    when (shapeIndex) {
-                        0 -> {
-                            //add the first triangle for the strip
-                            verticesVectors.add(curveGeometry[0][0])
-                            verticesVectors.add(curveGeometry[1][0])
-                            verticesVectors.add(curveGeometry[0][1])
-                            //add the remaining triangles, except for the last three
-                            shape.drop(1).dropLast(1).forEachIndexed { vertexIndex, _ ->
-                                verticesVectors.add(curveGeometry[1][vertexIndex])
-                                verticesVectors.add(curveGeometry[0][vertexIndex + 1])
-                            }
-                            //add last three triangles
-                            verticesVectors.add(curveGeometry[1][shape.lastIndex])
-                            verticesVectors.add(curveGeometry[0][0])
-                            verticesVectors.add(curveGeometry[1][0])
-                        }
-                        //add the rest of the triangles
-                        else -> {
-                            shape.drop(1).forEachIndexed{ vertexIndex, _ ->
-                                verticesVectors.add(curveGeometry[shapeIndex][vertexIndex])
-                                verticesVectors.add(curveGeometry[shapeIndex + 1][vertexIndex + 1])
-                            }
+                    verticesVectors.add(curveGeometry[0][0])
+                    //add the vertices in the right order for the triangle strip
+                    val size = shape.size
+                    shape.forEachIndexed{ vertexIndex, vertex ->
+                        (vertexIndex+1)%size
+                        verticesVectors.add(curveGeometry[shapeIndex+1][(vertexIndex+1)%size])
+                        verticesVectors.add(curveGeometry[shapeIndex][(vertexIndex+1)%size])
+                        if(vertexIndex == shape.lastIndex) {
+                            verticesVectors.add(curveGeometry[shapeIndex+1][1])
+                            verticesVectors.add(curveGeometry[shapeIndex+1][0])
                         }
                     }
                 }
@@ -289,7 +282,8 @@ class Curve(spline: Spline, private val firstPerpendicularVector: Vector3f = Vec
                 throw IllegalArgumentException("The baseShapes must not differ in size!")
             }
             if (addCoverOrTop == 0 || addCoverOrTop == 2) {
-                verticesVectors.addAll(getCoverVertices(curveGeometry.last(), false))
+                //TODO make cover vertices for strip
+                //verticesVectors.addAll(getCoverVertices(curveGeometry.last(), false))
             }
             return verticesVectors
         }
