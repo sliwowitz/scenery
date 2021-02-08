@@ -1,8 +1,5 @@
 package graphics.scenery
 
-import graphics.scenery.BufferUtils
-import graphics.scenery.HasGeometry
-import graphics.scenery.Mesh
 import graphics.scenery.utils.extensions.toFloatArray
 import org.joml.*
 import kotlin.Float.Companion.MIN_VALUE
@@ -111,10 +108,11 @@ class Curve(spline: Spline, private val firstPerpendicularVector: Vector3f = Vec
                 partialCurveGeometry.add(shapeVertexList)
             }
             val remainder = partialCurveGeometry.size%sectionVertices
-            val n = ((partialCurveGeometry.size)/sectionVertices).toInt()
+            val n = ((partialCurveGeometry.size)/sectionVertices)
             val add = if(n == 0) { 1 } else { remainder/n }
             partialCurveGeometry.windowed(sectionVertices + add, sectionVertices-1 + add, true)
             { section ->
+                /*
                 val i = when {
                     section.contains(partialCurveGeometry.first()) && section.contains(partialCurveGeometry.last()) -> {
                         0
@@ -129,7 +127,9 @@ class Curve(spline: Spline, private val firstPerpendicularVector: Vector3f = Vec
                         3
                     }
                 }
-                val partialCurveSectionVertices = calculateTriangles(section, i)
+
+                 */
+                val partialCurveSectionVertices = calculateTriangles(section)
                 val partialCurveSection = PartialCurve(partialCurveSectionVertices)
                 partialCurve.addChild(partialCurveSection)
             }
@@ -229,15 +229,18 @@ class Curve(spline: Spline, private val firstPerpendicularVector: Vector3f = Vec
          * the [curveGeometry] List which contains all the baseShapes transformed and translated
          * along the curve.
          */
-        fun calculateTriangles(curveGeometry: List<List<Vector3f>>, addCoverOrTop: Int = 2): ArrayList<Vector3f> {
+        fun calculateTriangles(curveGeometry: List<List<Vector3f>>): ArrayList<Vector3f> {
             val verticesVectors = ArrayList<Vector3f>(curveGeometry.flatten().size * 6 + curveGeometry[0].size + 1)
             if (curveGeometry.isEmpty()) {
                 return verticesVectors
             }
+            /*
             if (addCoverOrTop == 0 || addCoverOrTop == 1) {
                 //TODO make cover vertices for strip
                 //verticesVectors.addAll(getCoverVertices(curveGeometry[0], true))
             }
+
+             */
             //if none of the lists in the curveGeometry differ in size, distinctBy leaves only one element
             if (curveGeometry.distinctBy { it.size }.size == 1) {
                 /*
@@ -268,31 +271,34 @@ class Curve(spline: Spline, private val firstPerpendicularVector: Vector3f = Vec
                     verticesVectors.add(curveGeometry[0][0])
                     //add the vertices in the right order for the triangle strip
                     val size = shape.size
-                    shape.forEachIndexed{ vertexIndex, vertex ->
+                    shape.forEachIndexed{ vertexIndex, _ ->
                         (vertexIndex+1)%size
-                        verticesVectors.add(curveGeometry[shapeIndex+1][(vertexIndex+1)%size])
+                        verticesVectors.add(curveGeometry[shapeIndex+1][(vertexIndex)])
                         verticesVectors.add(curveGeometry[shapeIndex][(vertexIndex+1)%size])
                         if(vertexIndex == shape.lastIndex) {
-                            verticesVectors.add(curveGeometry[shapeIndex+1][1])
-                            verticesVectors.add(curveGeometry[shapeIndex+1][0])
+                            verticesVectors.add(curveGeometry[1][0])
+                            verticesVectors.add(curveGeometry[1][1])
                         }
                     }
                 }
             } else {
                 throw IllegalArgumentException("The baseShapes must not differ in size!")
             }
+            /*
             if (addCoverOrTop == 0 || addCoverOrTop == 2) {
                 //TODO make cover vertices for strip
                 //verticesVectors.addAll(getCoverVertices(curveGeometry.last(), false))
             }
+
+             */
             return verticesVectors
         }
 
         /**
         This function contains a generalized algorithm for the cover of a curve. It works like a pot and a lit. If you cover
         the bottom of a curve, the triangles should be arranged counterclockwise, for the top clockwise - this is signified
-        by [ccw].
-         */
+        by ccw.
+
         private fun getCoverVertices(list: List<Vector3f>, ccw: Boolean): ArrayList<Vector3f> {
             val size = list.size
             val verticesList = ArrayList<Vector3f>(size + (size / 2))
@@ -315,7 +321,7 @@ class Curve(spline: Spline, private val firstPerpendicularVector: Vector3f = Vec
                         verticesList.add(triangle[1])
                     } else {
                         for (i in 0..2) {
-                            verticesList.add(triangle[i])
+                            verticesList.add(trianglei)
                         }
                     }
                     newList.add(triangle[0])
@@ -324,6 +330,7 @@ class Curve(spline: Spline, private val firstPerpendicularVector: Vector3f = Vec
             }
             return verticesList
         }
+        */
     }
 
     /**

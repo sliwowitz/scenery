@@ -35,6 +35,7 @@ class CurveCatmullRomExample: SceneryBase("CurveCatmullRomExample", windowWidth 
                 list.add(Vector3f(0.03f, 0.03f, 0f))
                 list.add(Vector3f(0.03f, -0.03f, 0f))
                 list.add(Vector3f(-0.03f, -0.03f, 0f))
+                list.add(Vector3f(-0.03f,-0.03f, 0f))
                 shapeList.add(list)
             }
             return shapeList
