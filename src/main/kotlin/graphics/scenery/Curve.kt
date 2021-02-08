@@ -272,7 +272,6 @@ class Curve(spline: Spline, private val firstPerpendicularVector: Vector3f = Vec
                     //add the vertices in the right order for the triangle strip
                     val size = shape.size
                     shape.forEachIndexed{ vertexIndex, _ ->
-                        (vertexIndex+1)%size
                         verticesVectors.add(curveGeometry[shapeIndex+1][(vertexIndex)])
                         verticesVectors.add(curveGeometry[shapeIndex][(vertexIndex+1)%size])
                         if(vertexIndex == shape.lastIndex) {
