@@ -1,4 +1,5 @@
 @file:Suppress("DEPRECATION")
+@file:JvmMultifileClass
 
 package graphics.scenery.volumes
 
