@@ -61,6 +61,19 @@ class VRControllerExample : SceneryBase(VRControllerExample::class.java.simpleNa
 
         boxes.forEach { scene.addChild(it) }
 
+        val pivot = RichNode()
+        pivot.spatial().rotation.rotateLocalY(Math.PI.toFloat())
+        scene.addChild(pivot)
+
+        val longBox = Box(Vector3f(0.1f, 0.2f, 0.1f))
+        longBox.spatial {
+            position = Vector3f(-0.5f , 1.0f, 0f)
+        }
+        longBox.addAttribute(Grabable::class.java,Grabable())
+        longBox.addAttribute(Selectable::class.java,Selectable())
+        pivot.addChild(longBox)
+
+
         (0..5).map {
             val light = PointLight(radius = 15.0f)
             light.emissionColor = Random.random3DVectorFromRange(0.0f, 1.0f)
