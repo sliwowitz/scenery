@@ -31,5 +31,7 @@ enum class SceneryElement {
     /** Element for a REPL */
     REPL,
     /** AssetManager */
-    AssetManager
+    AssetManager,
+    /** WebSocketServer */
+    WebSocketServer
 }

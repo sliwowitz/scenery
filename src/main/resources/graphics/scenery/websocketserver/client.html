@@ -1,0 +1,294 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en">
+<head>
+    <meta charset="utf-8"/>
+    <title>Scenery WebSocket Client</title>
+    <style>
+        body {
+          background-color: #222;
+          color: #aaa;
+          font-family: sans-serif;
+        }
+        a {
+          color: #9af;
+          display: block;
+        }
+        #node_list {
+            border: 1px #9f9 solid;
+            padding: 1em;
+        }
+        #output {
+            border: 1px #9f9 solid;
+            padding: 1em;
+            font-family: monospace;
+        }
+        tr {
+            color: #ddd;
+        }
+        tr.header {
+            border-bottom: 1px #999 solid;
+            color: #aaa;
+            height: 6em;
+        }
+        tr.header td {
+            vertical-align: bottom;
+            text-align: center;
+        }
+        #nodes td {
+            padding: 0 0.2em;
+        }
+        td.spatial, td.geometry, td.renderable, td.material, td.grow, td.shrink {
+            text-align: center;
+            width: 2em;
+        }
+        td.grow a, td.shrink a, td.move a {
+            display: inline-block;
+            border: 1px #666 solid;
+            border-radius: 0.3em;
+            padding: 0 2px;
+            text-underline: none;
+            font-size: 110%;
+        }
+        td.grow a:hover, td.shrink a:hover, td.move a:hover {
+            background-color: #666;
+        }
+        td.bool {
+            width: 2em;
+            position: relative;
+        }
+        td.bool span {
+            transform: rotate(-90deg);
+            display: block;
+            position: absolute;
+            bottom: 0;
+            left: 0.5em;
+            width: 1em;
+        }
+        input.rot { 
+            width: 4em; 
+        }
+        input.pos {
+            width: 3em;
+        }
+    </style>
+    <script language="javascript" type="text/javascript">
+      var output;
+      var wsScheme = (window.location.protocol === "https:") ? "wss://" : "ws://";
+      var wsBaseUri = wsScheme + window.location.host;
+      var wsUri = wsBaseUri + "/ws";
+      var active_nodes = null;
+      var classPrefix = "";
+
+
+      function init()
+      {
+        output = document.getElementById("output");
+        ws_open = document.getElementById("ws_open");
+        ws_close = document.getElementById("ws_close");
+        ws_all_nodes = document.getElementById("ws_all_nodes");
+        node_list = document.getElementById("node_list");
+        runWebSocket();
+      }
+
+      function runWebSocket()
+      {
+        websocket = new WebSocket(wsUri);
+        websocket.onopen = function(evt) { onOpen(evt) };
+        websocket.onclose = function(evt) { onClose(evt) };
+        websocket.onmessage = function(evt) { onMessage(evt) };
+        websocket.onerror = function(evt) { onError(evt) };
+      }
+
+      function onOpen(evt)
+      {
+        ws_open.style.display = "none";
+        ws_close.style.display = "block";
+        ws_all_nodes.style.display = "block";
+        writeToScreen("CONNECTED");
+        doSend("getCommandTemplate");
+        window.setInterval(pollSpatial, 50);
+        hello();
+      }
+
+      function onClose(evt)
+      {
+        writeToScreen("DISCONNECTED");
+        clearNodes();
+        ws_open.style.display = "block";
+        ws_close.style.display = "none";
+        ws_all_nodes.style.display = "none";
+      }
+
+      function clearNodes(){
+        active_nodes = null;
+        node_list.innerHTML = '';
+      }
+
+      function sendCommand(command, silent = false){
+        doSend(JSON.stringify(command), silent);
+      }
+
+      function grow(uuid){
+        sendCommand({ command: "scale", uuid: uuid, payload: {type: classPrefix+"ExchangeFloat", value: 1.25} });
+      }
+
+      function shrink(uuid){
+        sendCommand({ command: "scale", uuid: uuid, payload: {type: classPrefix+"ExchangeFloat", value: 0.8} });
+      }
+
+      function rotate(axis, uuid, amount){
+        sendCommand({ command: "rotate", uuid: uuid, payload: {type: classPrefix+"ExchangeVectorComponent", component: axis, value: amount} });
+      }
+      
+      function move(axis, uuid, amount, mode){
+        sendCommand({ command: "move", uuid: uuid, payload: {type: classPrefix+"ExchangeVectorComponent", component: axis, value: amount, mode: mode} });
+      }
+
+      function pollSpatial(){
+          if(active_nodes){
+            for(node of active_nodes){
+                sendCommand({ command: "getRotation", uuid: node.uuid, "payload": null}, true);
+                sendCommand({ command: "getPosition", uuid: node.uuid, "payload": null}, true);
+            }
+          }
+      }
+
+      function showRotation(uuid, x, y, z, w) {
+        sliderx = document.getElementById("rotx-"+uuid);
+        sliderx.value = x;
+        slidery = document.getElementById("roty-"+uuid);
+        slidery.value = y;
+        sliderz = document.getElementById("rotz-"+uuid);
+        sliderz.value = z;
+        sliderw = document.getElementById("rotw-"+uuid);
+        sliderw.value = w;
+      }
+
+      function showPosition(uuid, x, y, z, w) {
+        valx = document.getElementById("posx-"+uuid);
+        valx.value = x;
+        valy = document.getElementById("posy-"+uuid);
+        valy.value = y;
+        valz = document.getElementById("posz-"+uuid);
+        valz.value = z;
+      }
+
+      function populateNodes(nodes){
+        clearNodes();
+        active_nodes = nodes;
+        table = document.createElement('table');
+        table.id = "nodes";
+        header_line = document.createElement('tr');
+        header_line.classList.add('header');
+        header_line.innerHTML = '<td>name</td><td>uuid</td><td>nodeType</td><td class="bool"><span>spatial</span></td><td class="bool"><span>geometry</span></td><td class="bool"><span>renderable</span></td><td class="bool"><span>material</span></td>';
+        header_line.innerHTML += '<td colspan="2">scale</td><td colspan="4">rotation quaternion</td><td colspan="3">position vector</td>';
+        table.appendChild(header_line);
+        for(const n of nodes){
+            representation = '<td>' + n.name
+                          + '</td><td>' + n.uuid
+                          + '</td><td>' + n.nodeType
+                          + '</td><td class="spatial">' + (n.spatial ? '✅' : '❌')
+                          + '</td><td class="geometry">' + (n.geometry ? '✅' : '❌')
+                          + '</td><td class="renderable">' + (n.renderable ? '✅' : '❌')
+                          + '</td><td class="material">' + (n.material ? '✅' : '❌')
+                          + '</td><td class="grow"><a href="javascript:grow(\''+ n.uuid +'\')">🐘</a>'
+                          + '</td><td class="shrink"><a href="javascript:shrink(\''+ n.uuid +'\')">🐁</a>'
+                          + '</td><td><input type="range" class="rot" id="rotx-'+ n.uuid +'" min="0" max="1" value="0" step="0.01" oninput="rotate(\'0\',\''+ n.uuid +'\', this.value)">'
+                          + '</td><td><input type="range" class="rot" id="roty-'+ n.uuid +'" min="0" max="1" value="0" step="0.01" oninput="rotate(\'1\',\''+ n.uuid +'\', this.value)">'
+                          + '</td><td><input type="range" class="rot" id="rotz-'+ n.uuid +'" min="0" max="1" value="0" step="0.01" oninput="rotate(\'2\',\''+ n.uuid +'\', this.value)">'
+                          + '</td><td><input type="range" class="rot" id="rotw-'+ n.uuid +'" min="0" max="1" value="0" step="0.01" oninput="rotate(\'3\',\''+ n.uuid +'\', this.value)">'
+                          + '</td><td class="move"><a href="javascript:move(\'0\', \''+ n.uuid +'\', -0.25, \'ADD\')">🛵</a>'
+                            + '<input type="number" class="pos" id="posx-'+ n.uuid +'" oninput="move(\'0\',\''+ n.uuid +'\', this.value, \'REPLACE\')">'
+                            + ' <a href="javascript:move(\'0\', \''+ n.uuid +'\', 0.25, \'ADD\')">🚚</a>'
+                          + '</td><td class="move"><a href="javascript:move(\'1\', \''+ n.uuid +'\', -0.25, \'ADD\')">🛵</a>'
+                            + '<input type="number" class="pos" id="posy-'+ n.uuid +'" oninput="move(\'1\',\''+ n.uuid +'\', this.value, \'REPLACE\')">'
+                            + ' <a href="javascript:move(\'1\', \''+ n.uuid +'\', 0.25, \'ADD\')">🚚</a>'
+                          + '</td><td class="move"><a href="javascript:move(\'2\', \''+ n.uuid +'\', -0.25, \'ADD\')">🛵</a>'
+                            + '<input type="number" class="pos" id="posz-'+ n.uuid +'" oninput="move(\'2\',\''+ n.uuid +'\', this.value, \'REPLACE\')">'
+                            + ' <a href="javascript:move(\'2\', \''+ n.uuid +'\', 0.25, \'ADD\')">🚚</a>'
+                          + '</td>';
+
+            var line = document.createElement('tr');
+            line.classList.add('node');
+            line.innerHTML = representation;
+            table.appendChild(line);
+        }
+        node_list.appendChild(table);
+      }
+
+      function onMessage(evt)
+      {
+        jData = null;
+        try {
+            jData = JSON.parse(evt.data);
+        } catch(e) {
+            writeToScreen('<span style="color: #99ff99;">RESPONSE (plain): ' + evt.data +'</span>');
+        }
+        if(jData){
+            silent = false;
+            if(jData.hasOwnProperty('nodes')){
+                populateNodes(jData.nodes);
+            } else if(jData.hasOwnProperty('command')){
+                if(jData.command == "CommandTemplate"){
+                    // Everything up to the last payload's type qualifier constitutes the prefix
+                    classPrefix = jData.payload.type.substring(0, jData.payload.type.lastIndexOf('.') + 1);
+                    writeToScreen("classPrefix = " + classPrefix)
+                }
+            } else if(jData.hasOwnProperty('variable')){
+                if(jData.variable == "rotation"){
+                    silent = true;
+                    showRotation(jData.uuid, jData.payload.x, jData.payload.y, jData.payload.z, jData.payload.w);
+                } else if(jData.variable == "position"){
+                    silent = true;
+                    showPosition(jData.uuid, jData.payload.x, jData.payload.y, jData.payload.z);
+                }
+            }
+            if(!silent) writeToScreen('<span style="color: #339933;">RESPONSE (json): ' + evt.data +'</span>');
+        }
+      }
+
+      function onError(evt)
+      {
+        writeToScreen('<span style="color: #ff9999;">ERROR:</span> ' + evt.data);
+      }
+
+      function hello(){
+        doSend("hello");
+      }
+
+      function doSend(message, silent = false)
+      {
+        if(!silent) writeToScreen("SENT: " + message);
+        websocket.send(message);
+      }
+
+      function writeToScreen(message)
+      {
+        var pre = document.createElement("p");
+        pre.style.wordWrap = "break-word";
+        pre.innerHTML = message;
+        output.insertBefore(pre, output.firstChild);
+      }
+
+      function getAllNodes(){
+        doSend("getAllNodes");
+      }
+
+      window.addEventListener("load", init, false);
+    </script>
+</head>
+
+<body>
+<h1>Scenery WebSocket Client</h1>
+<h2>Global Commands</h2>
+<a href="javascript:runWebSocket();" id="ws_open" style="display:block">open websocket</a>
+<a href="javascript:websocket.close();" id="ws_close" style="display:none">close websocket</a>
+<a href="javascript:getAllNodes()" id="ws_all_nodes" style="display:none">get all nodes</a>
+
+<h2>Scenery Nodes</h2>
+<div id="node_list"></div>
+
+<h2>Message Log</h2>
+<div id="output"></div>
+
+</body>

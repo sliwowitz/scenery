@@ -10,6 +10,7 @@ import graphics.scenery.net.NodeSubscriber
 import graphics.scenery.repl.REPL
 import graphics.scenery.utils.LazyLogger
 import graphics.scenery.utils.Statistics
+import graphics.scenery.websocketserver.WebSocketServer
 import java.util.concurrent.ConcurrentHashMap
 
 /**
@@ -53,6 +54,7 @@ class Hub(val name: String = "default") {
             is NodeSubscriber -> SceneryElement.NodeSubscriber
             is NodePublisher -> SceneryElement.NodePublisher
             is REPL -> SceneryElement.REPL
+            is WebSocketServer -> SceneryElement.WebSocketServer
             else -> SceneryElement.Custom
         }
 

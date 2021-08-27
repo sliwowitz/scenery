@@ -8,6 +8,7 @@ plugins {
     val ktVersion = "1.5.0"
     java
     kotlin("jvm") version ktVersion
+    kotlin("plugin.serialization") version ktVersion
     kotlin("kapt") version ktVersion
     scenery.base
 //    scenery.docs
@@ -94,6 +95,13 @@ dependencies {
     }
     implementation("org.jetbrains.kotlin:kotlin-scripting-jsr223:1.5.0")
     implementation("graphics.scenery:art-dtrack-sdk:2.6.0")
+
+    val ktorVersion = "1.6.2"
+    implementation("io.ktor:ktor-server-core:$ktorVersion")
+    implementation("io.ktor:ktor-server-netty:$ktorVersion")
+    implementation("io.ktor:ktor-websockets:$ktorVersion")
+    implementation("io.ktor:ktor-client-serialization:$ktorVersion")
+    implementation("io.ktor:ktor-jackson:$ktorVersion")
 
     testImplementation(kotlin("test"))
     testImplementation(kotlin("test-junit"))

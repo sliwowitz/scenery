@@ -20,6 +20,7 @@ import graphics.scenery.utils.RemoteryProfiler
 import graphics.scenery.utils.Renderdoc
 import graphics.scenery.utils.SceneryPanel
 import graphics.scenery.utils.Statistics
+import graphics.scenery.websocketserver.WebSocketServer
 import kotlinx.coroutines.*
 import org.lwjgl.system.Platform
 import org.scijava.Context
@@ -55,7 +56,8 @@ open class SceneryBase @JvmOverloads constructor(var applicationName: String,
                        val scijavaContext: Context? = null) {
 
     /** The scene used by the renderer in the application */
-    protected var scene: Scene = Scene()
+    var scene: Scene = Scene()
+    protected set
     /** REPL for the application, can be initialised in the [init] function */
     protected var repl: REPL? = null
     /** Frame number for counting FPS */
@@ -70,6 +72,8 @@ open class SceneryBase @JvmOverloads constructor(var applicationName: String,
     protected var inputHandler: InputHandler? = null
     /** [Statistics] object to collect runtime stats on various routines. */
     protected var stats: Statistics = Statistics(hub)
+    /** WebSocket server to allow live changes of visualization parameters from remote. */
+    protected var webSocketServer: WebSocketServer = WebSocketServer(hub)
 
     /** State variable for registering a new renderer */
     data class NewRendererParameters(val rendererType: String, val hub: Hub,
@@ -221,6 +225,8 @@ open class SceneryBase @JvmOverloads constructor(var applicationName: String,
             repl = REPL(hub, scijavaContext, scene, stats, hub)
             repl?.addAccessibleObject(settings)
         }
+
+        hub.add(SceneryElement.WebSocketServer, webSocketServer)
 
         // initialize renderer, etc first in init, then setup key bindings
         init()
